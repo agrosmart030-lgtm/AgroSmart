@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
-import Home from './pages/home/Home';
-import Cadastro from './pages/cadastro/Cadastro';
-import Dashboard from './pages/dashboard/Dashboard';
-import Login from './pages/login/Login';
+import Cadastro from "./pages/cadastro/Cadastro";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Faq from "./pages/faq/Faq";
+import Home from "./pages/home/Home";
+import Login from "./pages/login/Login";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/faq" element={<Faq />} />
       </Routes>
     </Router>
   );
