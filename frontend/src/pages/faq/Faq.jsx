@@ -1,19 +1,33 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import userImage from "../../assets/user.png";
+import axios from "axios";
 
 export default function SuporteAgricola() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [enviado, setEnviado] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Sua mensagem foi enviada com sucesso!");
-    setForm({ name: "", email: "", message: "" });
+    try {
+      await axios.post("http://localhost:5001/api/faq", {
+        nome: form.name,
+        email: form.email,
+        mensagem: form.message,
+      });
+      setEnviado(true);
+      setForm({ name: "", email: "", message: "" });
+      setTimeout(() => setEnviado(false), 3000);
+    } catch (err) {
+      alert(
+        "Erro ao enviar mensagem: " + (err.response?.data?.error || err.message)
+      );
+    }
   };
 
   const toggleAnswer = (e) => {
@@ -224,6 +238,11 @@ export default function SuporteAgricola() {
             ></textarea>
 
             <button type="submit">Enviar</button>
+            {enviado && (
+              <div style={{ color: "green", marginTop: 8 }}>
+                Mensagem enviada com sucesso!
+              </div>
+            )}
           </form>
         </section>
 

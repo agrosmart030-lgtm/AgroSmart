@@ -52,10 +52,14 @@ app.use("/test", dbTestRoutes);
 import createTabelasRoutes from "./routes/tabelas.js";
 app.use("/api/tabelas", createTabelasRoutes(pool));
 
+// Importa e usa as rotas de FAQ
+import createFaqRoutes from "./routes/faq.js";
+app.use("/api/faq", createFaqRoutes(pool));
+
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
-    title: "API AgroSmart",
+    title: "AgroSmart Methodos",
     version: "1.0.0",
     description: "Documentação da API de Login e Registro do AgroSmart",
   },
@@ -413,6 +417,67 @@ const swaggerDocument = {
             description: "Histórico de cotação criado",
             content: { "application/json": { schema: { type: "object" } } },
           },
+        },
+      },
+    },
+    "/api/faq": {
+      post: {
+        summary: "Enviar mensagem para o FAQ",
+        description: "Adiciona uma nova mensagem enviada pelo usuário ao FAQ.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nome: { type: "string" },
+                  email: { type: "string" },
+                  mensagem: { type: "string" },
+                },
+                required: ["nome", "email", "mensagem"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Mensagem enviada com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    faq: { type: "object" },
+                  },
+                },
+              },
+            },
+          },
+          500: { description: "Erro ao enviar mensagem" },
+        },
+      },
+      get: {
+        summary: "Listar mensagens do FAQ",
+        description: "Retorna as últimas 50 mensagens enviadas pelo FAQ.",
+        responses: {
+          200: {
+            description: "Mensagens listadas com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    faqs: {
+                      type: "array",
+                      items: { type: "object" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          500: { description: "Erro ao consultar mensagens" },
         },
       },
     },
