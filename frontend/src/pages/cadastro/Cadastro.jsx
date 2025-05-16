@@ -62,11 +62,35 @@ export default function Cadastro() {
     if (step < 3) {
       nextStep();
     } else {
-      console.log("Cadastro completo:", data);
-      setShowToast(true);
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      // Monta o payload conforme esperado pelo backend
+      const payload = {
+        nome_completo: data.nome,
+        email: data.email,
+        senha: data.senha,
+        cidade: data.cidade,
+        estado: data.estado,
+        tipo_usuario: data.tipo?.toLowerCase(),
+        codigo_ibge: null, // preencha se tiver
+      };
+      try {
+        const response = await axios.post(
+          "http://localhost:5001/api/registro",
+          payload
+        );
+        if (response.data.success) {
+          setShowToast(true);
+          setTimeout(() => {
+            navigate("/login");
+          }, 2000);
+        } else {
+          alert(response.data.message || "Erro ao cadastrar.");
+        }
+      } catch (error) {
+        alert(
+          "Erro ao cadastrar: " +
+            (error.response?.data?.message || error.message)
+        );
+      }
     }
   };
 
@@ -89,7 +113,9 @@ export default function Cadastro() {
 
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
         <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] h-[635px] overflow-y-auto flex flex-col justify-between">
-          <h2 className="text-2xl font-bold mb-4 text-center">Realize seu cadastro abaixo!</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Realize seu cadastro abaixo!
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 h-3/3">
             {step === 1 && (
               <Step1
