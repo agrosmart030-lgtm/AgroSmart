@@ -62,16 +62,39 @@ export default function Cadastro() {
     if (step < 3) {
       nextStep();
     } else {
-      // Monta o payload conforme esperado pelo backend
+      // Corrige o tipo_usuario para não ter acento e ser minúsculo
+      let tipo = data.tipo;
+      if (tipo) {
+        tipo = tipo
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .toLowerCase();
+      }
       const payload = {
         nome_completo: data.nome,
         email: data.email,
         senha: data.senha,
         cidade: data.cidade,
         estado: data.estado,
-        tipo_usuario: data.tipo?.toLowerCase(),
-        codigo_ibge: null, // preencha se tiver
+        tipo_usuario: tipo,
+        codigo_ibge: null,
       };
+      //Conforme o tipo
+      if (payload.tipo_usuario === "agricultor") {
+        payload.cpf = data.cpf;
+        payload.nomePropriedade = data.nomePropriedade;
+        payload.areaCultivada = data.areaCultivada;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "empresario") {
+        payload.cpf = data.cpf;
+        payload.nomeComercio = data.nomeComercio;
+        payload.cnpj = data.cnpj;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "cooperativa") {
+        payload.nomeCooperativa = data.nomeCooperativa;
+        payload.cnpj = data.cnpj;
+        payload.areaAtuacao = data.areaAtuacao;
+      }
       try {
         const response = await axios.post(
           "http://localhost:5001/api/registro",

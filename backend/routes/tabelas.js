@@ -3,7 +3,7 @@ import { Router } from "express";
 export default function createTabelasRoutes(pool) {
   const router = Router();
 
-  // Retorna todas as tabelas do banco de dados atual
+  
   router.get("/", async (req, res) => {
     try {
       const result = await pool.query(`
@@ -18,7 +18,7 @@ export default function createTabelasRoutes(pool) {
     }
   });
 
-  // Retorna todas as tabelas e seus dados (primeiros 20 registros de cada)
+  
   router.get("/dados", async (req, res) => {
     try {
       const tabelasResult = await pool.query(`
@@ -40,6 +40,25 @@ export default function createTabelasRoutes(pool) {
         }
       }
       res.json({ tabelas, dados });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+
+  router.get("/:tabela", async (req, res) => {
+    const { tabela } = req.params;
+    try {
+     
+      const validTablesResult = await pool.query(`
+        SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+      `);
+      const validTables = validTablesResult.rows.map((r) => r.table_name);
+      if (!validTables.includes(tabela)) {
+        return res.status(400).json({ error: "Tabela não encontrada." });
+      }
+      const result = await pool.query(`SELECT * FROM ${tabela} LIMIT 20`);
+      res.json({ tabela, dados: result.rows });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

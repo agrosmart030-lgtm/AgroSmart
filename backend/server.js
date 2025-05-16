@@ -212,6 +212,42 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/tabelas/{tabela}": {
+      get: {
+        summary: "Listar dados de uma tabela específica",
+        description: "Retorna até 20 registros da tabela informada.",
+        parameters: [
+          {
+            name: "tabela",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Nome da tabela a ser consultada",
+          },
+        ],
+        responses: {
+          200: {
+            description: "Dados da tabela retornados com sucesso",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    tabela: { type: "string" },
+                    dados: {
+                      type: "array",
+                      items: { type: "object" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: "Tabela não encontrada." },
+          500: { description: "Erro ao consultar dados da tabela" },
+        },
+      },
+    },
   },
 };
 
