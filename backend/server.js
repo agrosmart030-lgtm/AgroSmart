@@ -1,29 +1,46 @@
-// backend/server.js
-
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const sql = require("./db");
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import pkg from "pg";
+import swaggerUi from "swagger-ui-express";
+const { Pool } = pkg;
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = 5001;
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Rota de teste
-app.get("/", async (req, res) => {
-  try {
-    const result = await sql`SELECT version()`;
-    res.send(`PostgreSQL conectado: ${result[0].version}`);
-  } catch (err) {
-    res.status(500).send("Erro ao conectar com o banco");
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "agrosmart",
+  password: "Rubinho091123",
+  port: 5432,
+});
+
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error("Erro ao conectar ao banco de dados:", err.stack);
+  } else {
+    console.log("Conexão com o banco de dados estabelecida com sucesso.");
+    release();
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend rodando em http://localhost:${PORT}`);
+pool.on("error", (err) => {
+  console.error("Erro inesperado no cliente do banco de dados:", err);
 });
-const cooperativaRoutes = require("./routes/cooperativa");
-app.use("/api/cooperativas", cooperativaRoutes);
 
+// Adiciona pool no app para acesso nas rotas
+app.set("pool", pool);
+
+// Importa e usa as rotas de teste de conexão
+import dbTestRoutes from "./routes/dbTest.js";
+app.use("/test", dbTestRoutes);
+
+// ...adicione suas rotas e lógica aqui...
+
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});

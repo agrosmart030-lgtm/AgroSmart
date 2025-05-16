@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "concurrently": "^7.6.0"
+  },
+  "dependencies": {
+    "swagger-ui-express": "^5.0.1"
   }
 }
