@@ -13,7 +13,6 @@ export default function createRegistroRoutes(pool) {
       estado,
       tipo_usuario,
       codigo_ibge,
-      // Novos campos para cada tipo
       cpf,
       nomePropriedade,
       areaCultivada,

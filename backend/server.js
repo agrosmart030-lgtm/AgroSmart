@@ -248,6 +248,174 @@ const swaggerDocument = {
         },
       },
     },
+    "/api/tabelas/agricultores": {
+      post: {
+        summary: "Adicionar agricultor (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  usuario_id: { type: "integer" },
+                  cpf: { type: "string" },
+                  nome_propriedade: { type: "string" },
+                  area_cultivada: { type: "number" },
+                },
+                required: ["usuario_id", "cpf"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Agricultor criado",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
+    "/api/tabelas/empresarios": {
+      post: {
+        summary: "Adicionar empresário (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  usuario_id: { type: "integer" },
+                  cpf: { type: "string" },
+                  nome_empresa: { type: "string" },
+                  cnpj: { type: "string" },
+                },
+                required: ["usuario_id", "nome_empresa"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Empresário criado",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
+    "/api/tabelas/cooperativas": {
+      post: {
+        summary: "Adicionar cooperativa (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  usuario_id: { type: "integer" },
+                  nome_cooperativa: { type: "string" },
+                  cnpj: { type: "string" },
+                  regiao_atuacao: { type: "string" },
+                  numero_associados: { type: "integer" },
+                },
+                required: ["usuario_id", "nome_cooperativa", "cnpj"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Cooperativa criada",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
+    "/api/tabelas/graos": {
+      post: {
+        summary: "Adicionar grão (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  nome: { type: "string" },
+                  codigo_api: { type: "string" },
+                  unidade_medida: { type: "string" },
+                  cotacao_atual: { type: "number" },
+                  data_atualizacao: { type: "string", format: "date-time" },
+                },
+                required: ["nome"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Grão criado",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
+    "/api/tabelas/usuario-grao": {
+      post: {
+        summary: "Adicionar relacionamento usuário-grão (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  usuario_id: { type: "integer" },
+                  grao_id: { type: "integer" },
+                  tipo_relacao: { type: "string" },
+                },
+                required: ["usuario_id", "grao_id", "tipo_relacao"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Relacionamento criado",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
+    "/api/tabelas/historico-cotacao": {
+      post: {
+        summary: "Adicionar histórico de cotação (preencher tabela)",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  grao_id: { type: "integer" },
+                  preco: { type: "number" },
+                  data_cotacao: { type: "string", format: "date" },
+                },
+                required: ["grao_id", "preco", "data_cotacao"],
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Histórico de cotação criado",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+        },
+      },
+    },
   },
 };
 
