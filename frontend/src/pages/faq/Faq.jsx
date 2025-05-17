@@ -30,11 +30,6 @@ export default function SuporteAgricola() {
     }
   };
 
-  const toggleAnswer = (e) => {
-    const answer = e.currentTarget.nextElementSibling;
-    answer.classList.toggle("hidden");
-  };
-
   const faqData = [
     {
       question: "Como posso entrar em contato?",
@@ -132,14 +127,29 @@ export default function SuporteAgricola() {
           <h2 className="text-2xl font-bold mb-4">Perguntas Frequentes</h2>
 
           {faqData.map((item, index) => (
-            <div key={index} className="mb-4">
-              <div
-                className="cursor-pointer text-lg font-medium text-green-700"
-                onClick={toggleAnswer}
+            <div key={index} className="mb-4 border-b pb-4">
+              <button
+                className="w-full text-left text-lg font-medium text-green-700 hover:text-green-900 transition-colors duration-300 flex justify-between items-center"
+                onClick={() => {
+                  const answerElement = document.getElementById(`answer-${index}`);
+                  if (answerElement.classList.contains('hidden')) {
+                    answerElement.classList.remove('hidden');
+                    answerElement.classList.add('block');
+                  } else {
+                    answerElement.classList.remove('block');
+                    answerElement.classList.add('hidden');
+                  }
+                }}
               >
                 {item.question}
+                <span className="text-gray-500">+</span>
+              </button>
+              <div
+                id={`answer-${index}`}
+                className="hidden text-gray-700 mt-2 transition-all duration-500 ease-in-out"
+              >
+                {item.answer}
               </div>
-              <div className="hidden text-gray-700 mt-2">{item.answer}</div>
             </div>
           ))}
         </section>
