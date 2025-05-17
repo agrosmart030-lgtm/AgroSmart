@@ -9,11 +9,16 @@ export default function Navbar({ isLoggedIn }) {
       style={{ backgroundColor: "#2e7d32", height: "85px" }}
     >
       <div className="navbar-start ml-4 md:ml-12">
-        <img src={logo} alt="Logo AgroSmart" className="w-10 h-10" />
-        <span className="text-3xl font-bold ml-2">
-          <span style={{ color: "#ffc107" }}>Agro</span>
-          <span style={{ color: "#fff" }}>Smart</span>
-        </span>
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+        >
+          <img src={logo} alt="Logo AgroSmart" className="w-10 h-10" />
+          <span className="text-3xl font-bold">
+            <span style={{ color: "#ffc107" }}>Agro</span>
+            <span style={{ color: "#fff" }}>Smart</span>
+          </span>
+        </Link>
       </div>
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
