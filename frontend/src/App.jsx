@@ -5,6 +5,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/faq" element={<Faq />} />
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

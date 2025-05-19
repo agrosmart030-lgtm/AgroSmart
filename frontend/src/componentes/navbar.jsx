@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
 
-export default function Navbar({ isLoggedIn }) {
+export default function Navbar({ isLoggedIn, isAdminFaq }) {
   return (
     <div
       className="navbar fixed top-0 left-0 right-0 z-50"
@@ -22,14 +22,44 @@ export default function Navbar({ isLoggedIn }) {
       </div>
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/cotacoes">Cotações</Link></li>
-          <li><Link to="/clima">Clima</Link></li>
-          <li><Link to="/faq">FAQ</Link></li>
+          {isAdminFaq ? (
+            <>
+              <li>
+                <Link to="/admin">Admin</Link>
+              </li>
+              <li>
+                <Link to="/admin/usuarios">Usuários</Link>
+              </li>
+              <li>
+                <Link to="/admin/tabelas">Tabelas</Link>
+              </li>
+              <li>
+                <Link to="/admin/faq">FAQ</Link>
+              </li>
+              <li>
+                <Link to="/admin/estatisticas">Estatísticas</Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link to="/dashboard">Dashboard</Link>
+              </li>
+              <li>
+                <Link to="/cotacoes">Cotações</Link>
+              </li>
+              <li>
+                <Link to="/clima">Clima</Link>
+              </li>
+              <li>
+                <Link to="/faq">FAQ</Link>
+              </li>
+            </>
+          )}
         </ul>
       </div>
       <div className="navbar-end mr-4 gap-2">
-        {!isLoggedIn ? (
+        {isAdminFaq ? null : !isLoggedIn ? (
           <>
             <Link
               to="/login"
@@ -62,7 +92,9 @@ export default function Navbar({ isLoggedIn }) {
               tabIndex={0}
               className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              <li><Link to="/configs">Configurações</Link></li>
+              <li>
+                <Link to="/configs">Configurações</Link>
+              </li>
               <li>
                 <button
                   onClick={() => {
