@@ -5,7 +5,7 @@ import Footer from "../../componentes/footer";
 export default function AdminDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <Navbar isAdminFaq />
+      <Navbar isAdmin />
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6 text-green-800">
           Painel do Administrador
@@ -55,6 +55,7 @@ export default function AdminDashboard() {
               Ver Estatísticas
             </button>
           </div>
+          {/* Card Logs */}
         </div>
       </main>
       <Footer />

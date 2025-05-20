@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
 
-export default function Navbar({ isLoggedIn, isAdminFaq }) {
+export default function Navbar({ isLoggedIn, isAdmin }) {
   return (
     <div
       className="navbar fixed top-0 left-0 right-0 z-50"
@@ -22,7 +22,7 @@ export default function Navbar({ isLoggedIn, isAdminFaq }) {
       </div>
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
-          {isAdminFaq ? (
+          {isAdmin ? (
             <>
               <li>
                 <Link to="/admin">Admin</Link>
@@ -59,7 +59,7 @@ export default function Navbar({ isLoggedIn, isAdminFaq }) {
         </ul>
       </div>
       <div className="navbar-end mr-4 gap-2">
-        {isAdminFaq ? null : !isLoggedIn ? (
+        {isAdmin ? null : !isLoggedIn ? (
           <>
             <Link
               to="/login"
