@@ -1,12 +1,47 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import background1 from "../../assets/background1.jpg";
 
 export default function LoginAdmin() {
+  const [nome, setNome] = useState("");
+  const [senha, setSenha] = useState("");
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://localhost:5001/api/login/admin",
+        {
+          nome,
+          senha,
+        }
+      );
+      if (response.data.success) {
+        localStorage.setItem("admin", JSON.stringify(response.data.admin));
+        navigate("/admin");
+      } else {
+        alert("Credenciais de admin inválidas!");
+      }
+    } catch (error) {
+      alert(
+        "Erro ao fazer login admin: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100"
-    style={{ backgroundImage: `url(${background1})` }}>
+    <div
+      className="flex flex-col items-center justify-center min-h-screen bg-gray-100"
+      style={{ backgroundImage: `url(${background1})` }}
+    >
       <h1 className="text-4xl text-gray-200 font-bold mb-6">Login Admin</h1>
-      <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-sm"
+      >
         <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
@@ -19,6 +54,8 @@ export default function LoginAdmin() {
             id="username"
             type="text"
             placeholder="Usuário"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
           />
         </div>
         <div className="mb-6">
@@ -33,12 +70,14 @@ export default function LoginAdmin() {
             id="password"
             type="password"
             placeholder="Senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
           />
         </div>
         <div className="flex items-center justify-between mt-4">
           <button
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="button"
+            type="submit"
           >
             Entrar
           </button>

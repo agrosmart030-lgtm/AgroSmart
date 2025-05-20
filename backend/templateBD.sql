@@ -65,6 +65,16 @@ CREATE TABLE tb_faq (
     data_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE tb_admin (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    senha VARCHAR(255) NOT NULL
+);
+
+INSERT INTO tb_admin (nome, senha)
+VALUES ('admin', 'admin');
+   
+
 CREATE DATABASE agrosmart
     WITH
     OWNER = postgres
