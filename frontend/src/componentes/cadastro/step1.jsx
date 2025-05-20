@@ -30,6 +30,16 @@ export default function Step1({
         register={register}
         errors={errors}
         showToggle
+        validate={{
+          validate: (value) => {
+            if (!value) return "Senha é obrigatória";
+            if (value.length < 6)
+              return "A senha deve ter pelo menos 6 dígitos";
+            if (!/\d/.test(value))
+              return "A senha deve conter pelo menos um número";
+            return true;
+          },
+        }}
       />
       <InputField
         label="Confirmar Senha"

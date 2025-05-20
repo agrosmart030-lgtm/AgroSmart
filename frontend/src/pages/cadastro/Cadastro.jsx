@@ -62,11 +62,58 @@ export default function Cadastro() {
     if (step < 3) {
       nextStep();
     } else {
-      console.log("Cadastro completo:", data);
-      setShowToast(true);
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      // Corrige o tipo_usuario para não ter acento e ser minúsculo
+      let tipo = data.tipo;
+      if (tipo) {
+        tipo = tipo
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .toLowerCase();
+      }
+      const payload = {
+        nome_completo: data.nome,
+        email: data.email,
+        senha: data.senha,
+        cidade: data.cidade,
+        estado: data.estado,
+        tipo_usuario: tipo,
+        codigo_ibge: null,
+      };
+      //Conforme o tipo
+      if (payload.tipo_usuario === "agricultor") {
+        payload.cpf = data.cpf;
+        payload.nomePropriedade = data.nomePropriedade;
+        payload.areaCultivada = data.areaCultivada;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "empresario") {
+        payload.cpf = data.cpf;
+        payload.nomeComercio = data.nomeComercio;
+        payload.cnpj = data.cnpj;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "cooperativa") {
+        payload.nomeCooperativa = data.nomeCooperativa;
+        payload.cnpj = data.cnpj;
+        payload.areaAtuacao = data.areaAtuacao;
+      }
+      try {
+        const response = await axios.post(
+          "http://localhost:5001/api/registro",
+          payload
+        );
+        if (response.data.success) {
+          setShowToast(true);
+          setTimeout(() => {
+            navigate("/login");
+          }, 2000);
+        } else {
+          alert(response.data.message || "Erro ao cadastrar.");
+        }
+      } catch (error) {
+        alert(
+          "Erro ao cadastrar: " +
+            (error.response?.data?.message || error.message)
+        );
+      }
     }
   };
 
@@ -89,7 +136,9 @@ export default function Cadastro() {
 
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
         <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] h-[635px] overflow-y-auto flex flex-col justify-between">
-          <h2 className="text-2xl font-bold mb-4 text-center">Realize seu cadastro abaixo!</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Realize seu cadastro abaixo!
+          </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 h-3/3">
             {step === 1 && (
               <Step1

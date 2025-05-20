@@ -2,29 +2,64 @@ import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
 
-export default function Navbar({ isLoggedIn }) {
+export default function Navbar({ isLoggedIn, isAdmin }) {
   return (
     <div
       className="navbar fixed top-0 left-0 right-0 z-50"
       style={{ backgroundColor: "#2e7d32", height: "85px" }}
     >
       <div className="navbar-start ml-4 md:ml-12">
-        <img src={logo} alt="Logo AgroSmart" className="w-10 h-10" />
-        <span className="text-3xl font-bold ml-2">
-          <span style={{ color: "#ffc107" }}>Agro</span>
-          <span style={{ color: "#fff" }}>Smart</span>
-        </span>
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+        >
+          <img src={logo} alt="Logo AgroSmart" className="w-10 h-10" />
+          <span className="text-3xl font-bold">
+            <span style={{ color: "#ffc107" }}>Agro</span>
+            <span style={{ color: "#fff" }}>Smart</span>
+          </span>
+        </Link>
       </div>
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/cotacoes">Cotações</Link></li>
-          <li><Link to="/clima">Clima</Link></li>
-          <li><Link to="/faq">FAQ</Link></li>
+          {isAdmin ? (
+            <>
+              <li>
+                <Link to="/admin">Admin</Link>
+              </li>
+              <li>
+                <Link to="/admin/usuarios">Usuários</Link>
+              </li>
+              <li>
+                <Link to="/admin/tabelas">Tabelas</Link>
+              </li>
+              <li>
+                <Link to="/admin/faq">FAQ</Link>
+              </li>
+              <li>
+                <Link to="/admin/estatisticas">Estatísticas</Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link to="/dashboard">Dashboard</Link>
+              </li>
+              <li>
+                <Link to="/cotacoes">Cotações</Link>
+              </li>
+              <li>
+                <Link to="/clima">Clima</Link>
+              </li>
+              <li>
+                <Link to="/faq">FAQ</Link>
+              </li>
+            </>
+          )}
         </ul>
       </div>
       <div className="navbar-end mr-4 gap-2">
-        {!isLoggedIn ? (
+        {isAdmin ? null : !isLoggedIn ? (
           <>
             <Link
               to="/login"
@@ -57,7 +92,9 @@ export default function Navbar({ isLoggedIn }) {
               tabIndex={0}
               className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              <li><Link to="/configs">Configurações</Link></li>
+              <li>
+                <Link to="/configs">Configurações</Link>
+              </li>
               <li>
                 <button
                   onClick={() => {

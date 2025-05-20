@@ -1,19 +1,38 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import loginImg from "../../assets/cadastro.jpg";
 import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
 
 export default function Login() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const [showSenha, setShowSenha] = useState(false);
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
-    console.log("Dados de login:", data);
-    // Aqui você pode colocar a lógica de autenticação
-    navigate("/dashboard");
+    try {
+      const response = await axios.post("http://localhost:5001/api/login", {
+        email: data.email,
+        senha: data.senha,
+      });
+      if (response.data.success) {
+        localStorage.setItem("user", JSON.stringify(response.data.usuario));
+        navigate("/dashboard");
+      } else {
+        alert("Credenciais inválidas!");
+      }
+    } catch (error) {
+      alert(
+        "Erro ao fazer login: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
   };
 
   return (
@@ -35,7 +54,10 @@ export default function Login() {
               Acesse sua conta para continuar
             </p>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4 text-left"
+            >
               <InputField
                 label="E-mail"
                 name="email"
