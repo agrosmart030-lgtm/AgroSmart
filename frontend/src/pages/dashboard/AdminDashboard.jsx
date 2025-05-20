@@ -55,7 +55,28 @@ export default function AdminDashboard() {
               Ver Estatísticas
             </button>
           </div>
+          {/* Card Novo Admin */}
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <span className="text-5xl mb-2 text-red-500">🖥️</span>
+            <h2 className="text-xl font-semibold mb-2">Adicionar novo Admin</h2>
+            <p className="text-gray-600 mb-4 text-center">
+              Adicionar um novo administrador ao sistema.
+            </p>
+            <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+              Criar Admin
+            </button>
+          </div>
           {/* Card Logs */}
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <span className="text-5xl mb-2 text-black">📋</span>
+            <h2 className="text-xl font-semibold mb-2">Tabelas Logs</h2>
+            <p className="text-gray-600 mb-4 text-center">
+              Consulte os registros da pagina.
+            </p>
+            <button className="bg-black text-white px-4 py-2 rounded hover:bg-black transition">
+              Consultar Logs
+            </button>
+          </div>
         </div>
       </main>
       <Footer />
