@@ -112,7 +112,7 @@ export default function UserDistributionChart() {
       <h2 className="text-xl font-semibold mb-4 text-center">
         Distribuição de Usuários
       </h2>
-      <div className="text-center mb-4">
+      <div className="text-center mb-2">
         <span className="text-2xl font-bold">{totalUsers}</span>
         <span className="text-gray-600 ml-2">usuários registrados</span>
       </div>
@@ -143,11 +143,11 @@ export default function UserDistributionChart() {
         </ResponsiveContainer>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mt-6">
+      <div className="grid grid-cols-3 gap-2 mt-4">
         {userData.map((entry) => (
           <div
             key={entry.type}
-            className="bg-gray-50 p-3 rounded-lg text-center"
+            className="bg-gray-50 p-2 rounded-lg text-center"
           >
             <div className="flex items-center justify-center mb-1">
               <div

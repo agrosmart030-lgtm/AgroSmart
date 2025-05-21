@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
 import UserDistributionChart from "../../componentes/admin/tabelaUsuarios";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar isAdmin />
@@ -15,6 +17,9 @@ export default function AdminDashboard() {
           Painel do Administrador
         </h1>
         <UserDistributionChart />
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Gerenciamento do Sistema
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card Usuários */}
           <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
@@ -23,7 +28,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Visualize, edite ou remova usuários cadastrados.
             </p>
-            <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+            <button
+              onClick={() => navigate("/admin/GenUser")}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            >
               Acessar
             </button>
           </div>
@@ -34,7 +42,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Consulte e gerencie as tabelas do sistema.
             </p>
-            <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">
+            <button
+              onClick={() => navigate("/admin/TabelasBanco")}
+              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+            >
               Acessar
             </button>
           </div>
@@ -45,7 +56,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Veja e responda dúvidas enviadas pelos usuários.
             </p>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+            <button
+              onClick={() => navigate("/admin/FaqAdmin")}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            >
               Acessar
             </button>
           </div>
@@ -56,7 +70,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Acompanhe dados e métricas do sistema.
             </p>
-            <button className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
+            <button
+              onClick={() => navigate("/admin/EstatisticasAdmin")}
+              className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition"
+            >
               Ver Estatísticas
             </button>
           </div>
@@ -67,7 +84,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Adicionar um novo administrador ao sistema.
             </p>
-            <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+            <button
+              onClick={() => navigate("/admin/NovoAdmin")}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+            >
               Criar Admin
             </button>
           </div>
@@ -78,7 +98,10 @@ export default function AdminDashboard() {
             <p className="text-gray-600 mb-4 text-center">
               Consulte os registros da pagina.
             </p>
-            <button className="bg-black text-white px-4 py-2 rounded hover:bg-black transition">
+            <button
+              onClick={() => navigate("/admin/LogsAdmin")}
+              className="bg-black text-white px-4 py-2 rounded hover:bg-black transition"
+            >
               Consultar Logs
             </button>
           </div>
