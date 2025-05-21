@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "recharts": "^2.15.3",
+    "lucide-react": "^0.511.0",
     "swagger-ui-express": "^5.0.1"
   }
 }

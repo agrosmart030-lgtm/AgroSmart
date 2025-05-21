@@ -1,11 +1,12 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import Cadastro from "./pages/cadastro/Cadastro";
+import Configuraçao from "./pages/configuracao/Configuracao";
+import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
-import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import LoginAdmin from "./pages/login/LoginAdmin";
 import GenUser from "./pages/admin/GenUser";
 import TabelasBanco from "./pages/admin/TabelasBanco";
@@ -31,6 +32,7 @@ function App() {
         <Route path="/admin/EstatisticasAdmin" element={<EstatisticasAdmin />}/>
         <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
         <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
+        <Route path="/configuracao" element={<Configuraçao />} />
       </Routes>
     </Router>
   );
