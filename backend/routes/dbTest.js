@@ -39,4 +39,17 @@ router.get("/db-version", async (req, res) => {
   }
 });
 
+// Rota para distribuição de usuários por tipo
+router.get("/usuarios-tipo", async (req, res) => {
+  try {
+    const pool = req.app.get("pool");
+    const result = await pool.query("SELECT tipo_usuario FROM tb_usuario");
+    res.json(result.rows);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Erro ao buscar usuários", details: err.message });
+  }
+});
+
 export default router;

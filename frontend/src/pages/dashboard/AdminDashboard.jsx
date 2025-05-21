@@ -1,15 +1,20 @@
 import React from "react";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
+import UserDistributionChart from "../../componentes/admin/tabelaUsuarios";
 
 export default function AdminDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar isAdmin />
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main
+        className="flex-1 container mx-auto px-4 py-8 gap-90 text-center"
+        style={{ paddingTop: "90px" }}
+      >
         <h1 className="text-3xl font-bold mb-6 text-green-800">
           Painel do Administrador
         </h1>
+        <UserDistributionChart />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card Usuários */}
           <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
