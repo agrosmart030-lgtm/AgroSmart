@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
 
 export default function Navbar({ isLoggedIn, isAdmin }) {
@@ -93,7 +93,7 @@ export default function Navbar({ isLoggedIn, isAdmin }) {
               className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
             >
               <li>
-                <Link to="/configs">Configurações</Link>
+                <Link to="/configuracao">Configurações</Link>
               </li>
               <li>
                 <button
