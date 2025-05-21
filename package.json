@@ -11,6 +11,7 @@
     "concurrently": "^7.6.0"
   },
   "dependencies": {
+    "recharts": "^2.15.3",
     "swagger-ui-express": "^5.0.1"
   }
 }

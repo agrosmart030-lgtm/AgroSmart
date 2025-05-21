@@ -71,10 +71,6 @@ CREATE TABLE tb_admin (
     senha VARCHAR(255) NOT NULL
 );
 
-INSERT INTO tb_admin (nome, senha)
-VALUES ('admin', 'admin');
-   
-
 CREATE DATABASE agrosmart
     WITH
     OWNER = postgres
