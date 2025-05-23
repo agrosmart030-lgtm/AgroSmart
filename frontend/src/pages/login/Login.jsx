@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import loginImg from "../../assets/cadastro.jpg";
 import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
@@ -14,6 +15,7 @@ export default function Login() {
   } = useForm();
   const [showSenha, setShowSenha] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const onSubmit = async (data) => {
     try {
@@ -22,7 +24,7 @@ export default function Login() {
         senha: data.senha,
       });
       if (response.data.success) {
-        localStorage.setItem("user", JSON.stringify(response.data.usuario));
+        login(response.data.usuario);
         navigate("/dashboard");
       } else {
         alert("Credenciais inválidas!");
