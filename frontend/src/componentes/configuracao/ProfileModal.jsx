@@ -1,23 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { User, Settings, X, Lock, Save } from "lucide-react";
+import { useEstadosECidades } from "../../hooks/useEstadosECidades";
 
-export default function ProfileModal({
-  isModalOpen,
-  closeModal,
-  usuario,
-  handleUsuarioChange,
-  estados,
-  renderCamposEspecificos,
-  senhaAtual,
-  setSenhaAtual,
-  novaSenha,
-  setNovaSenha,
-  confirmarSenha,
-  setConfirmarSenha,
-  handleSalvar,
-  isLoading,
-}) {
+export default function ProfileModal({ isModalOpen, closeModal }) {
+  // Hooks devem ser chamados sempre, antes de qualquer return
+  const [usuario, setUsuario] = useState({
+    nome_completo: "Usuário Exemplo",
+    email: "usuario@email.com",
+    tipo_usuario: "neutro",
+    cidade: "",
+    estado: "",
+    codigo_ibge: "",
+  });
+  const { estados, cidades } = useEstadosECidades(usuario.estado);
+
   if (!isModalOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
@@ -55,7 +53,7 @@ export default function ProfileModal({
                   type="text"
                   value={usuario.nome_completo}
                   onChange={(e) =>
-                    handleUsuarioChange("nome_completo", e.target.value)
+                    setUsuario((u) => ({ ...u, nome_completo: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
@@ -68,22 +66,11 @@ export default function ProfileModal({
                 <input
                   type="email"
                   value={usuario.email}
-                  onChange={(e) => handleUsuarioChange("email", e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cidade
-                </label>
-                <input
-                  type="text"
-                  value={usuario.cidade}
                   onChange={(e) =>
-                    handleUsuarioChange("cidade", e.target.value)
+                    setUsuario((u) => ({ ...u, email: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  required
                 />
               </div>
               <div>
@@ -93,14 +80,44 @@ export default function ProfileModal({
                 <select
                   value={usuario.estado}
                   onChange={(e) =>
-                    handleUsuarioChange("estado", e.target.value)
+                    setUsuario((u) => ({
+                      ...u,
+                      estado: e.target.value,
+                      cidade: "",
+                    }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 >
                   <option value="">Selecione o estado</option>
                   {estados.map((estado) => (
-                    <option key={estado} value={estado}>
-                      {estado}
+                    <option
+                      key={estado.id || estado}
+                      value={estado.sigla || estado}
+                    >
+                      {estado.nome || estado}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Cidade
+                </label>
+                <select
+                  value={usuario.cidade}
+                  onChange={(e) =>
+                    setUsuario((u) => ({ ...u, cidade: e.target.value }))
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  disabled={!usuario.estado}
+                >
+                  <option value="">Selecione a cidade</option>
+                  {cidades.map((cidade) => (
+                    <option
+                      key={cidade.id || cidade.nome}
+                      value={cidade.nome || cidade}
+                    >
+                      {cidade.nome || cidade}
                     </option>
                   ))}
                 </select>
@@ -113,10 +130,7 @@ export default function ProfileModal({
                   type="number"
                   value={usuario.codigo_ibge}
                   onChange={(e) =>
-                    handleUsuarioChange(
-                      "codigo_ibge",
-                      parseInt(e.target.value) || ""
-                    )
+                    setUsuario((u) => ({ ...u, codigo_ibge: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="Código IBGE da cidade"
@@ -127,16 +141,15 @@ export default function ProfileModal({
           {/* Informações Específicas do Tipo de Usuário */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              {/* O ícone do tipo de usuário pode ser passado como prop se quiser */}
               <span className="text-green-600">
                 Informações de{" "}
-                {usuario.tipo_usuario?.charAt(0).toUpperCase() +
-                  usuario.tipo_usuario?.slice(1)}
+                {usuario.tipo_usuario.charAt(0).toUpperCase() +
+                  usuario.tipo_usuario.slice(1)}
               </span>
             </h3>
-            <div className="space-y-6">{renderCamposEspecificos()}</div>
+            <div className="space-y-6">{/* Nenhum campo específico */}</div>
           </div>
-          {/* Alteração de Senha */}
+          {/* Alteração de Senha (apenas visual, sem funcionalidade) */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Lock className="w-5 h-5 text-green-600" />
@@ -149,8 +162,8 @@ export default function ProfileModal({
                 </label>
                 <input
                   type="password"
-                  value={senhaAtual}
-                  onChange={(e) => setSenhaAtual(e.target.value)}
+                  value=""
+                  readOnly
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
@@ -160,8 +173,8 @@ export default function ProfileModal({
                 </label>
                 <input
                   type="password"
-                  value={novaSenha}
-                  onChange={(e) => setNovaSenha(e.target.value)}
+                  value=""
+                  readOnly
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
@@ -171,35 +184,21 @@ export default function ProfileModal({
                 </label>
                 <input
                   type="password"
-                  value={confirmarSenha}
-                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  value=""
+                  readOnly
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
             </div>
-            {novaSenha && confirmarSenha && novaSenha !== confirmarSenha && (
-              <p className="text-red-600 text-sm mt-2">
-                As senhas não coincidem
-              </p>
-            )}
           </div>
-        </div>
-        {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-green-200 rounded-b-lg">
-          <div className="flex justify-end gap-4">
+          {/* Botão de Salvar (apenas visual) */}
+          <div className="flex justify-end mt-8">
             <button
-              onClick={closeModal}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSalvar}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              disabled
             >
               <Save className="w-5 h-5" />
-              {isLoading ? "Salvando..." : "Salvar Alterações"}
+              Salvar Alterações
             </button>
           </div>
         </div>
