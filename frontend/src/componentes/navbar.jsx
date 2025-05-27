@@ -33,16 +33,22 @@ export default function Navbar() {
                 <Link to="/admin">Admin</Link>
               </li>
               <li>
-                <Link to="/admin/usuarios">Usuários</Link>
+                <Link to="/admin/GenUser">Usuários</Link>
               </li>
               <li>
-                <Link to="/admin/tabelas">Tabelas</Link>
+                <Link to="/admin/TabelasBanco">Tabelas</Link>
               </li>
               <li>
-                <Link to="/admin/faq">FAQ</Link>
+                <Link to="/admin/FaqAdmin">FAQ</Link>
               </li>
               <li>
-                <Link to="/admin/estatisticas">Estatísticas</Link>
+                <Link to="/admin/EstatisticasAdmin">Estatísticas</Link>
+              </li>
+              <li>
+                <Link to="/admin/LogsAdmin">Logs</Link>
+              </li>
+              <li>
+                <Link to="/admin/NovoAdmin">Novo Admin</Link>
               </li>
             </>
           ) : (

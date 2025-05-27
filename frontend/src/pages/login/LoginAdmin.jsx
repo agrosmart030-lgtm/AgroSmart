@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import background1 from "../../assets/background1.jpg";
 
 export default function LoginAdmin() {
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function LoginAdmin() {
         }
       );
       if (response.data.success) {
-        localStorage.setItem("admin", JSON.stringify(response.data.admin));
+        login({ ...response.data.admin, tipo_usuario: "admin" });
         navigate("/admin");
       } else {
         alert("Credenciais de admin inválidas!");
