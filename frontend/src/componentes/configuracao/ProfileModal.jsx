@@ -1,20 +1,155 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, Settings, X, Lock, Save } from "lucide-react";
 import { useEstadosECidades } from "../../hooks/useEstadosECidades";
 
-export default function ProfileModal({ isModalOpen, closeModal }) {
-  // Hooks devem ser chamados sempre, antes de qualquer return
-  const [usuario, setUsuario] = useState({
-    nome_completo: "Usuário Exemplo",
-    email: "usuario@email.com",
-    tipo_usuario: "neutro",
-    cidade: "",
-    estado: "",
-    codigo_ibge: "",
-  });
-  const { estados, cidades } = useEstadosECidades(usuario.estado);
+export default function ProfileModal({
+  isModalOpen,
+  closeModal,
+  usuario,
+  setUsuario,
+}) {
+  // Estado local para edição
+  const [form, setForm] = useState(usuario);
+  const { estados, cidades } = useEstadosECidades(form.estado);
+
+  useEffect(() => {
+    setForm(usuario);
+  }, [usuario, isModalOpen]);
 
   if (!isModalOpen) return null;
+
+  // Campos específicos por tipo de usuário
+  const renderCamposEspecificos = () => {
+    switch (form.tipo_usuario) {
+      case "agricultor":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CPF
+              </label>
+              <input
+                type="text"
+                value={form.cpf || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, cpf: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Propriedade
+              </label>
+              <input
+                type="text"
+                value={form.nome_propriedade || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, nome_propriedade: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Área Cultivada (ha)
+              </label>
+              <input
+                type="number"
+                value={form.area_cultivada || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, area_cultivada: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+        );
+      case "empresario":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nome da Empresa
+              </label>
+              <input
+                type="text"
+                value={form.nome_empresa || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, nome_empresa: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CNPJ
+              </label>
+              <input
+                type="text"
+                value={form.cnpj || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, cnpj: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+        );
+      case "cooperativa":
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nome da Cooperativa
+              </label>
+              <input
+                type="text"
+                value={form.nome_cooperativa || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, nome_cooperativa: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CNPJ
+              </label>
+              <input
+                type="text"
+                value={form.cnpj || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, cnpj: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nº de Associados
+              </label>
+              <input
+                type="number"
+                value={form.numero_associados || ""}
+                onChange={(e) =>
+                  setForm((u) => ({ ...u, numero_associados: e.target.value }))
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Simulação de salvar (depois trocar por chamada API)
+  const handleSave = () => {
+    setUsuario(form);
+    closeModal();
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -51,9 +186,9 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
                 </label>
                 <input
                   type="text"
-                  value={usuario.nome_completo}
+                  value={form.nome_completo}
                   onChange={(e) =>
-                    setUsuario((u) => ({ ...u, nome_completo: e.target.value }))
+                    setForm((u) => ({ ...u, nome_completo: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
@@ -65,9 +200,9 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
                 </label>
                 <input
                   type="email"
-                  value={usuario.email}
+                  value={form.email}
                   onChange={(e) =>
-                    setUsuario((u) => ({ ...u, email: e.target.value }))
+                    setForm((u) => ({ ...u, email: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   required
@@ -78,9 +213,9 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
                   Estado
                 </label>
                 <select
-                  value={usuario.estado}
+                  value={form.estado}
                   onChange={(e) =>
-                    setUsuario((u) => ({
+                    setForm((u) => ({
                       ...u,
                       estado: e.target.value,
                       cidade: "",
@@ -104,12 +239,12 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
                   Cidade
                 </label>
                 <select
-                  value={usuario.cidade}
+                  value={form.cidade}
                   onChange={(e) =>
-                    setUsuario((u) => ({ ...u, cidade: e.target.value }))
+                    setForm((u) => ({ ...u, cidade: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  disabled={!usuario.estado}
+                  disabled={!form.estado}
                 >
                   <option value="">Selecione a cidade</option>
                   {cidades.map((cidade) => (
@@ -128,9 +263,9 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
                 </label>
                 <input
                   type="number"
-                  value={usuario.codigo_ibge}
+                  value={form.codigo_ibge}
                   onChange={(e) =>
-                    setUsuario((u) => ({ ...u, codigo_ibge: e.target.value }))
+                    setForm((u) => ({ ...u, codigo_ibge: e.target.value }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="Código IBGE da cidade"
@@ -143,11 +278,11 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <span className="text-green-600">
                 Informações de{" "}
-                {usuario.tipo_usuario.charAt(0).toUpperCase() +
-                  usuario.tipo_usuario.slice(1)}
+                {form.tipo_usuario.charAt(0).toUpperCase() +
+                  form.tipo_usuario.slice(1)}
               </span>
             </h3>
-            <div className="space-y-6">{/* Nenhum campo específico */}</div>
+            <div className="space-y-6">{renderCamposEspecificos()}</div>
           </div>
           {/* Alteração de Senha (apenas visual, sem funcionalidade) */}
           <div>
@@ -191,11 +326,11 @@ export default function ProfileModal({ isModalOpen, closeModal }) {
               </div>
             </div>
           </div>
-          {/* Botão de Salvar (apenas visual) */}
+          {/* Botão de Salvar */}
           <div className="flex justify-end mt-8">
             <button
               className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-              disabled
+              onClick={handleSave}
             >
               <Save className="w-5 h-5" />
               Salvar Alterações
