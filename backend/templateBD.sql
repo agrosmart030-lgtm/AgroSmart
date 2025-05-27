@@ -6,7 +6,8 @@ CREATE TABLE tb_usuario (
     cidade VARCHAR(100),
     estado VARCHAR(100),
     tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('agricultor', 'empresario', 'cooperativa')) NOT NULL,
-    codigo_ibge INTEGER
+    codigo_ibge INTEGER,
+    status VARCHAR(10) DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo'))
 );
 
 CREATE TABLE tb_agricultor (
