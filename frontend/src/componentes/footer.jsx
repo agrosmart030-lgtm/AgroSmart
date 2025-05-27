@@ -16,9 +16,9 @@ export default function Footer() {
         <h6 className="footer-title text-white">Empresa</h6>
         <a className="link link-hover text-white">Sobre Nós</a>
         <a className="link link-hover text-white">Contato</a>
-        <a className="link link-hover text-white">
-          <Link to="/LoginAdmin">Portal Admin</Link>
-        </a>
+        <Link to="/LoginAdmin" className="link link-hover text-white">
+          Portal Admin
+        </Link>
       </nav>
       <nav>
         <h6 className="footer-title text-white">Legal</h6>

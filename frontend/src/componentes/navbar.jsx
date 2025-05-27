@@ -1,8 +1,13 @@
 import { FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
+import { useAuth } from "../context/AuthContext";
 
-export default function Navbar({ isLoggedIn, isAdmin }) {
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const isLoggedIn = !!user;
+  const isAdmin = user?.tipo_usuario === "admin";
+
   return (
     <div
       className="navbar fixed top-0 left-0 right-0 z-50"
@@ -98,7 +103,7 @@ export default function Navbar({ isLoggedIn, isAdmin }) {
               <li>
                 <button
                   onClick={() => {
-                    localStorage.removeItem("user");
+                    logout();
                     window.location.reload();
                   }}
                 >

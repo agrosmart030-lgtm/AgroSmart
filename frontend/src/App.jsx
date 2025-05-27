@@ -1,5 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
+import { AuthProvider } from "./context/AuthContext";
+
 import Cadastro from "./pages/cadastro/Cadastro";
 import Configuraçao from "./pages/configuracao/Configuracao";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
@@ -17,24 +19,29 @@ import LogsAdmin from "./pages/admin/LogsAdmin";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/faq" element={<Faq />} />
-        <Route path="/LoginAdmin" element={<LoginAdmin />} /> 
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/GenUser" element={<GenUser />} />
-        <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
-        <Route path="/admin/FaqAdmin" element={<FaqAdmin />} />
-        <Route path="/admin/EstatisticasAdmin" element={<EstatisticasAdmin />}/>
-        <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
-        <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
-        <Route path="/configuracao" element={<Configuraçao />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/LoginAdmin" element={<LoginAdmin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/GenUser" element={<GenUser />} />
+          <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
+          <Route path="/admin/FaqAdmin" element={<FaqAdmin />} />
+          <Route
+            path="/admin/EstatisticasAdmin"
+            element={<EstatisticasAdmin />}
+          />
+          <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
+          <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
+          <Route path="/configuracao" element={<Configuraçao />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
