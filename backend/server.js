@@ -60,6 +60,9 @@ app.use("/api/faq", createFaqRoutes(pool));
 import createConfiguracaoRoutes from "./routes/configuracao.js";
 app.use("/api/configuracao", createConfiguracaoRoutes(pool));
 
+import usuarios from "./routes/usuarios.js";
+app.use("/api", usuarios);
+
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
