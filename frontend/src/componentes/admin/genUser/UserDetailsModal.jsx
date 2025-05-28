@@ -25,12 +25,21 @@ const UserDetailsModal = ({ user, isOpen, onClose }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
+                  ID do Usuário
+                </label>
+                <p className="mt-1 text-sm text-gray-900">{user.id}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
                   Nome Completo
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
                   {user.nome_completo}
                 </p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Email

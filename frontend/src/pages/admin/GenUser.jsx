@@ -74,19 +74,19 @@ const UserManagement = () => {
 
   const handleToggleStatus = async (user) => {
     const newStatus = user.status === "ativo" ? "inativo" : "ativo";
-
-  
-    // const response = await fetch(`/api/usuarios/${user.id}/status`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ status: newStatus })
-    // });
-
-    
-    const updatedUsers = users.map((u) =>
-      u.id === user.id ? { ...u, status: newStatus } : u
-    );
-    setUsers(updatedUsers);
+    try {
+      await fetch(`http://localhost:5001/api/usuarios/${user.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const updatedUsers = users.map((u) =>
+        u.id === user.id ? { ...u, status: newStatus } : u
+      );
+      setUsers(updatedUsers);
+    } catch {
+      // Tratar erro se necessário
+    }
   };
 
   if (loading) {
