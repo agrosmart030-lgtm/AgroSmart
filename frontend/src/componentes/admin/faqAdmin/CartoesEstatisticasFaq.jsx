@@ -3,6 +3,8 @@ import { MessageCircle, Plus, Calendar, User } from "lucide-react";
 
 const CartoesEstatisticasFaq = ({ faqs }) => {
   const total = faqs.length;
+  const pendentes = faqs.filter((faq) => faq.pendentes).length;
+  const respondidas = faqs.filter((faq) => faq.respondida).length;
   const novasHoje = faqs.filter((faq) => {
     const hoje = new Date();
     const dataFaq = new Date(faq.data_envio);
@@ -33,7 +35,7 @@ const CartoesEstatisticasFaq = ({ faqs }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Pendentes</p>
-            <p className="text-2xl font-bold text-yellow-600">MJ</p>
+            <p className="text-2xl font-bold text-yellow-600">{pendentes}</p>
           </div>
           <Calendar className="h-8 w-8 text-yellow-500" />
         </div>
@@ -42,7 +44,7 @@ const CartoesEstatisticasFaq = ({ faqs }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Respondidas</p>
-            <p className="text-2xl font-bold text-purple-600">MJ</p>
+            <p className="text-2xl font-bold text-purple-600">{respondidas}</p>
           </div>
           <User className="h-8 w-8 text-purple-500" />
         </div>
