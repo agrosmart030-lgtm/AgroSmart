@@ -63,6 +63,8 @@ CREATE TABLE tb_faq (
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     mensagem TEXT NOT NULL,
+    resposta TEXT,
+    status VARCHAR(20) DEFAULT 'nova' CHECK (status IN ('nova', 'pendente', 'respondido')),
     data_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
