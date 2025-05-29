@@ -17,14 +17,13 @@ const UserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Buscar usuários da API
+
   useEffect(() => {
     const loadUsers = async () => {
       setLoading(true);
       try {
         const response = await fetch("http://localhost:5001/api/usuarios");
         const data = await response.json();
-        // Remover campo senha antes de exibir na tabela
         const dataSemSenha = data.map((user) => {
           const { senha: _, ...rest } = user;
           return rest;
@@ -40,7 +39,6 @@ const UserManagement = () => {
     loadUsers();
   }, []);
 
-  // Aplicar filtros
   useEffect(() => {
     let filtered = users;
 
