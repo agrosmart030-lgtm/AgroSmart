@@ -40,9 +40,12 @@ const CartaoTabela = ({ tabela, aoSelecionar, selecionada }) => {
     return cores[nomeTabela] || "bg-gray-100 text-gray-600";
   };
 
+  
+
   const Icone = obterIcone(tabela.nome);
 
   return (
+    
     <div
       className={`p-6 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
         selecionada
