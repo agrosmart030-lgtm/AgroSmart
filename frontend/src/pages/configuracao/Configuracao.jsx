@@ -1,5 +1,5 @@
 import { Edit, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Footer from "../../componentes/footer";
 import Navbar from "../../componentes/navbar";
 import { useAuth } from "../../context/AuthContext";
@@ -8,18 +8,23 @@ import ProfileInfo from "../../componentes/configuracao/ProfileInfo";
 import ProfileModal from "../../componentes/configuracao/ProfileModal";
 
 const SistemaPerfil = () => {
-  const { logout, isLoggedIn } = useAuth();
+  const { logout, isLoggedIn, user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Dados de exemplo neutros
-  const usuario = {
-    nome_completo: "Usuário Exemplo",
-    email: "usuario@email.com",
-    tipo_usuario: "neutro",
-    cidade: "",
-    estado: "",
-    codigo_ibge: "",
-  };
+  // Estado centralizado do usuário
+  const [usuario, setUsuario] = useState(null);
+
+  // Buscar dados do usuário autenticado ao carregar a página
+  useEffect(() => {
+    if (user && user.id) {
+      fetch(`http://localhost:5001/api/configuracao/${user.id}`)
+        .then((res) => res.json())
+        .then((data) => setUsuario(data))
+        .catch(() => {
+          // fallback: mantém usuário nulo ou mostra erro
+        });
+    }
+  }, [user]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -52,6 +57,16 @@ const SistemaPerfil = () => {
     );
   }
 
+  if (!usuario) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
+        <div className="text-gray-600 text-lg">
+          Carregando dados do perfil...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="70-h-screen bg-gradient-to-br from-green-50 to-green-100">
       {/* Header */}
@@ -62,7 +77,7 @@ const SistemaPerfil = () => {
           {/* Profile Header */}
           <ProfileHeader usuario={usuario} />
           {/* Profile Info */}
-          <ProfileInfo />
+          <ProfileInfo usuario={usuario} />
           {/* Action Buttons */}
           <div className="px-6 py-4 bg-green-50 border-t border-green-100 flex justify-between items-center rounded-b-lg">
             <button
@@ -83,8 +98,13 @@ const SistemaPerfil = () => {
         </div>
       </main>
       <Footer />
-      {/* Modal apenas estrutura, sem props de manipulação */}
-      <ProfileModal isModalOpen={isModalOpen} closeModal={closeModal} />
+      {/* Modal recebe usuario e função de atualização */}
+      <ProfileModal
+        isModalOpen={isModalOpen}
+        closeModal={closeModal}
+        usuario={usuario}
+        setUsuario={setUsuario}
+      />
     </div>
   );
 };

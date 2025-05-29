@@ -1,4 +1,4 @@
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaSignOutAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
 import { useAuth } from "../context/AuthContext";
@@ -7,6 +7,13 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const isLoggedIn = !!user;
   const isAdmin = user?.tipo_usuario === "admin";
+
+  const handleLogout = () => {
+    if (window.confirm('Tem certeza que deseja sair do sistema?')) {
+      logout();
+      window.location.reload();
+    }
+  };
 
   return (
     <div
@@ -25,57 +32,134 @@ export default function Navbar() {
           </span>
         </Link>
       </div>
+      
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
           {isAdmin ? (
             <>
               <li>
-                <Link to="/admin">Admin</Link>
+                <Link 
+                  to="/admin"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Admin
+                </Link>
               </li>
               <li>
-                <Link to="/admin/usuarios">Usuários</Link>
+                <Link 
+                  to="/admin/GenUser"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Usuários
+                </Link>
               </li>
               <li>
-                <Link to="/admin/tabelas">Tabelas</Link>
+                <Link 
+                  to="/admin/TabelasBanco"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Tabelas
+                </Link>
               </li>
               <li>
-                <Link to="/admin/faq">FAQ</Link>
+                <Link 
+                  to="/admin/FaqAdmin"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  FAQ
+                </Link>
               </li>
               <li>
-                <Link to="/admin/estatisticas">Estatísticas</Link>
+                <Link 
+                  to="/admin/EstatisticasAdmin"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Estatísticas
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/admin/LogsAdmin"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Logs
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/admin/NovoAdmin"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Novo Admin
+                </Link>
               </li>
             </>
           ) : (
             <>
               <li>
-                <Link to="/dashboard">Dashboard</Link>
+                <Link 
+                  to="/dashboard"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  Dashboard
+                </Link>
               </li>
               <li>
-                <Link to="/cotacoes">Cotações</Link>
+                <Link 
+                  to="/cotacoes"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  Cotações
+                </Link>
               </li>
               <li>
-                <Link to="/clima">Clima</Link>
+                <Link 
+                  to="/clima"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  Clima
+                </Link>
               </li>
               <li>
-                <Link to="/faq">FAQ</Link>
+                <Link 
+                  to="/faq"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
+                >
+                  FAQ
+                </Link>
               </li>
             </>
           )}
         </ul>
       </div>
+      
       <div className="navbar-end mr-4 gap-2">
-        {isAdmin ? null : !isLoggedIn ? (
+        {isAdmin ? (
+          // Botão de logout específico para admin
+          <button
+            onClick={handleLogout}
+            className="btn btn-sm text-white border-2 border-white/30 hover:border-white/50 hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+            style={{ 
+              backgroundColor: "rgba(255,255,255,0.15)",
+              borderRadius: "25px",
+              fontWeight: "600"
+            }}
+          >
+            <FaSignOutAlt size={14} />
+            Sair
+          </button>
+        ) : !isLoggedIn ? (
           <>
             <Link
               to="/login"
-              className="btn btn-sm text-white"
+              className="btn btn-sm text-white hover:scale-105 transition-transform duration-300"
               style={{ backgroundColor: "rgba(76,175,80,0.6)" }}
             >
               Login
             </Link>
             <Link
               to="/cadastro"
-              className="btn btn-sm text-white"
+              className="btn btn-sm text-white hover:scale-105 transition-transform duration-300"
               style={{ backgroundColor: "rgba(255,193,7,0.8)" }}
             >
               Cadastre-se
@@ -85,7 +169,7 @@ export default function Navbar() {
           <div className="dropdown dropdown-end">
             <label
               tabIndex={0}
-              className="btn btn-circle btn-sm"
+              className="btn btn-circle btn-sm hover:scale-105 transition-transform duration-300"
               style={{
                 backgroundColor: "rgba(76,175,80,0.6)",
                 color: "#fff",
@@ -101,12 +185,7 @@ export default function Navbar() {
                 <Link to="/configuracao">Configurações</Link>
               </li>
               <li>
-                <button
-                  onClick={() => {
-                    logout();
-                    window.location.reload();
-                  }}
-                >
+                <button onClick={handleLogout}>
                   Sair
                 </button>
               </li>

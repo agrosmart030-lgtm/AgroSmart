@@ -1,31 +1,13 @@
 import React from "react";
 
-export default function ProfileInfo() {
-  // Dados de exemplo neutros
-  const usuario = {
-    nome_completo: "Usuário Exemplo",
-    email: "usuario@exemplo.com",
-    cidade: "Cidade Exemplo",
-    estado: "UF",
-    codigo_ibge: "0000000",
-    tipo_usuario: "agricultor", // pode ser alterado para testar outros tipos
-  };
-
-  const dadosEspecificos = {
-    cpf: "00000000000",
-    nome_propriedade: "Propriedade Exemplo",
-    area_cultivada: 0,
-    nome_empresa: "Empresa Exemplo",
-    cnpj: "00000000000000",
-    nome_cooperativa: "Cooperativa Exemplo",
-    numero_associados: 0,
-  };
-
+export default function ProfileInfo({ usuario }) {
   // Funções de formatação neutras
   const formatCPF = (value) =>
-    value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    value ? value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4") : "";
   const formatCNPJ = (value) =>
-    value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    value
+      ? value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
+      : "";
 
   return (
     <div className="px-6 py-6">
@@ -60,20 +42,18 @@ export default function ProfileInfo() {
               <>
                 <div className="flex justify-between">
                   <span className="text-gray-600">CPF:</span>
-                  <span className="font-medium">
-                    {formatCPF(dadosEspecificos.cpf)}
-                  </span>
+                  <span className="font-medium">{formatCPF(usuario.cpf)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Propriedade:</span>
                   <span className="font-medium">
-                    {dadosEspecificos.nome_propriedade}
+                    {usuario.nome_propriedade}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Área:</span>
                   <span className="font-medium">
-                    {dadosEspecificos.area_cultivada} ha
+                    {usuario.area_cultivada} ha
                   </span>
                 </div>
               </>
@@ -82,14 +62,12 @@ export default function ProfileInfo() {
               <>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Empresa:</span>
-                  <span className="font-medium">
-                    {dadosEspecificos.nome_empresa}
-                  </span>
+                  <span className="font-medium">{usuario.nome_empresa}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">CNPJ:</span>
                   <span className="font-medium">
-                    {formatCNPJ(dadosEspecificos.cnpj)}
+                    {formatCNPJ(usuario.cnpj)}
                   </span>
                 </div>
               </>
@@ -99,19 +77,19 @@ export default function ProfileInfo() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Cooperativa:</span>
                   <span className="font-medium">
-                    {dadosEspecificos.nome_cooperativa}
+                    {usuario.nome_cooperativa}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">CNPJ:</span>
                   <span className="font-medium">
-                    {formatCNPJ(dadosEspecificos.cnpj)}
+                    {formatCNPJ(usuario.cnpj)}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Associados:</span>
                   <span className="font-medium">
-                    {dadosEspecificos.numero_associados}
+                    {usuario.numero_associados}
                   </span>
                 </div>
               </>

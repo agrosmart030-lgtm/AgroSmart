@@ -1,61 +1,140 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
+import Navbar from "../../componentes/navbar";
+import UserFilters from "../../componentes/admin/genUser/UserFilters";
+import UsersTable from "../../componentes/admin/genUser/UsersTable";
+import UserDetailsModal from "../../componentes/admin/genUser/UserDetailsModal";
 
-export default function GenUser() {
-  const [usuarios, setUsuarios] = useState([]);
+// Componente Principal
+const UserManagement = () => {
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [filters, setFilters] = useState({
+    search: "",
+    tipoUsuario: "",
+    status: "",
+  });
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
 
   useEffect(() => {
-    const fetchUsuarios = async () => {
+    const loadUsers = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get(
-          "http://localhost:5001/api/tabelas/tb_usuario"
-        );
-        setUsuarios(res.data.dados || []);
-        setLoading(false);
+        const response = await fetch("http://localhost:5001/api/usuarios");
+        const data = await response.json();
+        const dataSemSenha = data.map((user) => {
+          const { senha: _, ...rest } = user;
+          return rest;
+        });
+        setUsers(dataSemSenha);
+        setFilteredUsers(dataSemSenha);
       } catch {
-        setError("Erro ao carregar usuários");
-        setLoading(false);
+        setUsers([]);
+        setFilteredUsers([]);
       }
+      setLoading(false);
     };
-    fetchUsuarios();
+    loadUsers();
   }, []);
 
-  if (loading) return <div className="p-8">Carregando usuários...</div>;
-  if (error) return <div className="p-8 text-red-600">{error}</div>;
+  useEffect(() => {
+    let filtered = users;
+
+    if (filters.search) {
+      filtered = filtered.filter(
+        (user) =>
+          user.nome_completo
+            .toLowerCase()
+            .includes(filters.search.toLowerCase()) ||
+          user.email.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    if (filters.tipoUsuario) {
+      filtered = filtered.filter(
+        (user) => user.tipo_usuario === filters.tipoUsuario
+      );
+    }
+
+    if (filters.status) {
+      filtered = filtered.filter((user) => user.status === filters.status);
+    }
+
+    setFilteredUsers(filtered);
+  }, [filters, users]);
+
+  const handleViewDetails = (user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "ativo" ? "inativo" : "ativo";
+    try {
+      await fetch(`http://localhost:5001/api/usuarios/${user.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const updatedUsers = users.map((u) =>
+        u.id === user.id ? { ...u, status: newStatus } : u
+      );
+      setUsers(updatedUsers);
+    } catch {
+      // Tratar erro se necessário
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando usuários...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Gerenciar Usuários</h1>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded shadow">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 border">ID</th>
-              <th className="px-4 py-2 border">Nome</th>
-              <th className="px-4 py-2 border">E-mail</th>
-              <th className="px-4 py-2 border">Tipo</th>
-              <th className="px-4 py-2 border">Cidade</th>
-              <th className="px-4 py-2 border">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((u) => (
-              <tr key={u.id} className="hover:bg-gray-100">
-                <td className="px-4 py-2 border">{u.id}</td>
-                <td className="px-4 py-2 border">{u.nome_completo}</td>
-                <td className="px-4 py-2 border">{u.email}</td>
-                <td className="px-4 py-2 border capitalize">
-                  {u.tipo_usuario}
-                </td>
-                <td className="px-4 py-2 border">{u.cidade}</td>
-                <td className="px-4 py-2 border">{u.estado}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto px-6 py-8 pt-28">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-green-700 mb-2">
+            Gerenciamento de Usuários
+          </h1>
+          <p className="text-gray-600">
+            Visualize, edite ou remova usuários cadastrados no sistema.
+          </p>
+        </div>
+        <UserFilters filters={filters} onFiltersChange={setFilters} />
+        <div className="mb-4 flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            Mostrando {filteredUsers.length} de {users.length} usuários
+          </p>
+        </div>
+        <UsersTable
+          users={filteredUsers}
+          onViewDetails={handleViewDetails}
+          onToggleStatus={handleToggleStatus}
+        />
+        <UserDetailsModal
+          user={selectedUser}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </div>
   );
-}
+};
+
+export default UserManagement;

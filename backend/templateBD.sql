@@ -6,7 +6,8 @@ CREATE TABLE tb_usuario (
     cidade VARCHAR(100),
     estado VARCHAR(100),
     tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('agricultor', 'empresario', 'cooperativa')) NOT NULL,
-    codigo_ibge INTEGER
+    codigo_ibge INTEGER,
+    status VARCHAR(10) DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo'))
 );
 
 CREATE TABLE tb_agricultor (
@@ -62,6 +63,8 @@ CREATE TABLE tb_faq (
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     mensagem TEXT NOT NULL,
+    resposta TEXT,
+    status VARCHAR(20) DEFAULT 'nova' CHECK (status IN ('nova', 'pendente', 'respondido')),
     data_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -1,100 +1,87 @@
--- Usuários
 INSERT INTO tb_usuario (nome_completo, email, senha, cidade, estado, tipo_usuario, codigo_ibge)
 VALUES
-('Carlos Silva', 'carlos@gmail.com', 'senha123', 'Maringá', 'Paraná', 'agricultor', 4115200),
-('Maria Oliveira', 'maria@gmail.com', 'senha456', 'Londrina', 'Paraná', 'empresario', 4113700),
-('Coop Norte', 'coopnorte@gmail.com', 'senha789', 'Cascavel', 'Paraná', 'cooperativa', 4104808);
+('Carlos Silva', 'carlos@gmail.com', 'senha123', 'Maringá', 'PR', 'agricultor', 4115200),
+('Fernanda Souza', 'fernanda@gmail.com', 'senha456', 'Londrina', 'PR', 'empresario', 4113700),
+('Cooperativa Vale Verde', 'valeverde@coop.com', 'coop123', 'Campo Mourão', 'PR', 'cooperativa', 4104303),
+('José Oliveira', 'jose@gmail.com', 'senha789', 'Cascavel', 'PR', 'agricultor', 4104808),
+('Ana Martins', 'ana@gmail.com', 'senhaabc', 'Curitiba', 'PR', 'empresario', 4106902),
+('AgroCoop Central', 'central@agrocoop.com', 'agrocoop321', 'Umuarama', 'PR', 'cooperativa', 4128104),
+('Mateus Lima', 'mateus@gmail.com', 'senha321', 'Ponta Grossa', 'PR', 'agricultor', 4119905),
+('Lucas Pereira', 'lucas@gmail.com', 'senha654', 'Foz do Iguaçu', 'PR', 'empresario', 4108304),
+('CoopAgro Oeste', 'oeste@coop.com', 'coop456', 'Toledo', 'PR', 'cooperativa', 4127709),
+('Mariana Costa', 'mariana@gmail.com', 'senha987', 'Apucarana', 'PR', 'agricultor', 4101508),
+('Bruno Ramos', 'bruno@gmail.com', 'senha741', 'Guarapuava', 'PR', 'empresario', 4109401),
+('Cooperativa Campo Bom', 'campobom@coop.com', 'coop789', 'Francisco Beltrão', 'PR', 'cooperativa', 4108403),
+('Gustavo Rocha', 'gustavo@gmail.com', 'senha159', 'Cianorte', 'PR', 'agricultor', 4105508),
+('Renata Dias', 'renata@gmail.com', 'senha753', 'Paranavaí', 'PR', 'empresario', 4118400),
+('Eduardo Nunes', 'eduardo@gmail.com', 'senha852', 'Arapongas', 'PR', 'agricultor', 4101805);
 
--- Agricultor (relacionado ao Carlos)
 INSERT INTO tb_agricultor (usuario_id, cpf, nome_propriedade, area_cultivada)
-VALUES (1, '12345678901', 'Sítio Primavera', 150.75);
+VALUES
+(1, '12345678901', 'Sítio Bela Vista', 45.50),
+(4, '98765432100', 'Chácara Santa Luzia', 32.10),
+(7, '45678912300', 'Fazenda Novo Horizonte', 100.00),
+(10, '32165498700', 'Sítio Três Lagoas', 27.75),
+(13, '15975348620', 'Fazenda Santa Rita', 65.30),
+(15, '75315985220', 'Sítio Bom Jesus', 40.00);
 
--- Empresário (relacionado à Maria)
 INSERT INTO tb_empresario (usuario_id, cpf, nome_empresa, cnpj)
-VALUES (2, '10987654321', 'AgroComercial Ltda', '12345678000199');
+VALUES
+(2, '11122233344', 'AgroTech Ltda', '12345678000199'),
+(5, '55566677788', 'GreenAgro Brasil', '98765432000155'),
+(8, '99988877766', 'CampoFértil Agro', '55443322000188'),
+(11, '33322211100', 'MegaAgrícola', '99887766000111'),
+(14, '77788899900', 'Terra Boa Agro', '11122233000144');
 
--- Cooperativa (relacionada à Coop Norte)
 INSERT INTO tb_cooperativa (usuario_id, nome_cooperativa, cnpj, regiao_atuacao, numero_associados)
-VALUES (3, 'Cooperativa Norte', '98765432000155', 'Região Norte do PR', 120);
+VALUES
+(3, 'Cooperativa Vale Verde', '11223344000100', 'Noroeste do PR', 150),
+(6, 'AgroCoop Central', '55667788000155', 'Oeste do PR', 230),
+(9, 'CoopAgro Oeste', '44556677000122', 'Oeste do PR', 185),
+(12, 'Cooperativa Campo Bom', '77889911000133', 'Sudoeste do PR', 200);
 
--- Grãos
 INSERT INTO tb_grao (nome, codigo_api, unidade_medida, cotacao_atual, data_atualizacao)
 VALUES
-('Soja', 'SOJA_PR', 'saca', 120.50, CURRENT_TIMESTAMP),
-('Milho', 'MILHO_PR', 'saca', 65.30, CURRENT_TIMESTAMP),
-('Trigo', 'TRIGO_PR', 'saca', 98.75, CURRENT_TIMESTAMP);
+('Soja', 'SOJA01', 'saca', 135.20, NOW()),
+('Milho', 'MILHO01', 'saca', 75.50, NOW()),
+('Trigo', 'TRIGO01', 'saca', 98.30, NOW()),
+('Feijão', 'FEIJAO01', 'saca', 220.00, NOW());
 
--- Relacionamento de usuários com grãos
 INSERT INTO tb_usuario_grao (usuario_id, grao_id, tipo_relacao)
 VALUES
 (1, 1, 'cultiva'),
-(1, 2, 'interesse'),
+(4, 2, 'cultiva'),
+(7, 3, 'cultiva'),
+(10, 1, 'cultiva'),
+(13, 2, 'cultiva'),
+(15, 4, 'cultiva'),
 (2, 1, 'interesse'),
-(3, 3, 'cultiva');
+(5, 2, 'interesse'),
+(8, 3, 'interesse'),
+(11, 4, 'interesse'),
+(3, 1, 'interesse'),
+(6, 2, 'interesse'),
+(9, 3, 'interesse'),
+(12, 4, 'interesse');
 
--- Histórico de cotações
 INSERT INTO tb_historico_cotacao (grao_id, preco, data_cotacao)
 VALUES
-(1, 118.00, '2025-05-19'),
-(1, 120.50, '2025-05-20'),
-(2, 64.00, '2025-05-19'),
-(3, 97.50, '2025-05-19');
+(1, 134.00, '2024-05-01'),
+(1, 135.20, '2024-05-15'),
+(2, 74.00, '2024-05-01'),
+(2, 75.50, '2024-05-15'),
+(3, 97.00, '2024-05-01'),
+(3, 98.30, '2024-05-15'),
+(4, 215.00, '2024-05-01'),
+(4, 220.00, '2024-05-15');
 
--- FAQ
 INSERT INTO tb_faq (nome, email, mensagem)
 VALUES
-('João Teste', 'joao@gmail.com', 'Gostaria de saber mais sobre a cooperativa.'),
-('Ana Cliente', 'ana@gmail.com', 'Como faço para me associar?');
+('Carlos Silva', 'carlos@gmail.com', 'Como posso atualizar minhas cotações?'),
+('Fernanda Souza', 'fernanda@gmail.com', 'Posso adicionar mais de uma empresa?'),
+('José Oliveira', 'jose@gmail.com', 'Tem como alterar meu cadastro?');
 
--- Admin (já existia, mas vamos adicionar mais um pra testar)
 INSERT INTO tb_admin (nome, senha)
-VALUES ('admin', 'admin');
-VALUES ('admin2', 'senhaadmin2');
-
-
-
---------------------------------------------------------------------------------------------------------------
-
--- Mais Usuários
-INSERT INTO tb_usuario (nome_completo, email, senha, cidade, estado, tipo_usuario, codigo_ibge)
 VALUES
-('Pedro Almeida', 'pedro@gmail.com', 'senha789', 'Curitiba', 'Paraná', 'agricultor', 4106902),
-('Lucas Mendes', 'lucas@gmail.com', 'senhaabc', 'Maringá', 'Paraná', 'empresario', 4115200),
-('AgroSul Cooperativa', 'agrosul@gmail.com', 'senhaagro', 'Campo Mourão', 'Paraná', 'cooperativa', 4104303),
-('Fernanda Souza', 'fernanda@gmail.com', 'senha456', 'Londrina', 'Paraná', 'agricultor', 4113700),
-('Paulo Lima', 'paulo@gmail.com', 'senha123', 'Cascavel', 'Paraná', 'empresario', 4104808);
-
--- Agricultores
-INSERT INTO tb_agricultor (usuario_id, cpf, nome_propriedade, area_cultivada)
-VALUES
-(4, '11122233344', 'Chácara Boa Vista', 80.50),
-(7, '55566677788', 'Fazenda Santa Luzia', 200.00);
-
--- Empresários
-INSERT INTO tb_empresario (usuario_id, cpf, nome_empresa, cnpj)
-VALUES
-(5, '22233344455', 'AgroMais Ltda', '11122233000155'),
-(9, '77788899900', 'Comercial AgroLima', '22233344000166');
-
--- Cooperativas
-INSERT INTO tb_cooperativa (usuario_id, nome_cooperativa, cnpj, regiao_atuacao, numero_associados)
-VALUES
-(6, 'AgroSul Cooperativa', '33344455000177', 'Região Centro-Oeste do PR', 85);
-
--- Relacionamento de usuários com grãos
-INSERT INTO tb_usuario_grao (usuario_id, grao_id, tipo_relacao)
-VALUES
-(4, 1, 'cultiva'),
-(4, 2, 'cultiva'),
-(5, 1, 'interesse'),
-(5, 3, 'interesse'),
-(6, 1, 'cultiva'),
-(7, 2, 'cultiva'),
-(9, 3, 'interesse');
-
--- Histórico de cotações adicionais
-INSERT INTO tb_historico_cotacao (grao_id, preco, data_cotacao)
-VALUES
-(1, 121.00, '2025-05-21'),
-(2, 66.00, '2025-05-21'),
-(3, 99.00, '2025-05-21');
+('Admin1', 'admin123'),
+('Admin2', 'senha456');
