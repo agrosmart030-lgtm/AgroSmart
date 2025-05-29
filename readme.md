@@ -2,13 +2,20 @@
 
 ## Descrição
 
-O AgroSmart é uma aplicação web para gestão de cooperativas agrícolas, com backend em Node.js/Express e banco de dados PostgreSQL, e frontend em React. O sistema permite cadastro, login, gerenciamento de usuários, consulta e inserção de dados em tabelas agrícolas, além de um canal de FAQ integrado ao banco.
+O **AgroSmart** é uma plataforma web para gestão de cooperativas agrícolas, produtores e empresários do agronegócio. O sistema permite cadastro, login, gerenciamento de usuários, consulta e inserção de dados em tabelas do banco, além de um canal de FAQ integrado ao banco de dados.
 
-## Tecnologias Utilizadas
-
-- **Backend:** Node.js, Express, PostgreSQL, dotenv, pg
-- **Frontend:** React, React Router, Tailwind CSS, DaisyUI, Vite
+- **Backend:** Node.js + Express + PostgreSQL
+- **Frontend:** React + Tailwind CSS + DaisyUI + Vite
 - **Documentação:** Swagger (disponível em `/api-docs`)
+
+## Principais Funcionalidades
+
+- Cadastro e login de usuários (agricultor, empresário, cooperativa)
+- Painel administrativo com gerenciamento de usuários, tabelas e FAQ
+- Consulta e inserção de dados em tabelas do banco via interface amigável
+- Visualização de estatísticas e logs do sistema
+- Canal de FAQ integrado ao banco de dados
+- Dashboard com gráficos de distribuição de usuários
 
 ## Estrutura de Pastas
 
@@ -16,16 +23,27 @@ O AgroSmart é uma aplicação web para gestão de cooperativas agrícolas, com 
 backend/
   server.js           # Inicialização do servidor e rotas principais
   templateBD.sql      # Script para criar o banco e tabelas
+  insertValues.sql    # Script para popular o banco com dados de exemplo
+  .env                # Configurações do banco de dados
   routes/
     login.js          # Rota de login
     registro.js       # Rota de cadastro
     tabelas.js        # Rotas CRUD para tabelas principais
     faq.js            # Rotas do FAQ (mensagens)
+    configuracao.js   # Rotas de perfil/configuração do usuário
+    usuarios.js       # Rotas para gerenciamento de usuários
     dbTest.js         # Rotas de teste de conexão com o banco
+
 frontend/
   src/
-    pages/            # Páginas principais (login, cadastro, dashboard, faq, home)
-    componentes/      # Componentes reutilizáveis
+    App.jsx           # Rotas principais do frontend
+    pages/            # Páginas principais (login, cadastro, dashboard, faq, home, admin)
+    componentes/      # Componentes reutilizáveis (navbar, footer, tabelas, etc)
+    context/          # Contextos globais (ex: autenticação)
+    assets/           # Imagens e arquivos estáticos
+  public/
+    vite.svg          # Ícone do projeto
+  tailwind.config.js  # Configuração do Tailwind CSS
   ...
 ```
 
@@ -40,7 +58,8 @@ frontend/
 ### 2. Banco de Dados
 
 - Execute o arquivo `backend/templateBD.sql` para criar o banco e as tabelas necessárias.
-- Configure o arquivo `.env` no backend com as credenciais do seu PostgreSQL.
+- (Opcional) Execute `backend/insertValues.sql` para popular o banco com dados de exemplo.
+- Configure o arquivo `.env` no backend com as credenciais do seu PostgreSQL (exemplo incluso).
 
 ### 3. Backend
 
@@ -70,26 +89,40 @@ O frontend ficará disponível em http://localhost:5173
 
 ## Rotas e Funcionalidades
 
-- **Login:** POST `/api/login` — autenticação de usuário
-- **Cadastro:** POST `/api/registro` — registro de novos usuários (agricultor, empresário, cooperativa)
+### Backend
+
+- **Login:** `POST /api/login` — autenticação de usuário
+- **Login Admin:** `POST /api/login/admin` — autenticação de administrador
+- **Cadastro:** `POST /api/registro` — registro de novos usuários (agricultor, empresário, cooperativa)
+- **Usuários:** 
+  - `GET /api/usuarios` — lista todos os usuários com detalhes
+  - `PATCH /api/usuarios/:id/status` — ativa/inativa usuário
 - **CRUD Tabelas:**
-  - GET `/api/tabelas` — lista nomes das tabelas
-  - GET `/api/tabelas/dados` — lista registros de todas as tabelas
-  - GET `/api/tabelas/:tabela` — lista registros de uma tabela específica
-  - POST para cada tabela (`/api/tabelas/agricultores`, `/api/tabelas/empresarios`, etc.)
+  - `GET /api/tabelas` — lista nomes das tabelas
+  - `GET /api/tabelas/dados` — lista registros de todas as tabelas
+  - `GET /api/tabelas/:tabela` — lista registros de uma tabela específica
+  - `POST` para cada tabela (`/api/tabelas/agricultores`, `/api/tabelas/empresarios`, etc.)
 - **FAQ:**
-  - POST `/api/faq` — envia mensagem para o FAQ
-  - GET `/api/faq` — lista mensagens do FAQ
+  - `POST /api/faq` — envia mensagem para o FAQ
+  - `GET /api/faq` — lista mensagens do FAQ
+- **Configuração de Perfil:**
+  - `GET /api/configuracao/:usuario_id` — retorna dados completos do usuário logado
 - **Testes de banco:**
-  - GET `/test/db-status` — testa conexão
-  - GET `/test/db-version` — retorna versão do PostgreSQL
+  - `GET /test/db-status` — testa conexão
+  - `GET /test/db-version` — retorna versão do PostgreSQL
+
+### Frontend
+
+- **Páginas principais:** Home, Login, Cadastro, Dashboard, FAQ, Configuração de Perfil
+- **Admin:** Painel do administrador, gerenciamento de usuários, tabelas do banco, FAQ, estatísticas e logs
 
 ## Observações
 
 - O FAQ está totalmente integrado: mensagens enviadas pelo frontend são salvas no banco via backend.
 - Para resetar o banco, basta rodar novamente o `templateBD.sql`.
-- Para mais detalhes técnicos das rotas, consulte o arquivo `ROTAS_EXPLICACAO.txt`.
-- Para um guia de instalação detalhado, consulte o arquivo `PASSO_A_PASSO.txt`.
+- Para popular com exemplos, rode o `insertValues.sql`.
+- Para mais detalhes técnicos das rotas, consulte o Swagger em `/api-docs`.
+- Para um guia de instalação detalhado, consulte o arquivo `PASSO_A_PASSO.txt` (se disponível).
 
 ---
 
