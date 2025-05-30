@@ -16,6 +16,8 @@ import FaqAdmin from "./pages/admin/FaqAdmin";
 import EstatisticasAdmin from "./pages/admin/EstatisticasAdmin";
 import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
+import Clima from "./pages/clima/clima";
+import GrainPriceHistory from "./pages/historico/historico";
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
           <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
           <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
           <Route path="/configuracao" element={<Configuraçao />} />
+          <Route path="/clima" element={<Clima />} />
+          <Route path="/cotacoes" element={<GrainPriceHistory />} />
         </Routes>
       </Router>
     </AuthProvider>
