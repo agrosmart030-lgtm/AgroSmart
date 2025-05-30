@@ -6,6 +6,7 @@ import cadastroImg from "../../assets/cadastro.jpg";
 import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
 import Step3 from "../../componentes/cadastro/step3";
+import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function Cadastro() {
   const [estados, setEstados] = useState([]);
@@ -106,13 +107,10 @@ export default function Cadastro() {
             navigate("/login");
           }, 2000);
         } else {
-          alert(response.data.message || "Erro ao cadastrar.");
+           exibirAlertaErro('Falha ao Cadastrar', response.data.message);
         }
       } catch (error) {
-        alert(
-          "Erro ao cadastrar: " +
-            (error.response?.data?.message || error.message)
-        );
+        exibirAlertaErro('Falha ao Cadastrar', 'Erro:' + error);
       }
     }
   };

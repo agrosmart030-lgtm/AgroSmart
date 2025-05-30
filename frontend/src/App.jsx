@@ -1,6 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./hooks/context/AuthContext";
 
 import Cadastro from "./pages/cadastro/Cadastro";
 import Configuraçao from "./pages/configuracao/Configuracao";

@@ -2,7 +2,7 @@ import { Edit, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import Footer from "../../componentes/footer";
 import Navbar from "../../componentes/navbar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/context/AuthContext";
 import ProfileHeader from "../../componentes/configuracao/ProfileHeader";
 import ProfileInfo from "../../componentes/configuracao/ProfileInfo";
 import ProfileModal from "../../componentes/configuracao/ProfileModal";

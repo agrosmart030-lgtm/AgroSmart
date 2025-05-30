@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Wind, Droplets, Eye, Gauge, MapPin, Search, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Wind,
+  Droplets,
+  Eye,
+  Gauge,
+  MapPin,
+  Search,
+  RefreshCw,
+} from "lucide-react";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
 
@@ -8,8 +16,8 @@ const WeatherApp = () => {
   const [forecastData, setForecastData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [city, setCity] = useState('São Paulo');
-  const [searchCity, setSearchCity] = useState('');
+  const [city, setCity] = useState("São Paulo");
+  const [searchCity, setSearchCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
   const apiKey = "54a5e454d3908f64653aa11798007b06";
@@ -22,7 +30,9 @@ const WeatherApp = () => {
     }
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${apiKey}`
+        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(
+          query
+        )}&limit=5&appid=${apiKey}`
       );
       if (!response.ok) return;
       const data = await response.json();
@@ -46,7 +56,9 @@ const WeatherApp = () => {
     setError(null);
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=pt_br`
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
+          cityName
+        )}&appid=${apiKey}&units=metric&lang=pt_br`
       );
       if (!response.ok) throw new Error("Erro ao buscar dados da API");
       const data = await response.json();
@@ -54,6 +66,7 @@ const WeatherApp = () => {
       setCity(cityName);
       fetchForecastData(cityName); // Busca a previsão junto
     } catch (err) {
+      console.log(err);
       setError("Erro ao buscar dados do clima. Tente novamente.");
       setWeatherData(null);
       setForecastData([]);
@@ -66,12 +79,16 @@ const WeatherApp = () => {
   const fetchForecastData = async (cityName = city) => {
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=pt_br`
+        `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(
+          cityName
+        )}&appid=${apiKey}&units=metric&lang=pt_br`
       );
       if (!response.ok) throw new Error("Erro ao buscar previsão");
       const data = await response.json();
       // Filtra apenas um horário por dia (ex: 12:00)
-      const daily = data.list.filter(item => item.dt_txt.includes("12:00:00"));
+      const daily = data.list.filter((item) =>
+        item.dt_txt.includes("12:00:00")
+      );
       setForecastData(daily);
     } catch {
       setForecastData([]);
@@ -82,7 +99,7 @@ const WeatherApp = () => {
     if (e) e.preventDefault();
     if (searchCity.trim()) {
       fetchWeatherData(searchCity.trim());
-      setSearchCity('');
+      setSearchCity("");
     }
   };
 
@@ -94,7 +111,7 @@ const WeatherApp = () => {
           fetchWeatherDataByCoords(latitude, longitude);
         },
         () => {
-          setError('Erro ao obter localização');
+          setError("Erro ao obter localização");
         }
       );
     }
@@ -113,6 +130,7 @@ const WeatherApp = () => {
       setCity(data.name);
       fetchForecastData(data.name);
     } catch (err) {
+      console.log(err);
       setError("Erro ao buscar dados do clima. Tente novamente.");
       setWeatherData(null);
       setForecastData([]);
@@ -128,15 +146,17 @@ const WeatherApp = () => {
   // Função para formatar data
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
+    return date.toLocaleDateString("pt-BR", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
     });
   };
 
   const handleSuggestionClick = (suggestion) => {
-    const cityName = `${suggestion.name}${suggestion.state ? ', ' + suggestion.state : ''}, ${suggestion.country}`;
+    const cityName = `${suggestion.name}${
+      suggestion.state ? ", " + suggestion.state : ""
+    }, ${suggestion.country}`;
     setSearchCity(cityName);
     setSuggestions([]);
     fetchWeatherData(cityName);
@@ -150,8 +170,12 @@ const WeatherApp = () => {
           <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-yellow-400 mb-2">Previsão do Tempo</h1>
-              <p className="text-green-200">Informações meteorológicas em tempo real</p>
+              <h1 className="text-4xl font-bold text-yellow-400 mb-2">
+                Previsão do Tempo
+              </h1>
+              <p className="text-green-200">
+                Informações meteorológicas em tempo real
+              </p>
             </div>
 
             {/* Search Bar */}
@@ -163,7 +187,7 @@ const WeatherApp = () => {
                     type="text"
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSearch(e)}
                     placeholder="Digite o nome da cidade..."
                     className="w-full pl-10 pr-4 py-3 bg-slate-700/60 border border-green-500/40 rounded-xl text-white placeholder-green-300/70 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400"
                     autoComplete="off"
@@ -177,7 +201,8 @@ const WeatherApp = () => {
                           className="px-4 py-2 cursor-pointer hover:bg-green-700 text-white"
                           onClick={() => handleSuggestionClick(s)}
                         >
-                          {s.name}{s.state ? `, ${s.state}` : ''}, {s.country}
+                          {s.name}
+                          {s.state ? `, ${s.state}` : ""}, {s.country}
                         </li>
                       ))}
                     </ul>
@@ -202,7 +227,9 @@ const WeatherApp = () => {
                   disabled={loading}
                   className="px-4 py-3 bg-slate-700 hover:bg-slate-600 border border-green-500/50 rounded-xl text-green-300 transition-all duration-200"
                 >
-                  <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw
+                    className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                  />
                 </button>
               </div>
             </div>
@@ -211,7 +238,9 @@ const WeatherApp = () => {
             {loading && (
               <div className="text-center py-12">
                 <RefreshCw className="w-12 h-12 text-yellow-400 animate-spin mx-auto mb-4" />
-                <p className="text-green-200 text-lg">Carregando dados do clima...</p>
+                <p className="text-green-200 text-lg">
+                  Carregando dados do clima...
+                </p>
               </div>
             )}
 
@@ -229,9 +258,7 @@ const WeatherApp = () => {
                   <h2 className="text-2xl font-bold text-yellow-400 mb-2">
                     {weatherData.name}
                   </h2>
-                  <p className="text-green-200">
-                    {weatherData.sys?.country}
-                  </p>
+                  <p className="text-green-200">{weatherData.sys?.country}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -251,7 +278,8 @@ const WeatherApp = () => {
                       {weatherData.weather[0].description}
                     </p>
                     <p className="text-green-300">
-                      Sensação térmica: {Math.round(weatherData.main.feels_like)}°C
+                      Sensação térmica:{" "}
+                      {Math.round(weatherData.main.feels_like)}°C
                     </p>
                   </div>
 
@@ -260,22 +288,30 @@ const WeatherApp = () => {
                     <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
                       <Droplets className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                       <p className="text-green-200 text-sm">Umidade</p>
-                      <p className="text-yellow-400 font-bold text-lg">{weatherData.main.humidity}%</p>
+                      <p className="text-yellow-400 font-bold text-lg">
+                        {weatherData.main.humidity}%
+                      </p>
                     </div>
                     <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
                       <Wind className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                       <p className="text-green-200 text-sm">Vento</p>
-                      <p className="text-yellow-400 font-bold text-lg">{weatherData.wind.speed} km/h</p>
+                      <p className="text-yellow-400 font-bold text-lg">
+                        {weatherData.wind.speed} km/h
+                      </p>
                     </div>
                     <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
                       <Gauge className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                       <p className="text-green-200 text-sm">Pressão</p>
-                      <p className="text-yellow-400 font-bold text-lg">{weatherData.main.pressure} mb</p>
+                      <p className="text-yellow-400 font-bold text-lg">
+                        {weatherData.main.pressure} mb
+                      </p>
                     </div>
                     <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
                       <Eye className="w-6 h-6 text-blue-400 mx-auto mb-2" />
                       <p className="text-green-200 text-sm">Visibilidade</p>
-                      <p className="text-yellow-400 font-bold text-lg">{weatherData.visibility / 1000} km</p>
+                      <p className="text-yellow-400 font-bold text-lg">
+                        {weatherData.visibility / 1000} km
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -290,9 +326,12 @@ const WeatherApp = () => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   {forecastData.map((item, idx) => (
-                    <div key={idx} className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
+                    <div
+                      key={idx}
+                      className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20"
+                    >
                       <p className="text-green-200 text-sm font-medium mb-2">
-                        {idx === 0 ? 'Hoje' : formatDate(item.dt_txt)}
+                        {idx === 0 ? "Hoje" : formatDate(item.dt_txt)}
                       </p>
                       <div className="flex justify-center mb-3">
                         <img
@@ -309,7 +348,9 @@ const WeatherApp = () => {
                           {Math.round(item.main.temp_min)}°
                         </span>
                       </div>
-                      <p className="text-green-200 text-xs mb-2">{item.weather[0].description}</p>
+                      <p className="text-green-200 text-xs mb-2">
+                        {item.weather[0].description}
+                      </p>
                       <div className="flex items-center justify-center text-blue-300 text-xs">
                         <Droplets className="w-3 h-3 mr-1" />
                         {item.pop ? Math.round(item.pop * 100) : 0}%
@@ -319,7 +360,6 @@ const WeatherApp = () => {
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </main>

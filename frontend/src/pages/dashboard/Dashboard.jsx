@@ -5,6 +5,7 @@ import Login from '../login/Login.jsx';
 import Cadastro from '../cadastro/Cadastro.jsx';
 import Navbar from '../../componentes/navbar.jsx';
 
+
 // Mock data
 const mockGrainsData = [
   { name: 'Jan', soja: 150, milho: 85, trigo: 120 },
@@ -36,7 +37,7 @@ export default function GrainsDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrain, setSelectedGrain] = useState('all');
   const [selectedCooperative, setSelectedCooperative] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('7days');
+  // const [selectedPeriod, setSelectedPeriod] = useState('7days'); - DESATIVADO POR RUBENS * Não estava usando *
   const [favorites, setFavorites] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -54,13 +55,13 @@ export default function GrainsDashboard() {
     }
   }, []);
 
-  const handleLogin = (email) => {
-    const userData = { name: 'João Silva', email, avatar: '👤' };
-    setUser(userData);
-    setIsLoggedIn(true);
-    setShowAuthModal(false);
-    localStorage.setItem('grainsUser', JSON.stringify(userData));
-  };
+  // const handleLogin = (email) => {
+  //   const userData = { name: 'João Silva', email, avatar: '👤' };
+  //   setUser(userData);
+  //   setIsLoggedIn(true);
+  //   setShowAuthModal(false);
+  //   localStorage.setItem('grainsUser', JSON.stringify(userData));
+  // }; - DESATIVADO POR RUBENS * Não estava usando *
 
   const handleLogout = () => {
     setUser(null);

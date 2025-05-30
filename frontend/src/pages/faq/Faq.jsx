@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
 import axios from "axios";
+import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function SuporteAgricola() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -24,9 +25,7 @@ export default function SuporteAgricola() {
       setForm({ name: "", email: "", message: "" });
       setTimeout(() => setEnviado(false), 3000);
     } catch (err) {
-      alert(
-        "Erro ao enviar mensagem: " + (err.response?.data?.error || err.message)
-      );
+      exibirAlertaErro('Falha ao enviar mensagem', (err.response?.data?.error || err.message));
     }
   };
 
