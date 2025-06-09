@@ -8,7 +8,8 @@
     "dev:frontend": "cd frontend && npm run dev"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "tailwindcss": "^4.1.8"
   },
   "dependencies": {
     "lucide-react": "^0.511.0",
