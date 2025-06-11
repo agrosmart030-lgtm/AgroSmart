@@ -13,66 +13,75 @@ const TabelasBanco = () => {
   const [carregandoInicial, setCarregandoInicial] = useState(true);
 
   useEffect(() => {
-  const carregarTabelas = async () => {
-    setCarregandoInicial(true);
-    try {
-      const resp = await fetch(API_URL);
-      const json = await resp.json();
-      const tabelasFormatadas = await Promise.all(
-        json.tabelas.map(async (nome) => {
-          try {
-            const respDados = await fetch(`${API_URL}/${nome}`);
-            const jsonDados = await respDados.json();
-            const dados = jsonDados.dados || [];
-            return {
-              nome,
-              nomeExibicao: nome,
-              descricao: `Tabela ${nome}`,
-              qtdRegistros: dados.length,
-              colunas: dados.length > 0 ? Object.keys(dados[0]) : [],
-            };
-          } catch {
-            return {
-              nome,
-              nomeExibicao: nome,
-              descricao: `Tabela ${nome}`,
-              qtdRegistros: 0,
-              colunas: [],
-            };
-          }
-        })
-      );
-      setTabelas(tabelasFormatadas);
-    } catch (e) {
-      setTabelas([]);
-      console.log("Erro ao carregar tabelas:", e);
-    }
-    setCarregandoInicial(false);
-  };
-  carregarTabelas();
-}, []);
+    const carregarTabelas = async () => {
+      setCarregandoInicial(true);
+      try {
+        const resp = await fetch(API_URL);
+        const json = await resp.json();
+        const tabelasFormatadas = await Promise.all(
+          json.tabelas.map(async (nome) => {
+            try {
+              const respDados = await fetch(`${API_URL}/${nome}`);
+              const jsonDados = await respDados.json();
+              const dados = jsonDados.dados || [];
+              const colunas =
+                jsonDados.colunas ||
+                (dados.length > 0
+                  ? Object.keys(dados[0]).map((nome) => ({
+                      nome,
+                      nomeExibicao: nome,
+                      tipo: "",
+                    }))
+                  : []);
+              return {
+                nome,
+                nomeExibicao: nome,
+                descricao: `Tabela ${nome}`,
+                qtdRegistros: dados.length,
+                colunas,
+              };
+            } catch {
+              return {
+                nome,
+                nomeExibicao: nome,
+                descricao: `Tabela ${nome}`,
+                qtdRegistros: 0,
+                colunas: [],
+              };
+            }
+          })
+        );
+        setTabelas(tabelasFormatadas);
+      } catch (e) {
+        setTabelas([]);
+        console.log("Erro ao carregar tabelas:", e);
+      }
+      setCarregandoInicial(false);
+    };
+    carregarTabelas();
+  }, []);
 
   // Busca os dados e colunas da tabela selecionada
   const aoSelecionarTabela = async (tabela) => {
-    setTabelaSelecionada(tabela);
     setCarregando(true);
     try {
       const resp = await fetch(`${API_URL}/${tabela.nome}`);
       const json = await resp.json();
       const dados = json.dados || [];
-      // Descobre as colunas dinamicamente
-      let colunas = [];
-      if (dados.length > 0) {
-        colunas = Object.keys(dados[0]).map((nome) => ({
-          nome,
-          nomeExibicao: nome,
-          tipo: "",
-        }));
-      }
+      const colunas =
+        json.colunas ||
+        (dados.length > 0
+          ? Object.keys(dados[0]).map((nome) => ({
+              nome,
+              nomeExibicao: nome,
+              tipo: "",
+            }))
+          : []);
       setTabelaSelecionada({ ...tabela, colunas });
       setDadosTabela(dados);
     } catch (e) {
       setDadosTabela([]);
+      setTabelaSelecionada({ ...tabela, colunas: [] });
       console.log("Erro ao carregar tabelas:", e);
     }
     setCarregando(false);

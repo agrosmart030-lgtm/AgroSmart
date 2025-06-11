@@ -1,7 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import { Database, Search, Download, RefreshCw } from "lucide-react";
 
 const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
+  // Paginação local
+  const [currentPage, setCurrentPage] = useState(1);
+  const registrosPorPagina = 10;
+  const totalRegistros = dados.length;
+  const totalPages = Math.ceil(totalRegistros / registrosPorPagina);
+  const indexOfLast = currentPage * registrosPorPagina;
+  const indexOfFirst = indexOfLast - registrosPorPagina;
+  const registrosPagina = dados.slice(indexOfFirst, indexOfLast);
+
+  // Gera botões de página com ellipsis
+  const getPageButtons = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        );
+      } else {
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
+      }
+    }
+    return pages;
+  };
+
   if (!tabela) {
     return (
       <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
@@ -63,8 +105,15 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
       <div className="p-6">
         <div className="mb-4 flex justify-between items-center">
           <p className="text-sm text-gray-600">
-            Total de registros:{" "}
-            <span className="font-medium">{dados.length}</span>
+            {totalRegistros === 0
+              ? "Nenhum registro encontrado"
+              : `Mostrando ${Math.min(
+                  indexOfFirst + 1,
+                  totalRegistros
+                )}-${Math.min(
+                  indexOfLast,
+                  totalRegistros
+                )} de ${totalRegistros} registros`}
           </p>
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-gray-400" />
@@ -106,11 +155,14 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {dados.slice(0, 10).map((linha, rowIndex) => (
-                <tr key={rowIndex} className="hover:bg-gray-50">
-                  {tabela.colunas.map((coluna, colIndex) => (
+              {registrosPagina.map((linha, rowIndex) => (
+                <tr
+                  key={linha.id || Object.values(linha).join("-") || rowIndex}
+                  className="hover:bg-gray-50"
+                >
+                  {tabela.colunas.map((coluna) => (
                     <td
-                      key={colIndex}
+                      key={coluna.nome}
                       className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                     >
                       {linha[coluna.nome] !== null &&
@@ -127,13 +179,40 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
           </table>
         </div>
 
-        {dados.length > 10 && (
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              Mostrando 10 de {dados.length} registros
-            </p>
-            <button className="mt-2 px-4 py-2 text-sm text-green-600 hover:text-green-800 font-medium">
-              Carregar mais registros
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center items-center space-x-1">
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1 rounded border text-sm disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            {getPageButtons().map((page, idx) =>
+              page === "..." ? (
+                <span key={idx} className="px-2 text-gray-400">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-2 py-1 rounded border text-sm ${
+                    currentPage === page
+                      ? "bg-blue-500 text-white border-blue-500"
+                      : "bg-white text-gray-700 border-gray-300"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 rounded border text-sm disabled:opacity-50"
+            >
+              Próxima
             </button>
           </div>
         )}
