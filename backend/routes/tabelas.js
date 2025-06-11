@@ -27,17 +27,31 @@ export default function createTabelasRoutes(pool) {
       `);
       const tabelas = tabelasResult.rows.map((r) => r.table_name);
       const dados = {};
+      const colunas = {};
       for (const tabela of tabelas) {
         try {
-          const registros = await pool.query(
-            `SELECT * FROM ${tabela} LIMIT 20`
+          const registros = await pool.query(`SELECT * FROM ${tabela}`);
+          const colunasResult = await pool.query(
+            `
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_name = $1 AND table_schema = 'public'
+            ORDER BY ordinal_position;
+          `,
+            [tabela]
           );
+          colunas[tabela] = colunasResult.rows.map((col) => ({
+            nome: col.column_name,
+            nomeExibicao: col.column_name,
+            tipo: col.data_type,
+          }));
           dados[tabela] = registros.rows;
         } catch (err) {
           dados[tabela] = { erro: err.message };
+          colunas[tabela] = [];
         }
       }
-      res.json({ tabelas, dados });
+      res.json({ tabelas, dados, colunas });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -53,8 +67,24 @@ export default function createTabelasRoutes(pool) {
       if (!validTables.includes(tabela)) {
         return res.status(400).json({ error: "Tabela não encontrada." });
       }
-      const result = await pool.query(`SELECT * FROM ${tabela} LIMIT 20`);
-      res.json({ tabela, dados: result.rows });
+      // Busca os dados completos
+      const result = await pool.query(`SELECT * FROM ${tabela}`);
+      // Busca os tipos das colunas
+      const colunasResult = await pool.query(
+        `
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = $1 AND table_schema = 'public'
+        ORDER BY ordinal_position;
+      `,
+        [tabela]
+      );
+      const colunas = colunasResult.rows.map((col) => ({
+        nome: col.column_name,
+        nomeExibicao: col.column_name,
+        tipo: col.data_type,
+      }));
+      res.json({ tabela, dados: result.rows, colunas });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
