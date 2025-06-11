@@ -2,7 +2,7 @@ import { Edit, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import Footer from "../../componentes/footer";
 import Navbar from "../../componentes/navbar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/context/AuthContext";
 import ProfileHeader from "../../componentes/configuracao/ProfileHeader";
 import ProfileInfo from "../../componentes/configuracao/ProfileInfo";
 import ProfileModal from "../../componentes/configuracao/ProfileModal";
@@ -68,28 +68,30 @@ const SistemaPerfil = () => {
   }
 
   return (
-    <div className="70-h-screen bg-gradient-to-br from-green-50 to-green-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex flex-col">
       {/* Header */}
       <Navbar isLoggedIn={true} />
       {/* Main Content */}
-      <main className="max-w-4xl  mx-auto py-20 px-4 sm:px-6 lg:px-8 mt-20 ">
-        <div className="bg-white rounded-lg shadow-sm border border-green-200">
+      <main className="flex-1 flex flex-col items-center justify-center px-2 py-10">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg border border-green-200 mt-10">
           {/* Profile Header */}
           <ProfileHeader usuario={usuario} />
           {/* Profile Info */}
-          <ProfileInfo usuario={usuario} />
+          <div className="px-6 py-4">
+            <ProfileInfo usuario={usuario} />
+          </div>
           {/* Action Buttons */}
-          <div className="px-6 py-4 bg-green-50 border-t border-green-100 flex justify-between items-center rounded-b-lg">
+          <div className="px-6 py-4 bg-gradient-to-r from-green-100 to-green-50 border-t border-green-100 flex flex-col sm:flex-row gap-4 sm:gap-0 justify-between items-center rounded-b-2xl">
             <button
               onClick={openModal}
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-semibold"
             >
               <Edit className="w-5 h-5" />
               Editar Perfil
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-semibold"
             >
               <LogOut className="w-5 h-5" />
               Logout

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/context/AuthContext";
 import background1 from "../../assets/background1.jpg";
+import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function LoginAdmin() {
   const [nome, setNome] = useState("");
@@ -24,13 +25,10 @@ export default function LoginAdmin() {
         login({ ...response.data.admin, tipo_usuario: "admin" });
         navigate("/admin");
       } else {
-        alert("Credenciais de admin inválidas!");
+        exibirAlertaErro('Falha ao fazer login', "Consulte suas credenciais novamente");
       }
     } catch (error) {
-      alert(
-        "Erro ao fazer login admin: " +
-          (error.response?.data?.message || error.message)
-      );
+      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
     }
   };
 

@@ -4,107 +4,116 @@ import { TrendingUp, TrendingDown, Calendar, DollarSign, BarChart3 } from 'lucid
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
 
+// Dados simulados para diferentes grãos e cooperativas
+const grainData = {
+  soja: {
+    name: 'Soja',
+    unit: 'R$/sc 60kg',
+    color: '#10B981',
+    cooperativas: {
+      coamo: { currentPrice: 178.50, change: +5.2 },
+      lar: { currentPrice: 175.20, change: +4.8 },
+      cocamar: { currentPrice: 180.30, change: +6.0 }
+    },
+    data6m: [
+      { date: '2024-11', price: 165.30, volume: 2840 },
+      { date: '2024-12', price: 172.80, volume: 3120 },
+      { date: '2025-01', price: 169.40, volume: 2950 },
+      { date: '2025-02', price: 174.20, volume: 3280 },
+      { date: '2025-03', price: 176.90, volume: 3450 },
+      { date: '2025-04', price: 175.60, volume: 3180 },
+      { date: '2025-05', price: 178.50, volume: 3380 }
+    ],
+    data1y: [
+      { date: '2024-05', price: 152.30, volume: 2640 },
+      { date: '2024-06', price: 158.70, volume: 2780 },
+      { date: '2024-07', price: 161.20, volume: 2890 },
+      { date: '2024-08', price: 163.80, volume: 3020 },
+      { date: '2024-09', price: 160.40, volume: 2750 },
+      { date: '2024-10', price: 167.90, volume: 3150 },
+      { date: '2024-11', price: 165.30, volume: 2840 },
+      { date: '2024-12', price: 172.80, volume: 3120 },
+      { date: '2025-01', price: 169.40, volume: 2950 },
+      { date: '2025-02', price: 174.20, volume: 3280 },
+      { date: '2025-03', price: 176.90, volume: 3450 },
+      { date: '2025-04', price: 175.60, volume: 3180 },
+      { date: '2025-05', price: 178.50, volume: 3380 }
+    ]
+  },
+  milho: {
+    name: 'Milho',
+    unit: 'R$/sc 60kg',
+    color: '#F59E0B',
+    cooperativas: {
+      coamo: { currentPrice: 89.40, change: -2.1 },
+      lar: { currentPrice: 87.90, change: -1.8 },
+      cocamar: { currentPrice: 90.50, change: -2.5 }
+    },
+    data6m: [
+      { date: '2024-11', price: 92.80, volume: 4120 },
+      { date: '2024-12', price: 88.50, volume: 3890 },
+      { date: '2025-01', price: 91.20, volume: 4050 },
+      { date: '2025-02', price: 87.60, volume: 3780 },
+      { date: '2025-03', price: 90.10, volume: 4180 },
+      { date: '2025-04', price: 91.30, volume: 4220 },
+      { date: '2025-05', price: 89.40, volume: 4080 }
+    ],
+    data1y: [
+      { date: '2024-05', price: 78.90, volume: 3640 },
+      { date: '2024-06', price: 82.30, volume: 3780 },
+      { date: '2024-07', price: 85.70, volume: 3920 },
+      { date: '2024-08', price: 88.20, volume: 4050 },
+      { date: '2024-09', price: 86.40, volume: 3850 },
+      { date: '2024-10', price: 90.60, volume: 4180 },
+      { date: '2024-11', price: 92.80, volume: 4120 },
+      { date: '2024-12', price: 88.50, volume: 3890 },
+      { date: '2025-01', price: 91.20, volume: 4050 },
+      { date: '2025-02', price: 87.60, volume: 3780 },
+      { date: '2025-03', price: 90.10, volume: 4180 },
+      { date: '2025-04', price: 91.30, volume: 4220 },
+      { date: '2025-05', price: 89.40, volume: 4080 }
+    ]
+  },
+  trigo: {
+    name: 'Trigo',
+    unit: 'R$/sc 60kg',
+    color: '#DC2626',
+    cooperativas: {
+      coamo: { currentPrice: 142.70, change: +3.8 },
+      lar: { currentPrice: 140.50, change: +3.5 },
+      cocamar: { currentPrice: 144.20, change: +4.0 }
+    },
+    data6m: [
+      { date: '2024-11', price: 138.20, volume: 1850 },
+      { date: '2024-12', price: 135.60, volume: 1720 },
+      { date: '2025-01', price: 140.80, volume: 1920 },
+      { date: '2025-02', price: 139.40, volume: 1880 },
+      { date: '2025-03', price: 141.90, volume: 1950 },
+      { date: '2025-04', price: 143.20, volume: 2020 },
+      { date: '2025-05', price: 142.70, volume: 1980 }
+    ],
+    data1y: [
+      { date: '2024-05', price: 128.40, volume: 1540 },
+      { date: '2024-06', price: 132.80, volume: 1620 },
+      { date: '2024-07', price: 134.50, volume: 1680 },
+      { date: '2024-08', price: 137.20, volume: 1750 },
+      { date: '2024-09', price: 135.90, volume: 1690 },
+      { date: '2024-10', price: 139.60, volume: 1820 },
+      { date: '2024-11', price: 138.20, volume: 1850 },
+      { date: '2024-12', price: 135.60, volume: 1720 },
+      { date: '2025-01', price: 140.80, volume: 1920 },
+      { date: '2025-02', price: 139.40, volume: 1880 },
+      { date: '2025-03', price: 141.90, volume: 1950 },
+      { date: '2025-04', price: 143.20, volume: 2020 },
+      { date: '2025-05', price: 142.70, volume: 1980 }
+    ]
+  }
+};
+
 const GrainPriceHistory = () => {
   const [selectedGrain, setSelectedGrain] = useState('soja');
   const [timeRange, setTimeRange] = useState('6m');
   const [data, setData] = useState([]);
-
-  // Dados simulados para diferentes grãos
-  const grainData = {
-    soja: {
-      name: 'Soja',
-      unit: 'R$/sc 60kg',
-      color: '#10B981',
-      currentPrice: 178.50,
-      change: +5.2,
-      data6m: [
-        { date: '2024-11', price: 165.30, volume: 2840 },
-        { date: '2024-12', price: 172.80, volume: 3120 },
-        { date: '2025-01', price: 169.40, volume: 2950 },
-        { date: '2025-02', price: 174.20, volume: 3280 },
-        { date: '2025-03', price: 176.90, volume: 3450 },
-        { date: '2025-04', price: 175.60, volume: 3180 },
-        { date: '2025-05', price: 178.50, volume: 3380 }
-      ],
-      data1y: [
-        { date: '2024-05', price: 152.30, volume: 2640 },
-        { date: '2024-06', price: 158.70, volume: 2780 },
-        { date: '2024-07', price: 161.20, volume: 2890 },
-        { date: '2024-08', price: 163.80, volume: 3020 },
-        { date: '2024-09', price: 160.40, volume: 2750 },
-        { date: '2024-10', price: 167.90, volume: 3150 },
-        { date: '2024-11', price: 165.30, volume: 2840 },
-        { date: '2024-12', price: 172.80, volume: 3120 },
-        { date: '2025-01', price: 169.40, volume: 2950 },
-        { date: '2025-02', price: 174.20, volume: 3280 },
-        { date: '2025-03', price: 176.90, volume: 3450 },
-        { date: '2025-04', price: 175.60, volume: 3180 },
-        { date: '2025-05', price: 178.50, volume: 3380 }
-      ]
-    },
-    milho: {
-      name: 'Milho',
-      unit: 'R$/sc 60kg',
-      color: '#F59E0B',
-      currentPrice: 89.40,
-      change: -2.1,
-      data6m: [
-        { date: '2024-11', price: 92.80, volume: 4120 },
-        { date: '2024-12', price: 88.50, volume: 3890 },
-        { date: '2025-01', price: 91.20, volume: 4050 },
-        { date: '2025-02', price: 87.60, volume: 3780 },
-        { date: '2025-03', price: 90.10, volume: 4180 },
-        { date: '2025-04', price: 91.30, volume: 4220 },
-        { date: '2025-05', price: 89.40, volume: 4080 }
-      ],
-      data1y: [
-        { date: '2024-05', price: 78.90, volume: 3640 },
-        { date: '2024-06', price: 82.30, volume: 3780 },
-        { date: '2024-07', price: 85.70, volume: 3920 },
-        { date: '2024-08', price: 88.20, volume: 4050 },
-        { date: '2024-09', price: 86.40, volume: 3850 },
-        { date: '2024-10', price: 90.60, volume: 4180 },
-        { date: '2024-11', price: 92.80, volume: 4120 },
-        { date: '2024-12', price: 88.50, volume: 3890 },
-        { date: '2025-01', price: 91.20, volume: 4050 },
-        { date: '2025-02', price: 87.60, volume: 3780 },
-        { date: '2025-03', price: 90.10, volume: 4180 },
-        { date: '2025-04', price: 91.30, volume: 4220 },
-        { date: '2025-05', price: 89.40, volume: 4080 }
-      ]
-    },
-    trigo: {
-      name: 'Trigo',
-      unit: 'R$/sc 60kg',
-      color: '#DC2626',
-      currentPrice: 142.70,
-      change: +3.8,
-      data6m: [
-        { date: '2024-11', price: 138.20, volume: 1850 },
-        { date: '2024-12', price: 135.60, volume: 1720 },
-        { date: '2025-01', price: 140.80, volume: 1920 },
-        { date: '2025-02', price: 139.40, volume: 1880 },
-        { date: '2025-03', price: 141.90, volume: 1950 },
-        { date: '2025-04', price: 143.20, volume: 2020 },
-        { date: '2025-05', price: 142.70, volume: 1980 }
-      ],
-      data1y: [
-        { date: '2024-05', price: 128.40, volume: 1540 },
-        { date: '2024-06', price: 132.80, volume: 1620 },
-        { date: '2024-07', price: 134.50, volume: 1680 },
-        { date: '2024-08', price: 137.20, volume: 1750 },
-        { date: '2024-09', price: 135.90, volume: 1690 },
-        { date: '2024-10', price: 139.60, volume: 1820 },
-        { date: '2024-11', price: 138.20, volume: 1850 },
-        { date: '2024-12', price: 135.60, volume: 1720 },
-        { date: '2025-01', price: 140.80, volume: 1920 },
-        { date: '2025-02', price: 139.40, volume: 1880 },
-        { date: '2025-03', price: 141.90, volume: 1950 },
-        { date: '2025-04', price: 143.20, volume: 2020 },
-        { date: '2025-05', price: 142.70, volume: 1980 }
-      ]
-    }
-  };
 
   useEffect(() => {
     const currentGrain = grainData[selectedGrain];
@@ -113,7 +122,7 @@ const GrainPriceHistory = () => {
   }, [selectedGrain, timeRange]);
 
   const currentGrain = grainData[selectedGrain];
-  const isPositive = currentGrain.change > 0;
+  const isPositive = currentGrain.cooperativas.coamo.change > 0;
 
   const formatPrice = (value) => `R$ ${value.toFixed(2)}`;
   const formatVolume = (value) => `${(value / 1000).toFixed(1)}k sc`;
@@ -176,7 +185,11 @@ const GrainPriceHistory = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Preço Atual</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatPrice(currentGrain.currentPrice)}</p>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-semibold text-gray-900">COAMO: {formatPrice(currentGrain.cooperativas.coamo.currentPrice)}</p>
+                      <p className="text-2xl font-semibold text-gray-900">LAR: {formatPrice(currentGrain.cooperativas.lar.currentPrice)}</p>
+                      <p className="text-2xl font-semibold text-gray-900">COCAMAR: {formatPrice(currentGrain.cooperativas.cocamar.currentPrice)}</p>
+                    </div>
                     <p className="text-sm text-gray-500">{currentGrain.unit}</p>
                   </div>
                   <div className="bg-blue-100 p-3 rounded-lg">
@@ -189,10 +202,10 @@ const GrainPriceHistory = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Variação Mensal</p>
-                    <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                      {isPositive ? '+' : ''}{currentGrain.change.toFixed(1)}%
+                    <p className={`text-2xl font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                      {isPositive ? '+' : ''}{currentGrain.cooperativas.coamo.change.toFixed(1)}%
                     </p>
-                    <p className="text-sm text-gray-500">vs mês anterior</p>
+                    <p className="text-sm text-gray-500">vs mês anterior (COAMO)</p>
                   </div>
                   <div className={`p-3 rounded-lg ${isPositive ? 'bg-green-100' : 'bg-red-100'}`}>
                     {isPositive ? 
@@ -207,7 +220,7 @@ const GrainPriceHistory = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Volume Médio</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-semibold text-gray-900">
                       {formatVolume(data.reduce((acc, item) => acc + item.volume, 0) / data.length || 0)}
                     </p>
                     <p className="text-sm text-gray-500">sacas/mês</p>

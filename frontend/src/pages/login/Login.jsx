@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/context/AuthContext";
 import loginImg from "../../assets/cadastro.jpg";
 import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
+import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function Login() {
   const {
@@ -27,13 +28,10 @@ export default function Login() {
         login(response.data.usuario);
         navigate("/dashboard");
       } else {
-        alert("Credenciais inválidas!");
+        exibirAlertaErro('Senha ou Email errados !', "Confira novamente suas informações.");
       }
     } catch (error) {
-      alert(
-        "Erro ao fazer login: " +
-          (error.response?.data?.message || error.message)
-      );
+      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
     }
   };
 

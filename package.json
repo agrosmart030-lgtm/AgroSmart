@@ -8,11 +8,13 @@
     "dev:frontend": "cd frontend && npm run dev"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "tailwindcss": "^4.1.8"
   },
   "dependencies": {
-    "recharts": "^2.15.3",
     "lucide-react": "^0.511.0",
-    "swagger-ui-express": "^5.0.1"
+    "recharts": "^2.15.3",
+    "swagger-ui-express": "^5.0.1",
+    "sweetalert2": "^11.22.0"
   }
 }
