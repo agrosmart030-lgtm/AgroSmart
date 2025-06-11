@@ -111,7 +111,7 @@ export default function Navbar() {
                   to="/cotacoes"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
                 >
-                  Cotações
+                  Histórico de Cotações
                 </Link>
               </li>
               <li>
@@ -141,7 +141,7 @@ export default function Navbar() {
           <button
             onClick={handleLogout}
             className="btn btn-sm text-white border-2 border-white/30 hover:border-white/50 hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
-            style={{ 
+            style={{
               backgroundColor: "rgba(255,255,255,0.15)",
               borderRadius: "25px",
               fontWeight: "600"
