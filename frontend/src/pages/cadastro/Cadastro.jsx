@@ -7,6 +7,7 @@ import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
 import Step3 from "../../componentes/cadastro/step3";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Cadastro() {
   const [estados, setEstados] = useState([]);
@@ -14,6 +15,7 @@ export default function Cadastro() {
   const [step, setStep] = useState(1);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [showToast, setShowToast] = useState(false);
+  const [captchaValido, setCaptchaValido] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -58,7 +60,10 @@ export default function Cadastro() {
 
   const onSubmit = async (data) => {
     const valid = await trigger();
-    if (!valid) return;
+    if (!valid || !captchaValido) {
+      exibirAlertaErro('Valide o reCAPTCHA antes de prosseguir');
+      return;
+    }
 
     if (step < 3) {
       nextStep();
@@ -161,6 +166,14 @@ export default function Cadastro() {
             {step === 3 && tipo && (
               <Step3 tipo={tipo} register={register} errors={errors} />
             )}
+
+            {/*<div className="flex justify-center my-4">
+              <ReCAPTCHA
+                sitekey="6Lf997srAAAAABEKgpcKVQoAzaAUM3ixCPWXZqc-"
+                onChange={() => setCaptchaValido(true)}
+                onExpired={() => setCaptchaValido(false)}
+              />
+            </div>*/}
 
             <div className="flex justify-between pt-12">
               {step > 1 && (
