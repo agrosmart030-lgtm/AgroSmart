@@ -60,8 +60,9 @@ export default function Cadastro() {
 
   const onSubmit = async (data) => {
     const valid = await trigger();
-    if (!valid || !captchaValido) {
-      exibirAlertaErro('Valide o reCAPTCHA antes de prosseguir');
+    if (!valid) return;
+    if (step === 3 && !captchaValido) {
+      exibirAlertaErro("Valide o reCAPTCHA antes de prosseguir");
       return;
     }
 
@@ -112,10 +113,10 @@ export default function Cadastro() {
             navigate("/login");
           }, 2000);
         } else {
-           exibirAlertaErro('Falha ao Cadastrar', response.data.message);
+          exibirAlertaErro("Falha ao Cadastrar", response.data.message);
         }
       } catch (error) {
-        exibirAlertaErro('Falha ao Cadastrar', 'Erro:' + error);
+        exibirAlertaErro("Falha ao Cadastrar", "Erro:" + error);
       }
     }
   };
@@ -164,18 +165,19 @@ export default function Cadastro() {
             )}
 
             {step === 3 && tipo && (
-              <Step3 tipo={tipo} register={register} errors={errors} />
+              <>
+                <Step3 tipo={tipo} register={register} errors={errors} />
+                <div className="flex justify-center">
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    onChange={() => setCaptchaValido(true)}
+                    onExpired={() => setCaptchaValido(false)}
+                  />
+                </div>
+              </>
             )}
 
-            {/*<div className="flex justify-center my-4">
-              <ReCAPTCHA
-                sitekey="6Lf997srAAAAABEKgpcKVQoAzaAUM3ixCPWXZqc-"
-                onChange={() => setCaptchaValido(true)}
-                onExpired={() => setCaptchaValido(false)}
-              />
-            </div>*/}
-
-            <div className="flex justify-between pt-12">
+            <div className="flex pt-2 justify-center gap-4">
               {step > 1 && (
                 <button
                   type="button"
@@ -188,12 +190,13 @@ export default function Cadastro() {
               <button
                 type="submit"
                 className="btn bg-[#ffc107] text-black hover:brightness-110"
+                disabled={step === 3 && !captchaValido}
               >
                 {step === 3 ? "Finalizar" : "Avançar"}
               </button>
             </div>
           </form>
-          <div className="text-center text-sm pt-4">
+          <div className="text-center text-sm pt-8">
             Já tem cadastro?{" "}
             <a
               href="/login"

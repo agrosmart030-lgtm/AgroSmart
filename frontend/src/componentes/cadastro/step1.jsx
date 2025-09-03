@@ -33,6 +33,8 @@ export default function Step1({
     },
   ];
 
+  const requisitosAtendidos = requisitos.every((r) => r.valido);
+
   return (
     <>
       <InputField
@@ -48,36 +50,40 @@ export default function Step1({
         errors={errors}
         type="email"
       />
-      <div>
-        <label htmlFor="senha" className="block font-medium mb-1">
-          Senha
-        </label>
-        <input
-          type="password"
-          id="senha"
-          {...register("senha", { required: "Senha obrigatória" })}
-          className="input input-bordered w-full"
-          autoComplete="new-password"
-        />
-        {errors.senha && (
-          <span className="text-red-500 text-xs">{errors.senha.message}</span>
-        )}
-        {senha.length > 0 && (
-          <div className="mt-2 text-sm">
-            <strong>Sua senha deve conter:</strong>
-            <ul className="mt-1 pl-4">
-              {requisitos.map((r) => (
-                <li
-                  key={r.id}
-                  style={{ color: r.valido ? "green" : "red" }}
-                  id={r.id}
-                >
-                  {r.texto}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <InputField
+        label="Senha"
+        name="senha"
+        type="password"
+        register={register}
+        errors={errors}
+        autoComplete="new-password"
+        showToggle
+        validate={{
+          required: "Senha obrigatória",
+        }}
+      />
+      <div
+        className={`overflow-hidden transition-all duration-700 ease-in-out ${
+          senha.length > 0 && !requisitosAtendidos
+            ? "opacity-100 max-h-40 mt-2"
+            : "opacity-0 max-h-0 mt-0"
+        }`}
+        aria-hidden={senha.length === 0 || requisitosAtendidos}
+      >
+        <div className="text-sm">
+          <strong>Sua senha deve conter:</strong>
+          <ul className="mt-1 pl-4">
+            {requisitos.map((r) => (
+              <li
+                key={r.id}
+                style={{ color: r.valido ? "green" : "red" }}
+                id={r.id}
+              >
+                {r.texto}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       <InputField
         label="Confirmar Senha"
