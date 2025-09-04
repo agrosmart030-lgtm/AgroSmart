@@ -1,4 +1,5 @@
 import { Router } from "express";
+import bcrypt from "bcrypt";
 
 export default function createRegistroRoutes(pool) {
   const router = Router();
@@ -32,11 +33,22 @@ export default function createRegistroRoutes(pool) {
           .status(400)
           .json({ success: false, message: "E-mail já cadastrado" });
       }
-      // Insere novo usuário
+      // Hash da senha antes de inserir
+      const saltRounds = 10;
+      const senhaHash = await bcrypt.hash(senha, saltRounds);
+      // Insere novo usuário com senha hash
       const usuarioResult = await pool.query(
         `INSERT INTO tb_usuario (nome_completo, email, senha, cidade, estado, tipo_usuario, codigo_ibge)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [nome_completo, email, senha, cidade, estado, tipo_usuario, codigo_ibge]
+        [
+          nome_completo,
+          email,
+          senhaHash,
+          cidade,
+          estado,
+          tipo_usuario,
+          codigo_ibge,
+        ]
       );
       const usuario = usuarioResult.rows[0];
       // Cadastro específico por tipo
