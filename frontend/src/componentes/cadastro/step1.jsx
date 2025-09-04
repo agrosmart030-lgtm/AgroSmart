@@ -1,4 +1,3 @@
-import React from "react";
 import InputField from "../inputField";
 
 export default function Step1({
@@ -27,6 +26,11 @@ export default function Step1({
       valido: /[0-9]/.test(senha),
     },
     {
+      id: "especial",
+      texto: "Incluir Caractere Especial (!@#$%^&*)",
+      valido: /[!@#$%^&*(),.?":{}|<>_\-/]/.test(senha),
+    },
+    { 
       id: "tamanho",
       texto: "Tamanho maior que 8",
       valido: senha.length >= 8,
