@@ -1,4 +1,7 @@
+
 import InputField from "../inputField";
+import React, { useState } from "react";
+import axios from "axios";
 
 export default function Step1({
   register,
@@ -7,7 +10,15 @@ export default function Step1({
   cidades,
   handleEstadoChange,
   watch,
+  setCanProceed,
 }) {
+  const [estadoInput, setEstadoInput] = useState("");
+  const [cidadeInput, setCidadeInput] = useState("");
+  const [estadoSelecionado, setEstadoSelecionado] = useState(null);
+  const [cidadeSelecionada, setCidadeSelecionada] = useState(null);
+  const [showEstadoSugestoes, setShowEstadoSugestoes] = useState(false);
+  const [showCidadeSugestoes, setShowCidadeSugestoes] = useState(false);
+  const [cidadesEstado, setCidadesEstado] = useState([]);
   const senha = watch("senha") || "";
   const requisitos = [
     {
@@ -38,6 +49,13 @@ export default function Step1({
   ];
 
   const requisitosAtendidos = requisitos.every((r) => r.valido);
+
+  // Validação para permitir avançar apenas se estado e cidade forem selecionados
+  React.useEffect(() => {
+    const estadoValido = !!estadoSelecionado;
+    const cidadeValida = !!cidadeSelecionada;
+    setCanProceed && setCanProceed(estadoValido && cidadeValida);
+  }, [estadoSelecionado, cidadeSelecionada, setCanProceed]);
 
   return (
     <>
@@ -100,47 +118,84 @@ export default function Step1({
         }}
       />
 
-      <div className="flex gap-4">
-        <div className="w-1/2">
-          <select
-            className={`select select-bordered w-full ${
-              errors.estado ? "border-error" : ""
-            }`}
-            {...register("estado", { required: "Estado é obrigatório" })}
-            onChange={handleEstadoChange}
-          >
-            <option value="">Estado</option>
-            {estados.map((estado) => (
-              <option key={estado.id} value={estado.sigla}>
-                {estado.nome}
-              </option>
-            ))}
-          </select>
+  <div className="flex gap-4">
+        <div className="w-1/2 relative">
+          <input
+            type="text"
+            className={`input input-bordered w-full ${errors.estado ? "border-error" : ""}`}
+            placeholder="Estado"
+            value={estadoInput}
+            onChange={e => {
+              setEstadoInput(e.target.value);
+              setEstadoSelecionado(null);
+              setShowEstadoSugestoes(true);
+            }}
+            autoComplete="off"
+            onFocus={() => setShowEstadoSugestoes(true)}
+            onBlur={() => setTimeout(() => setShowEstadoSugestoes(false), 150)}
+          />
+          {showEstadoSugestoes && estadoInput && (
+            <div className="absolute bg-white border rounded w-full z-10 max-h-40 overflow-y-auto shadow">
+              {estados.filter(e => e.nome.toLowerCase().includes(estadoInput.toLowerCase())).map(e => (
+                <div
+                  key={e.id}
+                  className="px-2 py-1 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={() => {
+                    setEstadoInput(e.nome);
+                    setEstadoSelecionado(e);
+                    setShowEstadoSugestoes(false);
+                    // Buscar cidades do estado selecionado
+                    axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${e.id}/municipios`)
+                      .then(res => setCidadesEstado(res.data))
+                      .catch(() => setCidadesEstado([]));
+                    setCidadeInput("");
+                    setCidadeSelecionada(null);
+                  }}
+                >
+                  {e.nome}
+                </div>
+              ))}
+            </div>
+          )}
           {errors.estado && (
-            <p className="text-error text-xs min-h-[1rem] mt-1">
-              {errors.estado.message}
-            </p>
+            <p className="text-error text-xs min-h-[1rem] mt-1">{errors.estado.message}</p>
           )}
         </div>
-
-        <div className="w-1/2">
-          <select
-            className={`select select-bordered w-full ${
-              errors.cidade ? "border-error" : ""
-            }`}
-            {...register("cidade", { required: "Cidade é obrigatória" })}
-          >
-            <option value="">Cidade</option>
-            {cidades.map((cidade) => (
-              <option key={cidade.id} value={cidade.nome}>
-                {cidade.nome}
-              </option>
-            ))}
-          </select>
+        <div className="w-1/2 relative">
+          <input
+            type="text"
+            className={`input input-bordered w-full ${errors.cidade ? "border-error" : ""}`}
+            placeholder="Cidade"
+            value={cidadeInput}
+            onChange={e => {
+              setCidadeInput(e.target.value);
+              setCidadeSelecionada(null);
+              setShowCidadeSugestoes(true);
+            }}
+            autoComplete="off"
+            disabled={!estadoSelecionado}
+            onFocus={() => setShowCidadeSugestoes(true)}
+            onBlur={() => setTimeout(() => setShowCidadeSugestoes(false), 150)}
+          />
+          {showCidadeSugestoes && cidadeInput && estadoSelecionado && (
+            <div className="absolute bg-white border rounded w-full z-10 max-h-40 overflow-y-auto shadow">
+              {cidadesEstado.filter(c => c.nome.toLowerCase().includes(cidadeInput.toLowerCase())).map(c => (
+                <div
+                  key={c.id}
+                  className="px-2 py-1 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={() => {
+                    setCidadeInput(c.nome);
+                    setCidadeSelecionada(c);
+                    setShowCidadeSugestoes(false);
+                  }}
+                >
+                  {c.nome}
+                </div>
+              ))}
+            </div>
+          )}
           {errors.cidade && (
-            <p className="text-error text-xs min-h-[1rem] mt-1">
-              {errors.cidade.message}
-            </p>
+            <p className="text-error text-xs min-h-[1rem] mt-1">{errors.cidade.message}</p>
           )}
         </div>
       </div>

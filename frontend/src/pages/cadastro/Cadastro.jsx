@@ -10,6 +10,7 @@ import { exibirAlertaErro } from "../../hooks/useAlert";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Cadastro() {
+  const [canProceed, setCanProceed] = useState(false);
   const [estados, setEstados] = useState([]);
   const [cidades, setCidades] = useState([]);
   const [step, setStep] = useState(1);
@@ -139,7 +140,7 @@ export default function Cadastro() {
       </div>
 
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] h-[750px] overflow-y-auto flex flex-col justify-between">
+        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] overflow-y-auto flex flex-col justify-between">
           <h2 className="text-2xl font-bold mb-4 text-center">
             Realize seu cadastro abaixo!
           </h2>
@@ -152,6 +153,7 @@ export default function Cadastro() {
                 cidades={cidades}
                 handleEstadoChange={handleEstadoChange}
                 watch={watch}
+                setCanProceed={setCanProceed}
               />
             )}
             {step === 2 && (
@@ -190,7 +192,10 @@ export default function Cadastro() {
               <button
                 type="submit"
                 className="btn bg-[#ffc107] text-black hover:brightness-110"
-                disabled={step === 3 && !captchaValido}
+                disabled={
+                  (step === 1 && !canProceed) ||
+                  (step === 3 && !captchaValido)
+                }
               >
                 {step === 3 ? "Finalizar" : "Avançar"}
               </button>
