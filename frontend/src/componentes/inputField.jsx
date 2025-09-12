@@ -21,13 +21,13 @@ export default function InputField({
       <input
         type={inputType}
         placeholder={label}
-        className={`input input-bordered w-full pr-10 ${
+        className={`input input-bordered w-full pr-10  ${
           errors[name] ? "border-error" : ""
         }`}
         {...register(name, { required: `${label} é obrigatório`, ...validate })}
       />
       {showToggle && (
-        <button type="button" className="absolute right-2 top-2.5" onClick={onToggle}>
+        <button type="button" className="absolute right-3.5 top-3.5" onClick={onToggle}>
           <img
             src={isVisible ? eye : eyeOff}
             alt="Toggle Senha"

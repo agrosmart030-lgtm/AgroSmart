@@ -72,7 +72,6 @@ export default function Step1({
             ? "opacity-100 max-h-40 mt-2"
             : "opacity-0 max-h-0 mt-0"
         }`}
-        aria-hidden={senha.length === 0 || requisitosAtendidos}
       >
         <div className="text-sm">
           <strong>Sua senha deve conter:</strong>

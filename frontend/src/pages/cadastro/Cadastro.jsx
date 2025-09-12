@@ -139,7 +139,7 @@ export default function Cadastro() {
       </div>
 
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] h-[635px] overflow-y-auto flex flex-col justify-between">
+        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] h-[750px] overflow-y-auto flex flex-col justify-between">
           <h2 className="text-2xl font-bold mb-4 text-center">
             Realize seu cadastro abaixo!
           </h2>
@@ -177,7 +177,7 @@ export default function Cadastro() {
               </>
             )}
 
-            <div className="flex pt-2 justify-center gap-4">
+            <div className="flex pt-6 justify-center gap-4">
               {step > 1 && (
                 <button
                   type="button"

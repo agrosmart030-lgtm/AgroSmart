@@ -71,7 +71,6 @@ export default function Login() {
                 type={showSenha ? "text" : "password"}
                 register={register}
                 errors={errors}
-                showToggle
                 isVisible={showSenha}
                 onToggle={() => setShowSenha((prev) => !prev)}
               />
