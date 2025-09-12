@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaUniversalAccess, FaSignLanguage, FaVolumeUp, FaMicrophone } from "react-icons/fa";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { useNavigate } from "react-router-dom";
@@ -89,28 +90,56 @@ const AccessibilityMenu = () => {
         <FaUniversalAccess />
       </button>
 
-      {open && (
-        <div style={{
-          marginTop: "10px",
-          background: "white",
-          borderRadius: "8px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-          padding: "10px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          width: "180px"
-        }}>
-          <button onClick={increaseFontSize}>Aumentar fonte</button>
-          <button onClick={decreaseFontSize}>Diminuir fonte</button>
-          <button onClick={toggleReading}>
-            {readingEnabled ? "Parar leitura" : "Ler texto"}
-          </button>
-          <button onClick={toggleVoice}>
-            {voiceEnabled ? "Desativar voz" : "Ativar voz"}
-          </button>
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              marginTop: "10px",
+              background: "white",
+              borderRadius: "8px",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+              padding: "10px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              width: "180px"
+            }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.08, backgroundColor: "#e0f7fa" }}
+              onClick={increaseFontSize}
+              style={{ border: "none", background: "none", padding: "8px", borderRadius: "6px", cursor: "pointer" }}
+            >
+              Aumentar fonte
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.08, backgroundColor: "#e0f7fa" }}
+              onClick={decreaseFontSize}
+              style={{ border: "none", background: "none", padding: "8px", borderRadius: "6px", cursor: "pointer" }}
+            >
+              Diminuir fonte
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.08, backgroundColor: "#e0f7fa" }}
+              onClick={toggleReading}
+              style={{ border: "none", background: "none", padding: "8px", borderRadius: "6px", cursor: "pointer" }}
+            >
+              {readingEnabled ? "Parar leitura" : "Ler texto"}
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.08, backgroundColor: "#e0f7fa" }}
+              onClick={toggleVoice}
+              style={{ border: "none", background: "none", padding: "8px", borderRadius: "6px", cursor: "pointer" }}
+            >
+              {voiceEnabled ? "Desativar voz" : "Ativar voz"}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
