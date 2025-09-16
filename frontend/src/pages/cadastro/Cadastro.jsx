@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import cadastroImg from "../../assets/cadastro.jpg";
@@ -7,7 +8,6 @@ import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
 import Step3 from "../../componentes/cadastro/step3";
 import { exibirAlertaErro } from "../../hooks/useAlert";
-import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Cadastro() {
   const [canProceed, setCanProceed] = useState(false);
@@ -16,7 +16,9 @@ export default function Cadastro() {
   const [step, setStep] = useState(1);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [showToast, setShowToast] = useState(false);
-  const [captchaValido, setCaptchaValido] = useState(false);
+  const [captchaStep1, setCaptchaStep1] = useState(false);
+  const [captchaStep2, setCaptchaStep2] = useState(false);
+  const [captchaStep3, setCaptchaStep3] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -54,7 +56,16 @@ export default function Cadastro() {
 
   const nextStep = async () => {
     const valid = await trigger();
-    if (valid) setStep((prev) => prev + 1);
+    if (!valid) return;
+    if (step === 1 && !captchaStep1) {
+      exibirAlertaErro("Valide o reCAPTCHA antes de avançar");
+      return;
+    }
+    if (step === 2 && !captchaStep2) {
+      exibirAlertaErro("Valide o reCAPTCHA antes de avançar");
+      return;
+    }
+    setStep((prev) => prev + 1);
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
@@ -62,8 +73,8 @@ export default function Cadastro() {
   const onSubmit = async (data) => {
     const valid = await trigger();
     if (!valid) return;
-    if (step === 3 && !captchaValido) {
-      exibirAlertaErro("Valide o reCAPTCHA antes de prosseguir");
+    if (step === 3 && !captchaStep3) {
+      exibirAlertaErro("Valide o reCAPTCHA antes de finalizar");
       return;
     }
 
@@ -146,34 +157,51 @@ export default function Cadastro() {
           </h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 h-3/3">
             {step === 1 && (
-              <Step1
-                register={register}
-                errors={errors}
-                estados={estados}
-                cidades={cidades}
-                handleEstadoChange={handleEstadoChange}
-                watch={watch}
-                setCanProceed={setCanProceed}
-              />
+              <>
+                <Step1
+                  register={register}
+                  errors={errors}
+                  estados={estados}
+                  cidades={cidades}
+                  handleEstadoChange={handleEstadoChange}
+                  watch={watch}
+                  setCanProceed={setCanProceed}
+                />
+                <div className="flex justify-center mt-4">
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    onChange={() => setCaptchaStep1(true)}
+                    onExpired={() => setCaptchaStep1(false)}
+                  />
+                </div>
+              </>
             )}
             {step === 2 && (
-              <Step2
-                register={register}
-                selectedTipo={selectedTipo}
-                setSelectedTipo={setSelectedTipo}
-                setValue={setValue}
-                errors={errors}
-              />
+              <>
+                <Step2
+                  register={register}
+                  selectedTipo={selectedTipo}
+                  setSelectedTipo={setSelectedTipo}
+                  setValue={setValue}
+                  errors={errors}
+                />
+                <div className="flex justify-center mt-4">
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    onChange={() => setCaptchaStep2(true)}
+                    onExpired={() => setCaptchaStep2(false)}
+                  />
+                </div>
+              </>
             )}
-
             {step === 3 && tipo && (
               <>
                 <Step3 tipo={tipo} register={register} errors={errors} />
-                <div className="flex justify-center">
+                <div className="flex justify-center mt-4">
                   <ReCAPTCHA
                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                    onChange={() => setCaptchaValido(true)}
-                    onExpired={() => setCaptchaValido(false)}
+                    onChange={() => setCaptchaStep3(true)}
+                    onExpired={() => setCaptchaStep3(false)}
                   />
                 </div>
               </>
@@ -193,8 +221,9 @@ export default function Cadastro() {
                 type="submit"
                 className="btn bg-[#ffc107] text-black hover:brightness-110"
                 disabled={
-                  (step === 1 && !canProceed) ||
-                  (step === 3 && !captchaValido)
+                  (step === 1 && (!canProceed || !captchaStep1)) ||
+                  (step === 2 && !captchaStep2) ||
+                  (step === 3 && !captchaStep3)
                 }
               >
                 {step === 3 ? "Finalizar" : "Avançar"}

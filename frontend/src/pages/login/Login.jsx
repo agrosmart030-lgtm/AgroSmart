@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import axios from "axios";
+import { useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../hooks/context/AuthContext";
 import loginImg from "../../assets/cadastro.jpg";
-import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
+import eye from "../../assets/eye.svg";
+import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 
+const SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"; // Exemplo Google reCAPTCHA v2 (teste)
 export default function Login() {
   const {
     register,
@@ -15,10 +17,15 @@ export default function Login() {
     formState: { errors },
   } = useForm();
   const [showSenha, setShowSenha] = useState(false);
+  const [captchaValido, setCaptchaValido] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const onSubmit = async (data) => {
+    if (!captchaValido) {
+      exibirAlertaErro("Valide o reCAPTCHA antes de prosseguir");
+      return;
+    }
     try {
       const response = await axios.post("http://localhost:5001/api/login", {
         email: data.email,
@@ -28,10 +35,16 @@ export default function Login() {
         login(response.data.usuario);
         navigate("/dashboard");
       } else {
-        exibirAlertaErro('Senha ou Email errados !', "Confira novamente suas informações.");
+        exibirAlertaErro(
+          "Senha ou Email errados !",
+          "Confira novamente suas informações."
+        );
       }
     } catch (error) {
-      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
+      exibirAlertaErro(
+        "Falha ao fazer login",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -74,12 +87,19 @@ export default function Login() {
                 isVisible={showSenha}
                 onToggle={() => setShowSenha((prev) => !prev)}
               />
-              <button
-                type="submit"
-                className="btn w-full mt-4 bg-[#ffc107] text-black hover:brightness-110"
-              >
-                Entrar
-              </button>
+              <div className="flex flex-col gap-2">
+                <ReCAPTCHA
+                  sitekey={SITE_KEY}
+                  onChange={() => setCaptchaValido(true)}
+                  onExpired={() => setCaptchaValido(false)}
+                />
+                <button
+                  type="submit"
+                  className="btn w-full mt-2 bg-[#ffc107] text-black hover:brightness-110"
+                >
+                  Entrar
+                </button>
+              </div>
             </form>
           </div>
 

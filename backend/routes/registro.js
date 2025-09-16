@@ -55,7 +55,7 @@ export default function createRegistroRoutes(pool) {
       if (tipo_usuario === "agricultor") {
         await pool.query(
           `INSERT INTO tb_agricultor (usuario_id, cpf, nome_propriedade, area_cultivada)
-           VALUES ($1, $2, $3, $4)`,
+            VALUES ($1, $2, $3, $4)`,
           [usuario.id, cpf, nomePropriedade, areaCultivada]
         );
         // Relacionamento com grãos (se houver)
@@ -64,7 +64,7 @@ export default function createRegistroRoutes(pool) {
           for (const grao of graosArr) {
             await pool.query(
               `INSERT INTO tb_usuario_grao (usuario_id, grao_id, tipo_relacao)
-               VALUES ($1, (SELECT id FROM tb_grao WHERE nome = $2 LIMIT 1), 'cultiva')`,
+                VALUES ($1, (SELECT id FROM tb_grao WHERE nome = $2 LIMIT 1), 'cultiva')`,
               [usuario.id, grao.trim()]
             );
           }
@@ -72,7 +72,7 @@ export default function createRegistroRoutes(pool) {
       } else if (tipo_usuario === "empresario") {
         await pool.query(
           `INSERT INTO tb_empresario (usuario_id, cpf, nome_empresa, cnpj)
-           VALUES ($1, $2, $3, $4)`,
+            VALUES ($1, $2, $3, $4)`,
           [usuario.id, cpf, nomeComercio, cnpj]
         );
         if (graos) {
@@ -80,7 +80,7 @@ export default function createRegistroRoutes(pool) {
           for (const grao of graosArr) {
             await pool.query(
               `INSERT INTO tb_usuario_grao (usuario_id, grao_id, tipo_relacao)
-               VALUES ($1, (SELECT id FROM tb_grao WHERE nome = $2 LIMIT 1), 'interesse')`,
+                VALUES ($1, (SELECT id FROM tb_grao WHERE nome = $2 LIMIT 1), 'interesse')`,
               [usuario.id, grao.trim()]
             );
           }
@@ -88,7 +88,7 @@ export default function createRegistroRoutes(pool) {
       } else if (tipo_usuario === "cooperativa") {
         await pool.query(
           `INSERT INTO tb_cooperativa (usuario_id, nome_cooperativa, cnpj, regiao_atuacao)
-           VALUES ($1, $2, $3, $4)`,
+            VALUES ($1, $2, $3, $4)`,
           [usuario.id, nomeCooperativa, cnpj, areaAtuacao]
         );
       }
