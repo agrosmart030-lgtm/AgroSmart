@@ -1,25 +1,18 @@
-import axios from "axios";
 import { useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 import { Link, useNavigate } from "react-router-dom";
-import background1 from "../../assets/background1.jpg";
+import axios from "axios";
 import { useAuth } from "../../hooks/context/AuthContext";
+import background1 from "../../assets/background1.jpg";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 
-const SITE_KEY = "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"; // Exemplo Google reCAPTCHA v2 (teste)
 export default function LoginAdmin() {
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
-  const [captchaValido, setCaptchaValido] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!captchaValido) {
-      exibirAlertaErro("Valide o reCAPTCHA antes de prosseguir");
-      return;
-    }
     try {
       const response = await axios.post(
         "http://localhost:5001/api/login/admin",
@@ -32,16 +25,10 @@ export default function LoginAdmin() {
         login({ ...response.data.admin, tipo_usuario: "admin" });
         navigate("/admin");
       } else {
-        exibirAlertaErro(
-          "Falha ao fazer login",
-          "Consulte suas credenciais novamente"
-        );
+        exibirAlertaErro('Falha ao fazer login', "Consulte suas credenciais novamente");
       }
     } catch (error) {
-      exibirAlertaErro(
-        "Falha ao fazer login",
-        error.response?.data?.message || error.message
-      );
+      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
     }
   };
 
@@ -87,26 +74,19 @@ export default function LoginAdmin() {
             onChange={(e) => setSenha(e.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-2 mt-4">
-          <ReCAPTCHA
-            sitekey={SITE_KEY}
-            onChange={() => setCaptchaValido(true)}
-            onExpired={() => setCaptchaValido(false)}
-          />
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Entrar
-            </button>
-            <Link
-              to="/"
-              className="ml-2 text-green-700 hover:underline font-semibold"
-            >
-              Voltar ao início
-            </Link>
-          </div>
+        <div className="flex items-center justify-between mt-4">
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit"
+          >
+            Entrar
+          </button>
+          <Link
+            to="/"
+            className="ml-2 text-green-700 hover:underline font-semibold"
+          >
+            Voltar ao início
+          </Link>
         </div>
       </form>
     </div>
