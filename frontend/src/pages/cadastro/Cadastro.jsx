@@ -122,6 +122,42 @@ export default function Cadastro() {
     }
   };
 
+  function calcularProgresso(data) {
+    // Campos obrigatórios comuns
+    const campos = [
+      "nome",
+      "email",
+      "senha",
+      "confirmarSenha",
+      "estado",
+      "cidade",
+      "tipo",
+    ];
+
+    // Campos obrigatórios por tipo
+    if (data.tipo === "Agricultor") {
+      campos.push("cpf", "nomePropriedade", "areaCultivada", "graos");
+    }
+    if (data.tipo === "Empresário") {
+      campos.push("cpf", "nomeComercio", "cnpj", "graos");
+    }
+    if (data.tipo === "Cooperativa") {
+      campos.push("cnpj", "nomeCooperativa", "areaAtuacao");
+    }
+
+    // Conta preenchidos
+    const preenchidos = campos
+      .filter((campo) => {
+        const valor = data[campo];
+        return valor !== undefined && valor !== null && valor !== "";
+      }).length;
+
+    return Math.round((preenchidos / campos.length) * 100);
+  }
+
+  const data = watch();
+  const progresso = calcularProgresso(data);
+
   return (
     <div className="flex h-screen">
       {showToast && (
@@ -144,6 +180,18 @@ export default function Cadastro() {
           <h2 className="text-2xl font-bold mb-4 text-center">
             Realize seu cadastro abaixo!
           </h2>
+          {/* Barra de progresso logo abaixo do título */}
+          <div className="w-full mb-6">
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-3 bg-[#2e7d32] transition-all duration-300"
+                style={{ width: `${progresso}%` }}
+              ></div>
+            </div>
+            <div className="text-right text-xs mt-1 text-[#2e7d32] font-bold">
+              {progresso}% completo
+            </div>
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 h-3/3">
             {step === 1 && (
               <Step1

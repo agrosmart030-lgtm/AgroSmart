@@ -24,6 +24,10 @@ export default function createRegistroRoutes(pool) {
       areaAtuacao,
     } = req.body;
     try {
+      // Remove máscara de CPF e CNPJ
+      const cleanCPF = cpf ? cpf.replace(/\D/g, "") : undefined;
+      const cleanCNPJ = cnpj ? cnpj.replace(/\D/g, "") : undefined;
+
       const existe = await pool.query(
         "SELECT 1 FROM tb_usuario WHERE email = $1",
         [email]
@@ -56,7 +60,7 @@ export default function createRegistroRoutes(pool) {
         await pool.query(
           `INSERT INTO tb_agricultor (usuario_id, cpf, nome_propriedade, area_cultivada)
            VALUES ($1, $2, $3, $4)`,
-          [usuario.id, cpf, nomePropriedade, areaCultivada]
+          [usuario.id, cleanCPF, nomePropriedade, areaCultivada]
         );
         // Relacionamento com grãos (se houver)
         if (graos) {
@@ -73,7 +77,7 @@ export default function createRegistroRoutes(pool) {
         await pool.query(
           `INSERT INTO tb_empresario (usuario_id, cpf, nome_empresa, cnpj)
            VALUES ($1, $2, $3, $4)`,
-          [usuario.id, cpf, nomeComercio, cnpj]
+          [usuario.id, cleanCPF, nomeComercio, cleanCNPJ]
         );
         if (graos) {
           const graosArr = Array.isArray(graos) ? graos : graos.split(",");
@@ -89,7 +93,7 @@ export default function createRegistroRoutes(pool) {
         await pool.query(
           `INSERT INTO tb_cooperativa (usuario_id, nome_cooperativa, cnpj, regiao_atuacao)
            VALUES ($1, $2, $3, $4)`,
-          [usuario.id, nomeCooperativa, cnpj, areaAtuacao]
+          [usuario.id, nomeCooperativa, cleanCNPJ, areaAtuacao]
         );
       }
       res.status(201).json({ success: true, usuario });
