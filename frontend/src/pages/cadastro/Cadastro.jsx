@@ -89,18 +89,18 @@ export default function Cadastro() {
       };
       //Conforme o tipo
       if (payload.tipo_usuario === "agricultor") {
-        payload.cpf = data.cpf;
+        payload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
         payload.nomePropriedade = data.nomePropriedade;
         payload.areaCultivada = data.areaCultivada;
         payload.graos = data.graos;
       } else if (payload.tipo_usuario === "empresario") {
-        payload.cpf = data.cpf;
+        payload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
         payload.nomeComercio = data.nomeComercio;
-        payload.cnpj = data.cnpj;
+        payload.cnpj = data.cnpj && data.cnpj.replace(/\D/g, "").length === 14 ? data.cnpj : null;
         payload.graos = data.graos;
       } else if (payload.tipo_usuario === "cooperativa") {
         payload.nomeCooperativa = data.nomeCooperativa;
-        payload.cnpj = data.cnpj;
+        payload.cnpj = data.cnpj && data.cnpj.replace(/\D/g, "").length === 14 ? data.cnpj : null;
         payload.areaAtuacao = data.areaAtuacao;
       }
       try {
