@@ -219,7 +219,7 @@ export default function Cadastro() {
                 <Step3 tipo={tipo} register={register} errors={errors} />
                 <div className="flex justify-center">
                   <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    sitekey="6Ld-SbwrAAAAAEfCANc2DUNB_FByz6xWVxVwxbuw"
                     onChange={() => setCaptchaValido(true)}
                     onExpired={() => setCaptchaValido(false)}
                   />
