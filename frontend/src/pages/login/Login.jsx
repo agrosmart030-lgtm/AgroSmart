@@ -26,7 +26,11 @@ export default function Login() {
       });
       if (response.data.success) {
         login(response.data.usuario);
-        navigate("/dashboard");
+        if (response.data.tipo_usuario === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         exibirAlertaErro('Senha ou Email errados !', "Confira novamente suas informações.");
       }
