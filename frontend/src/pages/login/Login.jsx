@@ -38,7 +38,11 @@ export default function Login() {
       );
       if (response.data.success) {
         login(response.data.usuario);
-        navigate("/dashboard");
+        if (response.data.tipo_usuario === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         exibirAlertaErro(
           "Senha ou Email errados !",
@@ -63,19 +67,18 @@ export default function Login() {
 
       {/* Área do formulário */}
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-[450px] h-[500px] flex flex-col justify-between">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold mb-4 text-[#2e7d32]">
-              Bem-vindo de volta!
-            </h2>
-            <p className="text-sm text-gray-500 mb-12">
-              Acesse sua conta para continuar
-            </p>
+        <div className="bg-white shadow-xl rounded-2xl p-8 w-[450px] h-[500px] flex flex-col">
+          <div className="flex-1">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-extrabold mb-2 text-[#2e7d32]">
+                Bem-vindo de volta!
+              </h2>
+              <p className="text-sm text-gray-500">
+                Acesse sua conta para continuar
+              </p>
+            </div>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4 text-left"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <InputField
                 label="E-mail"
                 name="email"
@@ -94,7 +97,7 @@ export default function Login() {
               />
               {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
               {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
-                <div className="pt-2">
+                <div className="flex justify-center mt-2">
                   <ReCAPTCHA
                     sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                     onChange={(token) => setRecaptchaToken(token)}
@@ -103,7 +106,7 @@ export default function Login() {
               ) : null}
               <button
                 type="submit"
-                className="btn w-full mt-4 bg-[#ffc107] text-black hover:brightness-110"
+                className="btn w-full mt-6 bg-[#ffc107] text-black hover:brightness-110"
                 disabled={
                   Boolean(import.meta.env.VITE_RECAPTCHA_SITE_KEY) &&
                   !recaptchaToken
@@ -114,11 +117,11 @@ export default function Login() {
             </form>
           </div>
 
-          <div className="text-center text-sm pt-4">
+          <div className="text-center text-sm border-t pt-4 mt-4">
             Ainda não tem conta?{" "}
             <a
               href="/cadastro"
-              className="text-primary hover:underline transition-all"
+              className="text-primary hover:underline transition-all font-medium"
             >
               Cadastre-se
             </a>
