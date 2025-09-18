@@ -1,34 +1,44 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../hooks/context/AuthContext";
+import { useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Link, useNavigate } from "react-router-dom";
 import background1 from "../../assets/background1.jpg";
+import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function LoginAdmin() {
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        nome,
+        senha,
+        recaptchaToken: recaptchaToken,
+      };
       const response = await axios.post(
         "http://localhost:5001/api/login/admin",
-        {
-          nome,
-          senha,
-        }
+        payload
       );
       if (response.data.success) {
         login({ ...response.data.admin, tipo_usuario: "admin" });
         navigate("/admin");
       } else {
-        exibirAlertaErro('Falha ao fazer login', "Consulte suas credenciais novamente");
+        exibirAlertaErro(
+          "Falha ao fazer login",
+          "Consulte suas credenciais novamente"
+        );
       }
     } catch (error) {
-      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
+      exibirAlertaErro(
+        "Falha ao fazer login",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -78,6 +88,10 @@ export default function LoginAdmin() {
           <button
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"
+            disabled={
+              Boolean(import.meta.env.VITE_RECAPTCHA_SITE_KEY) &&
+              !recaptchaToken
+            }
           >
             Entrar
           </button>
@@ -88,6 +102,15 @@ export default function LoginAdmin() {
             Voltar ao início
           </Link>
         </div>
+        {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
+        {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+          <div className="mt-4">
+            <ReCAPTCHA
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              onChange={(token) => setRecaptchaToken(token)}
+            />
+          </div>
+        ) : null}
       </form>
     </div>
   );
