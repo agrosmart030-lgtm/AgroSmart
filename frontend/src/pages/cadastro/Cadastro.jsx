@@ -89,18 +89,30 @@ export default function Cadastro() {
       };
       //Conforme o tipo
       if (payload.tipo_usuario === "agricultor") {
-        payload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
+        payload.cpf =
+          data.cpf && data.cpf.replace(/\D/g, "").length === 11
+            ? data.cpf
+            : null;
         payload.nomePropriedade = data.nomePropriedade;
         payload.areaCultivada = data.areaCultivada;
         payload.graos = data.graos;
       } else if (payload.tipo_usuario === "empresario") {
-        payload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
+        payload.cpf =
+          data.cpf && data.cpf.replace(/\D/g, "").length === 11
+            ? data.cpf
+            : null;
         payload.nomeComercio = data.nomeComercio;
-        payload.cnpj = data.cnpj && data.cnpj.replace(/\D/g, "").length === 14 ? data.cnpj : null;
+        payload.cnpj =
+          data.cnpj && data.cnpj.replace(/\D/g, "").length === 14
+            ? data.cnpj
+            : null;
         payload.graos = data.graos;
       } else if (payload.tipo_usuario === "cooperativa") {
         payload.nomeCooperativa = data.nomeCooperativa;
-        payload.cnpj = data.cnpj && data.cnpj.replace(/\D/g, "").length === 14 ? data.cnpj : null;
+        payload.cnpj =
+          data.cnpj && data.cnpj.replace(/\D/g, "").length === 14
+            ? data.cnpj
+            : null;
         payload.areaAtuacao = data.areaAtuacao;
       }
       try {
@@ -146,17 +158,17 @@ export default function Cadastro() {
     }
 
     // Conta preenchidos
-    const preenchidos = campos
-      .filter((campo) => {
-        const valor = data[campo];
-        return valor !== undefined && valor !== null && valor !== "";
-      }).length;
+    const preenchidos = campos.filter((campo) => {
+      const valor = data[campo];
+      return valor !== undefined && valor !== null && valor !== "";
+    }).length;
 
     return Math.round((preenchidos / campos.length) * 100);
   }
 
   const data = watch();
   const progresso = calcularProgresso(data);
+  const progressPercentage = step === 1 ? 0 : step === 2 ? 50 : 100;
 
   return (
     <div className="flex h-screen">
@@ -180,18 +192,52 @@ export default function Cadastro() {
           <h2 className="text-2xl font-bold mb-4 text-center">
             Realize seu cadastro abaixo!
           </h2>
-          {/* Barra de progresso logo abaixo do título */}
-          <div className="w-full mb-6">
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-3 bg-[#2e7d32] transition-all duration-300"
-                style={{ width: `${progresso}%` }}
+          
+          {/* *** CÓDIGO DA BARRA DE PROGRESSO COM AJUSTE FINAL *** */}
+          <div className="w-full px-4 sm:px-8 mb-8">
+            <div className="relative">
+              {/* Linha de Fundo - AJUSTE FINAL */}
+              <div 
+                  className="absolute top-4 left-12 w-[calc(100%-6rem)] h-1 bg-gray-300 -translate-y-1/2"
               ></div>
-            </div>
-            <div className="text-right text-xs mt-1 text-[#2e7d32] font-bold">
-              {progresso}% completo
+
+              {/* Linha de Progresso - AJUSTE FINAL */}
+              <div
+                className="absolute top-4 left-12 h-1 bg-green-600 -translate-y-1/2 transition-all duration-500"
+                style={{ width: `calc(${progressPercentage / 100} * (100% - 6rem))` }}
+              ></div>
+
+              {/* Etapas (Círculos e Rótulos) */}
+              <div className="relative flex justify-between items-start">
+                {[
+                  { label: "Dados Pessoais", step: 1 },
+                  { label: "Tipo de Cadastro", step: 2 },
+                  { label: "Informações Finais", step: 3 },
+                ].map((etapa) => (
+                  <div key={etapa.step} className="flex flex-col items-center z-10 w-24">
+                    <div
+                      className={`rounded-full w-8 h-8 flex items-center justify-center text-white font-bold border-2
+                        ${
+                          step > etapa.step
+                            ? "bg-green-600 border-green-600"
+                            : step === etapa.step
+                            ? "bg-[#2e7d32] border-[#2e7d32]"
+                            : "bg-white border-gray-300"
+                        }`}
+                    >
+                      {step > etapa.step ? (
+                        <span>&#10003;</span>
+                      ) : (
+                        <span className={step < etapa.step ? "text-gray-400" : ""}>{etapa.step}</span>
+                      )}
+                    </div>
+                    <span className="text-xs mt-2 text-center">{etapa.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 h-3/3">
             {step === 1 && (
               <Step1
@@ -219,7 +265,7 @@ export default function Cadastro() {
                 <Step3 tipo={tipo} register={register} errors={errors} />
                 <div className="flex justify-center">
                   <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    sitekey="6Ld-SbwrAAAAAEfCANc2DUNB_FByz6xWVxVwxbuw"
                     onChange={() => setCaptchaValido(true)}
                     onExpired={() => setCaptchaValido(false)}
                   />
