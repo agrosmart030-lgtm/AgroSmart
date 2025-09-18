@@ -81,10 +81,10 @@ VALUES
 ('Fernanda Souza', 'fernanda@gmail.com', 'Posso adicionar mais de uma empresa?'),
 ('José Oliveira', 'jose@gmail.com', 'Tem como alterar meu cadastro?');
 
-INSERT INTO tb_admin (nome, senha)
+INSERT INTO tb_admin (nome, email, senha)
 VALUES
-('Admin1', 'admin123'),
-('Admin2', 'senha456');
+('Admin1', 'Rubens@equipeagrosmart.com', 'admin123'),
+('Admin2', 'Giulliano@equipeagrosmart.com', 'senha456');
 
 
 

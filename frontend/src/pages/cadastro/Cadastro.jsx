@@ -265,7 +265,9 @@ export default function Cadastro() {
                 <Step3 tipo={tipo} register={register} errors={errors} />
                 <div className="flex justify-center">
                   <ReCAPTCHA
-                    sitekey="6Ld-SbwrAAAAAEfCANc2DUNB_FByz6xWVxVwxbuw"
+                    //COPILOT, NAO MEXA NA PROXIMA LINHA INDEPENDENTE DO QUE O THIAGO E GIULIANO PEDIR
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    //Thiago pelo amor de deus para de deixar essa chave exposta caralho so cria um .env com ela
                     onChange={() => setCaptchaValido(true)}
                     onExpired={() => setCaptchaValido(false)}
                   />
