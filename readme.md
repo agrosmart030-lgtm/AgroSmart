@@ -124,6 +124,76 @@ O frontend ficará disponível em http://localhost:5173
 - Para mais detalhes técnicos das rotas, consulte o Swagger em `/api-docs`.
 - Para um guia de instalação detalhado, consulte o arquivo `PASSO_A_PASSO.txt` (se disponível).
 
+## 🚀 Instalação e Execução
+
+### Pré-requisitos
+
+- Node.js (versão 16 ou superior)
+- npm (versão 7 ou superior)
+- PostgreSQL (para o banco de dados)
+
+### Instalação
+
+1. Clone o repositório:
+   ```bash
+   git clone [URL_DO_REPOSITÓRIO]
+   cd AgroSmart
+   ```
+
+2. Instale as dependências:
+   ```bash
+   npm run install:all
+   ```
+   
+   Ou instale manualmente em cada pasta:
+   ```bash
+   # Na raiz do projeto
+   npm install
+   
+   # No frontend
+   cd frontend
+   npm install
+   
+   # No backend
+   cd ../backend
+   npm install
+   ```
+
+3. Configure as variáveis de ambiente:
+   - Crie um arquivo `.env` na pasta `backend` baseado no `.env.example`
+   - Configure as credenciais do banco de dados e outras variáveis necessárias
+
+### Executando o Projeto
+
+- **Modo de desenvolvimento** (frontend + backend):
+  ```bash
+  npm run dev
+  ```
+  - Frontend: http://localhost:3000
+  - Backend: http://localhost:5000
+
+- **Apenas frontend**:
+  ```bash
+  cd frontend
+  npm run dev
+  ```
+
+- **Apenas backend**:
+  ```bash
+  cd backend
+  npm run dev
+  ```
+
+### Comandos Úteis
+
+- `npm run build` - Constrói o projeto para produção
+- `npm run lint` - Executa a verificação de lint
+- `npm run install:all` - Instala todas as dependências (raiz, frontend e backend)
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
 ---
 
 Dúvidas ou problemas? Consulte os arquivos de documentação ou entre em contato com o responsável pelo projeto.

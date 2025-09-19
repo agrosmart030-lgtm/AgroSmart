@@ -1,3 +1,15 @@
+# Dependências
+node_modules/
+.pnp
+.pnp.js
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Logs
 logs
 *.log
@@ -7,26 +19,65 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-*.env
-.env.*
+# Diretórios de build
+/dist
+/build
+/.next
+/out
 
-.cache
-.vite
+# Cache
+.cache/
+.temp/
+.tmp/
+.vercel
 
-package-lock.json
-yarn.lock
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# Editor
+.idea/
+.vscode/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Banco de dados
+*.sqlite
+*.sqlite3
+*.db
+
+# Arquivos de configuração local
+*.local
+
+# Logs de teste
+coverage/
+
+# Arquivos de configuração do npm
+package-lock.json
+yarn.lock
+
+# Arquivos de configuração do Vite
+vite.config.js.timestamp-*
+.vite
+
+# Arquivos de configuração do ESLint
+.eslintcache
+
+# Arquivos de configuração do Prettier
+.prettiercache
+
+# Arquivos de configuração do TypeScript
+*.tsbuildinfo
+
+# Arquivos de configuração do Jest
+/coverage
+
+# Arquivos de configuração do Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Arquivos de configuração do Storybook
+/storybook-static
