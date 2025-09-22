@@ -251,7 +251,7 @@ npm test
 
 ## 👥 Equipe
 
-- **Matheus Yamanari** - Desenvolvedor Backend
+- [Seu Nome] - Seu Cargo
 - [Adicione seu nome aqui] - Seu cargo
 
 ## 📄 Licença
