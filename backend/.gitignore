@@ -1,0 +1,116 @@
+# Dependências
+/node_modules
+/.pnp
+.pnp.js
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Diretórios de saída
+/dist
+/build
+
+# Cache
+.cache
+.parcel-cache
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs e editores
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Arquivos temporários
+*.tmp
+*.tmp.*
+*~
+
+# Arquivos de cobertura
+yarn.lock
+package-lock.json
+coverage
+.nyc_output
+
+# Arquivos de ambiente local
+.env.local
+.env.*.local
+
+# Arquivos de configuração local
+config/local.*
+
+# Arquivos de sessão
+*.sess
+*.session
+
+# Arquivos de dump
+*.dump
+*.sql
+
+# Arquivos de log de erros
+error.log
+
+# Arquivos de cache do npm
+.npm
+
+# Arquivos de cache do Node.js
+.npm/_cacache/
+.npm/_logs/
+
+# Arquivos de cache do Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Arquivos de cache do Jest
+/coverage
+
+# Arquivos de cache do VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# Arquivos de cache do Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Arquivos de cache do macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Arquivos de cache do Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Arquivos de cache do Visual Studio Code
+.history
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

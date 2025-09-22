@@ -62,12 +62,20 @@ app.get('/api/health', (req, res) => {
 // Importa as rotas da aplicação
 import authRoutes from './routes/authRoutes.js';
 import twoFactorRoutes from './routes/twoFactorRoutes.js';
+import tabelasRoutes from './routes/tabelas.js';
+import faqRoutes from './routes/faq.js';
+import configuracaoRoutes from './routes/configuracao.js';
+import usuariosRoutes from './routes/usuarios.js';
 import dbTestRoutes from './routes/dbTest.js';
 
 // Configura as rotas da aplicação
-app.use('/api/auth', authRoutes);
-app.use('/api/2fa', twoFactorRoutes);
-app.use('/test', dbTestRoutes);
+app.use('/api/auth', authRoutes); // Rotas de autenticação
+app.use('/api/2fa', twoFactorRoutes); // Autenticação em duas etapas
+app.use('/api/tabelas', tabelasRoutes); // Rotas de tabelas
+app.use('/api/faq', faqRoutes); // Rotas de FAQ
+app.use('/api/configuracao', configuracaoRoutes); // Rotas de configuração
+app.use('/api/usuarios', usuariosRoutes); // Rotas de usuários
+app.use('/test', dbTestRoutes); // Rotas de teste (apenas desenvolvimento)
 
 // Importa e usa as rotas de tabelas
 import createTabelasRoutes from "./routes/tabelas.js";
@@ -519,21 +527,43 @@ const startServer = async () => {
   try {
     // Testa a conexão com o banco de dados
     const isConnected = await testConnection();
+    
     if (!isConnected) {
-      throw new Error('❌ Não foi possível conectar ao banco de dados');
+      console.error('❌ Não foi possível conectar ao banco de dados. Encerrando...');
+      process.exit(1);
     }
-
-    // Executa as migrações
-    console.log('🔄 Executando migrações do banco de dados...');
-    await runMigrations();
-
+    
+    console.log('✅ Conectado ao banco de dados');
+    
+    // Executa as migrações do banco de dados
+    try {
+      await runMigrations();
+      console.log('✅ Migrações do banco de dados aplicadas com sucesso');
+    } catch (migrationError) {
+      console.error('❌ Erro ao executar migrações:', migrationError);
+      process.exit(1);
+    }
+    
     // Inicia o servidor
-    app.listen(port, () => {
-      console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+    const server = app.listen(port, () => {
+      console.log(`\n🚀 Servidor rodando em http://localhost:${port}`);
       console.log(`📚 Documentação da API disponível em http://localhost:${port}/api-docs`);
+      console.log('\nRotas disponíveis:');
+      console.log(`- POST   /api/auth/register    - Registrar novo usuário`);
+      console.log(`- POST   /api/auth/login       - Fazer login`);
+      console.log(`- POST   /api/2fa/verify      - Verificar código 2FA`);
+      console.log(`- GET    /api/faq             - Listar FAQs`);
+      console.log(`- GET    /api/tabelas         - Listar tabelas disponíveis\n`);
     });
+    
+    // Tratamento de erros não capturados
+    process.on('unhandledRejection', (err) => {
+      console.error('Erro não tratado:', err);
+      server.close(() => process.exit(1));
+    });
+    
   } catch (error) {
-    console.error('❌ Falha ao iniciar o servidor:', error);
+    console.error('❌ Erro ao iniciar o servidor:', error);
     process.exit(1);
   }
 };
