@@ -1,52 +1,73 @@
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import pkg from "pg";
-import swaggerUi from "swagger-ui-express";
-import dotenv from "dotenv";
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import session from 'express-session';
+import swaggerUi from 'swagger-ui-express';
+import dotenv from 'dotenv';
+import { pool, testConnection } from './config/database.js';
+import { runMigrations } from './utils/migrate.js';
+import twoFactorRoutes from './routes/twoFactorRoutes.js';
+
+// Carrega as variáveis de ambiente
 dotenv.config();
-const { Pool } = pkg;
 
+// Cria a aplicação Express
 const app = express();
-const port = 5001;
+const port = process.env.PORT || 5001;
 
-app.use(cors());
+// Configuração do CORS
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+// Middlewares básicos
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
+// Configuração de sessão
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'agrosmart-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 horas
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  },
+}));
+
+// Adiciona o pool de conexões ao app para uso nas rotas
+app.set('pool', pool);
+
+// Middleware para adicionar o pool de conexões ao objeto de requisição
+app.use((req, res, next) => {
+  req.pool = pool;
+  next();
 });
 
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error("Erro ao conectar ao banco de dados:", err.stack);
-  } else {
-    console.log("Conexão com o banco de dados estabelecida com sucesso.");
-    release();
-  }
+// Rota de saúde da API
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+  });
 });
 
-pool.on("error", (err) => {
-  console.error("Erro inesperado no cliente do banco de dados:", err);
-});
+// Importa as rotas da aplicação
+import authRoutes from './routes/authRoutes.js';
+import twoFactorRoutes from './routes/twoFactorRoutes.js';
+import dbTestRoutes from './routes/dbTest.js';
 
-// Adiciona pool no app para acesso nas rotas
-app.set("pool", pool);
-
-// Importa e usa as rotas de login e registro
-import createLoginRoutes from "./routes/login.js";
-import createRegistroRoutes from "./routes/registro.js";
-
-app.use("/api/login", createLoginRoutes(pool));
-app.use("/api/registro", createRegistroRoutes(pool));
-
-// Importa e usa as rotas de teste de conexão
-import dbTestRoutes from "./routes/dbTest.js";
-app.use("/test", dbTestRoutes);
+// Configura as rotas da aplicação
+app.use('/api/auth', authRoutes);
+app.use('/api/2fa', twoFactorRoutes);
+app.use('/test', dbTestRoutes);
 
 // Importa e usa as rotas de tabelas
 import createTabelasRoutes from "./routes/tabelas.js";
@@ -493,8 +514,55 @@ const swaggerDocument = {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// ...adicione suas rotas e lógica aqui...
+// Função para iniciar o servidor
+const startServer = async () => {
+  try {
+    // Testa a conexão com o banco de dados
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('❌ Não foi possível conectar ao banco de dados');
+    }
 
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+    // Executa as migrações
+    console.log('🔄 Executando migrações do banco de dados...');
+    await runMigrations();
+
+    // Inicia o servidor
+    app.listen(port, () => {
+      console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+      console.log(`📚 Documentação da API disponível em http://localhost:${port}/api-docs`);
+    });
+  } catch (error) {
+    console.error('❌ Falha ao iniciar o servidor:', error);
+    process.exit(1);
+  }
+};
+
+// Inicia o servidor
+startServer();
+
+// Tratamento de erros global
+process.on('unhandledRejection', (error) => {
+  console.error('❌ Erro não tratado:', error);
+  if (pool) {
+    pool.end(() => {
+      console.log('Conexão com o banco de dados encerrada');
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+});
+
+// Encerra corretamente o pool de conexões ao finalizar a aplicação
+process.on('SIGTERM', () => {
+  console.log('👋 Recebido sinal SIGTERM. Encerrando...');
+  if (pool) {
+    pool.end(() => {
+      console.log('Conexão com o banco de dados encerrada');
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
 });
