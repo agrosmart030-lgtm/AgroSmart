@@ -251,8 +251,11 @@ npm test
 
 ## 👥 Equipe
 
-- [Seu Nome] - Seu Cargo
-- [Adicione seu nome aqui] - Seu cargo
+- Giuliano R. da Silva
+- Luís F. da Conceição Franco
+- Matheus Victor M. Yamanari
+- Rubens Gallina Junior
+- Thiago A. Akatsuka
 
 ## 📄 Licença
 
