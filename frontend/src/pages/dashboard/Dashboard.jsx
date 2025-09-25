@@ -61,7 +61,16 @@ const DashboardPage = () => {
     filteredData,
     limparFiltros,
     hasActiveFilter,
+    cotacoes,
+    loading,
+    error,
   } = useCotacoes(cooperativasData);
+
+  useEffect(() => {
+    // Loga o retorno da API de cotações para debug
+    console.log('API cotacoes:', cotacoes);
+    if (error) console.error('Erro cotacoes:', error);
+  }, [cotacoes, error]);
   
   const [selectedCoopName, setSelectedCoopName] = useState(null);
 

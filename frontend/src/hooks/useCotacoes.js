@@ -1,7 +1,11 @@
 // src/hooks/useCotacoes.js
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect} from 'react';
+import { apiAgrosmart } from '../../../backend/services/agroSmartApi';
 
 export const useCotacoes = (initialData) => {
+    const [cotacoes, setCotacoes] = useState({ coamo: [], larAgro: [] });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null)
     const [searchTerm, setSearchTerm] = useState('');
     const [filtroCooperativa, setFiltroCooperativa] = useState('');
 
@@ -33,6 +37,27 @@ export const useCotacoes = (initialData) => {
         setFiltroCooperativa('');
     };
 
+    useEffect(() => {
+      async function fetchCotacoes() {
+        try {
+          setLoading(true);
+          const response = await apiAgrosmart.get('/cotacoes/todos');
+          setCotacoes(response.data);
+          setError(null);
+        } catch (err) {
+          setError('Erro ao carregar cotações');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      fetchCotacoes();
+      // Atualiza a cada 5 minutos
+      const interval = setInterval(fetchCotacoes, 5 * 60 * 1000);
+      return () => clearInterval(interval);
+    }, []);
+
     return {
         searchTerm,
         setSearchTerm,
@@ -42,5 +67,8 @@ export const useCotacoes = (initialData) => {
         filteredData,
         limparFiltros,
         hasActiveFilter: searchTerm !== '' || filtroCooperativa !== '',
+        cotacoes,
+        loading,
+        error,
     };
 };
