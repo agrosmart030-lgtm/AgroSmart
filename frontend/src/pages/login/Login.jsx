@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../hooks/context/AuthContext";
 import loginImg from "../../assets/cadastro.jpg";
-import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
+import eye from "../../assets/eye.svg";
+import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function Login() {
@@ -14,24 +15,45 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  useEffect(() => {
+    // limpa token ao montar
+    setRecaptchaToken(null);
+  }, []);
   const [showSenha, setShowSenha] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post("http://localhost:5001/api/login", {
+      // inclui token do reCAPTCHA no payload (se existir)
+      const payload = {
         email: data.email,
         senha: data.senha,
-      });
+        recaptchaToken: recaptchaToken,
+      };
+      const response = await axios.post(
+        "http://localhost:5001/api/login",
+        payload
+      );
       if (response.data.success) {
         login(response.data.usuario);
-        navigate("/dashboard");
+        if (response.data.tipo_usuario === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
-        exibirAlertaErro('Senha ou Email errados !', "Confira novamente suas informações.");
+        exibirAlertaErro(
+          "Senha ou Email errados !",
+          "Confira novamente suas informações."
+        );
       }
     } catch (error) {
-      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
+      exibirAlertaErro(
+        "Falha ao fazer login",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -45,19 +67,18 @@ export default function Login() {
 
       {/* Área do formulário */}
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-[450px] h-[500px] flex flex-col justify-between">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold mb-4 text-[#2e7d32]">
-              Bem-vindo de volta!
-            </h2>
-            <p className="text-sm text-gray-500 mb-12">
-              Acesse sua conta para continuar
-            </p>
+        <div className="bg-white shadow-xl rounded-2xl p-8 w-[450px] h-[500px] flex flex-col">
+          <div className="flex-1">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-extrabold mb-2 text-[#2e7d32]">
+                Bem-vindo de volta!
+              </h2>
+              <p className="text-sm text-gray-500">
+                Acesse sua conta para continuar
+              </p>
+            </div>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4 text-left"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <InputField
                 label="E-mail"
                 name="email"
@@ -71,24 +92,36 @@ export default function Login() {
                 type={showSenha ? "text" : "password"}
                 register={register}
                 errors={errors}
-                showToggle
                 isVisible={showSenha}
                 onToggle={() => setShowSenha((prev) => !prev)}
               />
+              {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
+              {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+                <div className="flex justify-center mt-2">
+                  <ReCAPTCHA
+                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    onChange={(token) => setRecaptchaToken(token)}
+                  />
+                </div>
+              ) : null}
               <button
                 type="submit"
-                className="btn w-full mt-4 bg-[#ffc107] text-black hover:brightness-110"
+                className="btn w-full mt-6 bg-[#ffc107] text-black hover:brightness-110"
+                disabled={
+                  Boolean(import.meta.env.VITE_RECAPTCHA_SITE_KEY) &&
+                  !recaptchaToken
+                }
               >
                 Entrar
               </button>
             </form>
           </div>
 
-          <div className="text-center text-sm pt-4">
+          <div className="text-center text-sm border-t pt-4 mt-4">
             Ainda não tem conta?{" "}
             <a
               href="/cadastro"
-              className="text-primary hover:underline transition-all"
+              className="text-primary hover:underline transition-all font-medium"
             >
               Cadastre-se
             </a>

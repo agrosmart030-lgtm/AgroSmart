@@ -1,8 +1,8 @@
+import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../hooks/context/AuthContext";
 import background1 from "../../assets/background1.jpg";
+import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 
 export default function LoginAdmin() {
@@ -25,10 +25,16 @@ export default function LoginAdmin() {
         login({ ...response.data.admin, tipo_usuario: "admin" });
         navigate("/admin");
       } else {
-        exibirAlertaErro('Falha ao fazer login', "Consulte suas credenciais novamente");
+        exibirAlertaErro(
+          "Falha ao fazer login",
+          "Consulte suas credenciais novamente"
+        );
       }
     } catch (error) {
-      exibirAlertaErro('Falha ao fazer login', (error.response?.data?.message || error.message));
+      exibirAlertaErro(
+        "Falha ao fazer login",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -74,16 +80,16 @@ export default function LoginAdmin() {
             onChange={(e) => setSenha(e.target.value)}
           />
         </div>
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col space-y-4 mb-4">
           <button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="submit"
           >
             Entrar
           </button>
           <Link
             to="/"
-            className="ml-2 text-green-700 hover:underline font-semibold"
+            className="text-center text-green-700 hover:underline font-semibold"
           >
             Voltar ao início
           </Link>

@@ -18,11 +18,14 @@ import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/clima";
 import GrainPriceHistory from "./pages/historico/historico";
+import AccessibilityMenu from "./componentes/acessibilidade"; // ⬅️ Aqui está o menu de acessibilidade
+
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+          <AccessibilityMenu />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<Cadastro />} />

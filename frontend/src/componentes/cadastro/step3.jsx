@@ -15,6 +15,7 @@ export default function Step3({ tipo, register, errors }) {
               name="cpf"
               register={register}
               errors={errors}
+              mask="cpf"
               validate={{
                 validate: (value) => {
                   const cpf = value.replace(/\D/g, "");
@@ -55,6 +56,7 @@ export default function Step3({ tipo, register, errors }) {
               name="cpf"
               register={register}
               errors={errors}
+              mask="cpf"
               validate={{
                 validate: (value) => {
                   const cpf = value.replace(/\D/g, "");
@@ -73,6 +75,7 @@ export default function Step3({ tipo, register, errors }) {
               name="cnpj"
               register={register}
               errors={errors}
+              mask="cnpj"
               validate={{
                 validate: (value) => {
                   const cnpj = value.replace(/\D/g, "");
@@ -96,6 +99,7 @@ export default function Step3({ tipo, register, errors }) {
               name="cnpj"
               register={register}
               errors={errors}
+              mask="cnpj"
               validate={{
                 validate: (value) => {
                   const cnpj = value.replace(/\D/g, "");

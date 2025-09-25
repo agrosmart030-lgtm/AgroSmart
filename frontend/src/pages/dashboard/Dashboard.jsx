@@ -1,138 +1,113 @@
-import { useNavigate } from "react-router-dom";
-import Footer from "../../componentes/footer";
-import Navbar from "../../componentes/navbar";
-import coamoLogo from "../../assets/coamo-logo.png";
-import cocamarLogo from "../../assets/cocamar-logo.png";
-import larLogo from "../../assets/lar-logo.png";
+// src/pages/dashboard/Dashboard.jsx
 
-// Dados das cooperativas
+import React, { useState, useMemo, useEffect } from 'react';
+import Footer from '../../componentes/footer';
+import Navbar from '../../componentes/navbar';
+
+// Importando os novos componentes e o hook
+import { useCotacoes } from '../../hooks/useCotacoes';
+import FilterBar from '../../componentes/dashboard/FilterBar';
+import CooperativaSelectorVertical from '../../componentes/dashboard/CooperativaSelectorVertical';
+import MarketHighlightsCard from '../../componentes/dashboard/MarketHighlightsCard';
+import PainelDeConteudo from '../../componentes/dashboard/PainelDeConteudo';
+
+// Importando os logos diretamente
+import coamoLogo from '../../assets/coamo.png';
+import cocamarLogo from '../../assets/cocamar.png';
+import larLogo from '../../assets/lar.png';
+
+// Os dados mocados agora vivem aqui, prontos para serem substituídos por uma chamada de API.
 const cooperativasData = [
   {
-    nome: "COAMO",
+    nome: 'COAMO',
     logo: coamoLogo,
-    telefone: "556721088600",
+    telefone: '556721088600',
     produtos: [
-      { nome: "SOJA", preco: "R$ 128,50", dataHora: "4/12/2024 12:32" },
-      { nome: "MILHO", preco: "R$ 56,30", dataHora: "4/12/2024 12:32" },
-      { nome: "TRIGO", preco: "R$ 67,00", dataHora: "4/12/2024 12:32" },
-      { nome: "CAFÉ EM COCO", preco: "R$ 29,24", dataHora: "4/12/2024 12:32" },
+      { nome: 'SOJA', preco: 'R$ 128,50', variacao: '+1.2%' },
+      { nome: 'MILHO', preco: 'R$ 56,30', variacao: '-0.5%' },
+      { nome: 'TRIGO', preco: 'R$ 67,00', variacao: '+2.1%' },
+      { nome: 'CAFÉ', preco: 'R$ 29,24', variacao: '+0.8%' },
     ],
   },
   {
-    nome: "LAR",
+    nome: 'LAR',
     logo: larLogo,
-    telefone: "556734243449",
+    telefone: '556734243449',
     produtos: [
-      { nome: "SOJA", preco: "R$ 128,50", dataHora: "4/12/2024 12:32" },
-      { nome: "MILHO", preco: "R$ 56,30", dataHora: "4/12/2024 12:32" },
-      { nome: "TRIGO", preco: "R$ 67,00", dataHora: "4/12/2024 12:32" },
-      { nome: "CAFÉ EM COCO", preco: "R$ 20,00", dataHora: "4/12/2024 12:32" },
+      { nome: 'SOJA', preco: 'R$ 128,00', variacao: '+1.1%' },
+      { nome: 'MILHO', preco: 'R$ 55,90', variacao: '-0.6%' },
+      { nome: 'TRIGO', preco: 'R$ 66,50', variacao: '+1.9%' },
+      { nome: 'CAFÉ', preco: 'R$ 28,50', variacao: '+0.7%' },
     ],
   },
   {
-    nome: "COCAMAR",
+    nome: 'COCAMAR',
     logo: cocamarLogo,
-    telefone: "551194567890",
+    telefone: '551194567890',
     produtos: [
-      { nome: "SOJA", preco: "R$ 132,00", dataHora: "4/12/2024 12:32" },
-      { nome: "MILHO", preco: "R$ 60,00", dataHora: "4/12/2024 12:32" },
-      { nome: "TRIGO", preco: "R$ 72,00", dataHora: "4/12/2024 12:32" },
-      { nome: "CAFÉ EM COCO", preco: "R$ 29,50", dataHora: "4/12/2024 12:32" },
+      { nome: 'SOJA', preco: 'R$ 132,00', variacao: '+1.5%' },
+      { nome: 'MILHO', preco: 'R$ 60,00', variacao: '-0.2%' },
+      { nome: 'TRIGO', preco: 'R$ 72,00', variacao: '+1.8%' },
+      { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
     ],
   },
 ];
 
-// Componente da Tabela de Preços
-const TabelaPrecos = ({ cooperativa }) => {
-  const navigate = useNavigate();
+
+const DashboardPage = () => {
+  const {
+    searchTerm,
+    setSearchTerm,
+    filtroCooperativa,
+    setFiltroCooperativa,
+    cooperativasDisponiveis,
+    filteredData,
+    limparFiltros,
+    hasActiveFilter,
+  } = useCotacoes(cooperativasData);
+  
+  const [selectedCoopName, setSelectedCoopName] = useState(null);
+
+  useEffect(() => {
+    const isSelectedInList = filteredData.some(c => c.nome === selectedCoopName);
+    if (!isSelectedInList) {
+        setSelectedCoopName(filteredData.length > 0 ? filteredData[0].nome : null);
+    }
+  }, [filteredData, selectedCoopName]);
+
+  const cooperativaParaExibir = useMemo(() => {
+      if (!selectedCoopName) return null;
+      return filteredData.find(c => c.nome === selectedCoopName);
+  }, [filteredData, selectedCoopName]);
 
   return (
-    <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 mb-12 px-4">
-      <div className="flex-shrink-0 w-96 h-60 bg-white rounded-lg shadow-md flex flex-col items-center justify-start p-4">
-        <div className="w-full h-3/4 flex items-center justify-center">
-          <img
-            src={cooperativa.logo}
-            alt={`Logo ${cooperativa.nome}`}
-            className="w-full h-full object-contain rounded-lg"
-            style={{ background: "#fff" }}
-          />
-        </div>
-        <div className="w-full flex justify-center mt-6">
-          <a
-            href={`https://api.whatsapp.com/send/?phone=${cooperativa.telefone}&text&type=phone_number&app_absent=0`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-green-700 text-yellow-400 px-6 py-3 border-none rounded-lg shadow-lg hover:bg-green-600 hover:shadow-xl transition-all duration-300 font-semibold text-lg flex items-center"
-          >
-            Fale com um Vendedor
-          </a>
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table
-          className="border-2 border-collapse font-sans shadow-xl rounded-lg overflow-hidden bg-green-50 text-green-900 border-green-300"
-          style={{ minWidth: "600px" }}
-        >
-          <thead>
-            <tr>
-              <th className="bg-green-700 text-yellow-400 border border-green-600 p-3 text-center font-bold text-lg">
-                PRODUTOS
-              </th>
-              <th className="bg-green-700 text-yellow-400 border border-green-600 p-3 text-center font-bold text-lg">
-                PREÇOS
-              </th>
-              <th className="bg-green-700 text-yellow-400 border border-green-600 p-3 text-center font-bold text-lg">
-                DATA E HORA
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {cooperativa.produtos.map((produto, index) => (
-              <tr
-                key={index}
-                className={index % 2 === 0 ? "bg-green-100" : "bg-green-50"}
-              >
-                <td className="border border-green-300 p-3 text-center font-medium">
-                  {produto.nome}
-                </td>
-                <td className="border border-green-300 p-3 text-center font-semibold text-green-800">
-                  {produto.preco}
-                </td>
-                <td className="border border-green-300 p-3 text-center text-sm">
-                  {produto.dataHora}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="w-full flex justify-center mt-4">
-          <button
-            onClick={() => navigate("/cotacoes")}
-            className="bg-yellow-400 text-green-800 px-6 py-3 rounded-lg font-semibold shadow hover:bg-yellow-300 transition-colors flex items-center"
-          >
-            Ver Histórico
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente Principal
-const AgroSmartApp = () => {
-  return (
-    <div className="min-h-screen bg-green-50 text-gray-900">
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <main className="pt-32 pb-8">
-        <div className="max-w-7xl mx-auto">
-          {cooperativasData.map((cooperativa, index) => (
-            <div key={index} className="mb-12">
-              <h2 className="text-2xl font-bold text-center text-green-900">
-                {cooperativa.nome}
-              </h2>
-              <TabelaPrecos cooperativa={cooperativa} />
+      <main className="pt-28 pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <FilterBar 
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filtroCooperativa={filtroCooperativa}
+                setFiltroCooperativa={setFiltroCooperativa}
+                cooperativasDisponiveis={cooperativasDisponiveis}
+                onClear={limparFiltros}
+            />
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-1">
+              <CooperativaSelectorVertical 
+                cooperativas={filteredData}
+                selecionada={cooperativaParaExibir}
+                onSelect={(coop) => setSelectedCoopName(coop.nome)}
+              />
+              {!hasActiveFilter && <MarketHighlightsCard />}
             </div>
-          ))}
+            
+            <div className="lg:col-span-3">
+              <PainelDeConteudo cooperativa={cooperativaParaExibir} />
+            </div>
+          </div>
         </div>
       </main>
       <Footer />
@@ -140,4 +115,4 @@ const AgroSmartApp = () => {
   );
 };
 
-export default AgroSmartApp;
+export default DashboardPage;

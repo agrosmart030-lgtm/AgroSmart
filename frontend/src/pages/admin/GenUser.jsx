@@ -16,7 +16,8 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const usersPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -87,6 +88,16 @@ const UserManagement = () => {
     }
   };
 
+  const totalUsers = filteredUsers.length;
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -123,9 +134,11 @@ const UserManagement = () => {
           </p>
         </div>
         <UsersTable
-          users={filteredUsers}
+          users={currentUsers}
           onViewDetails={handleViewDetails}
           onToggleStatus={handleToggleStatus}
+          pageInfo={{ currentPage, usersPerPage, totalUsers }}
+          onPageChange={handlePageChange}
         />
         <UserDetailsModal
           user={selectedUser}

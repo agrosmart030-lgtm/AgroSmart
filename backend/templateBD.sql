@@ -71,6 +71,7 @@ CREATE TABLE tb_faq (
 CREATE TABLE tb_admin (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) UNIQUE NOT NULL,
     senha VARCHAR(255) NOT NULL
 );
 

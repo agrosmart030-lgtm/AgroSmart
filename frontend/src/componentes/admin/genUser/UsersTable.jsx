@@ -3,7 +3,49 @@ import UserTypeBadge from "./UserTypeBadge";
 import StatusBadge from "./StatusBadge";
 import { Eye, UserX } from "lucide-react";
 
-const UsersTable = ({ users, onViewDetails, onToggleStatus }) => {
+const UsersTable = ({
+  users,
+  onViewDetails,
+  onToggleStatus,
+  pageInfo,
+  onPageChange,
+}) => {
+  const { currentPage, usersPerPage, totalUsers } = pageInfo;
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
+
+  // Função para gerar os botões de página com ellipsis
+  const getPageButtons = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        );
+      } else {
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages
+        );
+      }
+    }
+    return pages;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
       <div className="overflow-x-auto">
@@ -79,6 +121,56 @@ const UsersTable = ({ users, onViewDetails, onToggleStatus }) => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center px-4 py-2">
+        {/* Intervalo de usuários exibidos */}
+        <span className="text-sm text-gray-600 mb-2 md:mb-0">
+          {totalUsers === 0
+            ? "Nenhum usuário encontrado"
+            : `Mostrando ${Math.min(
+                (currentPage - 1) * usersPerPage + 1,
+                totalUsers
+              )}-${Math.min(
+                currentPage * usersPerPage,
+                totalUsers
+              )} de ${totalUsers} usuários`}
+        </span>
+        {/* Paginação */}
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-2 py-1 rounded border text-sm disabled:opacity-50"
+          >
+            Anterior
+          </button>
+          {getPageButtons().map((page, idx) =>
+            page === "..." ? (
+              <span key={idx} className="px-2 text-gray-400">
+                ...
+              </span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => onPageChange(page)}
+                className={`px-2 py-1 rounded border text-sm ${
+                  currentPage === page
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-white text-gray-700 border-gray-300"
+                }`}
+              >
+                {page}
+              </button>
+            )
+          )}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-2 py-1 rounded border text-sm disabled:opacity-50"
+          >
+            Próxima
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,20 +1,39 @@
 {
-  "name": "projeto-agrosmart",
+  "name": "agrosmart",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && node server.js",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm install",
+    "start": "node backend/server.js",
+    "install:all": "npm install && npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint || exit 0"
   },
   "devDependencies": {
-    "concurrently": "^7.6.0",
-    "tailwindcss": "^4.1.8"
+    "concurrently": "^8.2.2"
   },
-  "dependencies": {
-    "lucide-react": "^0.511.0",
-    "recharts": "^2.15.3",
-    "swagger-ui-express": "^5.0.1",
-    "sweetalert2": "^11.22.0"
-  }
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
+  "keywords": [
+    "agrosmart",
+    "agricultura",
+    "iot",
+    "monitoramento"
+  ],
+  "author": "",
+  "license": "ISC"
 }
