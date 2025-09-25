@@ -54,7 +54,7 @@ export const useCotacoes = (initialData) => {
 
       fetchCotacoes();
       // Atualiza a cada 5 minutos
-      const interval = setInterval(fetchCotacoes, 5 * 60 * 1000);
+      const interval = setInterval(fetchCotacoes, 15 * 60 * 1000);
       return () => clearInterval(interval);
     }, []);
 
