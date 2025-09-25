@@ -1,10 +1,7 @@
 // src/pages/dashboard/Dashboard.jsx
-
 import React, { useState, useMemo, useEffect } from 'react';
 import Footer from '../../componentes/footer';
 import Navbar from '../../componentes/navbar';
-
-// Importando os novos componentes e o hook
 import { useCotacoes } from '../../hooks/useCotacoes';
 import FilterBar from '../../componentes/dashboard/FilterBar';
 import CooperativaSelectorVertical from '../../componentes/dashboard/CooperativaSelectorVertical';

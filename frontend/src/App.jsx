@@ -9,7 +9,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
-import LoginAdmin from "./pages/login/LoginAdmin";
+// import LoginAdmin from "./pages/login/LoginAdmin";
 import GenUser from "./pages/admin/GenUser";
 import TabelasBanco from "./pages/admin/TabelasBanco";
 import FaqAdmin from "./pages/admin/FaqAdmin";
@@ -18,7 +18,7 @@ import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/clima";
 import GrainPriceHistory from "./pages/historico/historico";
-import AccessibilityMenu from "./componentes/acessibilidade"; // ⬅️ Aqui está o menu de acessibilidade
+import AccessibilityMenu from "./componentes/acessibilidade";
 
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/faq" element={<Faq />} />
-          <Route path="/LoginAdmin" element={<LoginAdmin />} />
+          {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/GenUser" element={<GenUser />} />
           <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />

@@ -33,7 +33,6 @@ export default function createLoginRoutes(pool) {
           return res.json({ success: true, usuario: admin, tipo_usuario: "admin" });
         }
         const usuario = result.rows[0];
-        // Compara senha digitada com hash do banco
         const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
         if (!senhaCorreta) {
           return res
