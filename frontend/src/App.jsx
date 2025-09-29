@@ -1,6 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./hooks/context/AuthContext";
+import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 
 import Cadastro from "./pages/cadastro/Cadastro";
 import Configuraçao from "./pages/configuracao/Configuracao";
@@ -24,8 +25,8 @@ import AccessibilityMenu from "./componentes/acessibilidade";
 function App() {
   return (
     <AuthProvider>
-      <Router>
-          <AccessibilityMenu />
+      <AccessibilityProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<Cadastro />} />
@@ -48,6 +49,7 @@ function App() {
           <Route path="/cotacoes" element={<GrainPriceHistory />} />
         </Routes>
       </Router>
+      </AccessibilityProvider>
     </AuthProvider>
   );
 }

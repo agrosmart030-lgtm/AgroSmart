@@ -1,13 +1,21 @@
-import { FaUser, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaSignOutAlt, FaUniversalAccess } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import logo from "../assets/folha.svg"; // ajuste o caminho conforme sua estrutura
+import logo from "../assets/folha.svg";
 import { useAuth } from "../hooks/context/AuthContext";
 import { exibirAlertaConfirmacao } from "../hooks/useAlert";
+import { useState } from "react";
+import AccessibilityMenu from "./acessibilidade";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const isLoggedIn = !!user;
   const isAdmin = user?.tipo_usuario === "admin";
+
+  const [showAccessibilityMenu, setShowAccessibilityMenu] = useState(false);
+
+  const toggleAccessibilityMenu = () => {
+    setShowAccessibilityMenu(!showAccessibilityMenu);
+  };
 
   const handleLogout = async () => {
     const confirmed = await exibirAlertaConfirmacao("Tem certeza?", "Você realmente deseja sair?");
@@ -135,7 +143,34 @@ export default function Navbar() {
         </ul>
       </div>
       
-      <div className="navbar-end mr-4 gap-2">
+      <div className="navbar-end mr-4 gap-3">
+        {/* Botão de Acessibilidade */}
+        <div className="relative">
+          <button
+            onClick={toggleAccessibilityMenu}
+            className="btn btn-circle btn-sm text-white hover:scale-105 transition-transform duration-300"
+            style={{
+              backgroundColor: "rgba(76,175,80,0.6)",
+              width: "36px",
+              height: "36px",
+              minHeight: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+            aria-label="Menu de Acessibilidade"
+            aria-expanded={showAccessibilityMenu}
+          >
+            <FaUniversalAccess size={18} />
+          </button>
+<div className="absolute right-0 bottom-full mb-2 z-50">
+            <AccessibilityMenu 
+              open={showAccessibilityMenu}
+              onClose={() => setShowAccessibilityMenu(false)} 
+            />
+          </div>
+        </div>
+
         {isAdmin ? (
           // Botão de logout específico para admin
           <button
