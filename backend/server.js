@@ -62,6 +62,8 @@ app.use("/api/configuracao", createConfiguracaoRoutes(pool));
 
 import usuarios from "./routes/usuarios.js";
 app.use("/api", usuarios);
+import createCotacoesRoutes from "./routes/cotacoes.js";
+app.use("/api/cotacoes", createCotacoesRoutes(pool));
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -497,4 +499,46 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
+});
+
+// --- Inicialização: tenta popular cache de cotações ao iniciar (se COTACOES_URL estiver configurada)
+async function refreshCotacoesCacheOnStartup() {
+  const fetchUrl = process.env.COTACOES_URL;
+  if (!fetchUrl) {
+    console.log('COTACOES_URL não configurada — pulando fetch inicial de cotações.');
+    return;
+  }
+
+  try {
+    console.log('Buscando cotações externas e populando cache...');
+    const axios = await import('axios');
+    const resp = await axios.default.get(fetchUrl);
+    const data = resp.data;
+    if (!data || typeof data !== 'object') {
+      console.warn('Resposta de cotações inesperada, não populando cache.');
+      return;
+    }
+
+    const now = new Date();
+    // Limpa cache antigo e insere novo
+    await pool.query('DELETE FROM tb_cotacoes_cache');
+    const inserts = [];
+    for (const provedor of Object.keys(data)) {
+      inserts.push(pool.query(`INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2, $3)`, [provedor, data[provedor], now]));
+    }
+    await Promise.all(inserts);
+    console.log('Cache de cotações populado com sucesso.');
+  } catch (err) {
+    console.error('Erro ao popular cache de cotações na inicialização:', err.message || err);
+  }
+}
+
+// Executa no próximo tick para não bloquear o listen
+setImmediate(() => {
+  refreshCotacoesCacheOnStartup();
+  // Agendamento de atualização periódica: usar COTACOES_REFRESH_MINUTES (padrão 15)
+  const mins = parseInt(process.env.COTACOES_REFRESH_MINUTES || '15', 10);
+  if (process.env.COTACOES_URL) {
+    setInterval(refreshCotacoesCacheOnStartup, mins * 60 * 1000);
+  }
 });
