@@ -18,6 +18,10 @@ export default function Cadastro() {
   const [showToast, setShowToast] = useState(false);
   const [captchaValido, setCaptchaValido] = useState(false);
   const navigate = useNavigate();
+  const [codeSent, setCodeSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [codeError, setCodeError] = useState("");
 
   const {
     register,
@@ -116,10 +120,42 @@ export default function Cadastro() {
         payload.areaAtuacao = data.areaAtuacao;
       }
       try {
-        const response = await axios.post(
-          "http://localhost:5001/api/registro",
-          payload
-        );
+        // If code has not been sent yet, request sending and show code input
+        if (!codeSent) {
+          await axios.post("http://localhost:5001/api/registro/send-code", { email: payload.email });
+          setCodeSent(true);
+          return; // wait for user to enter code
+        }
+
+        // If code was sent, verify first
+        if (codeSent && !verificationCode) {
+          setCodeError("Insira o código enviado por e-mail");
+          return;
+        }
+
+        if (codeSent && verificationCode) {
+          setVerifying(true);
+          try {
+            const verifyRes = await axios.post("http://localhost:5001/api/registro/verify-code", {
+              email: payload.email,
+              code: verificationCode,
+            });
+            if (!verifyRes.data.success) {
+              setCodeError(verifyRes.data.message || "Código inválido");
+              setVerifying(false);
+              return;
+            }
+          } catch (err) {
+            setCodeError("Falha ao verificar código");
+            setVerifying(false);
+            return;
+          }
+
+          // codigo verificado: incluir no payload para registro final
+          payload._verification_code = verificationCode;
+        }
+
+        const response = await axios.post("http://localhost:5001/api/registro", payload);
         if (response.data.success) {
           setShowToast(true);
           setTimeout(() => {
@@ -130,6 +166,8 @@ export default function Cadastro() {
         }
       } catch (error) {
         exibirAlertaErro("Falha ao Cadastrar", "Erro:" + error);
+      } finally {
+        setVerifying(false);
       }
     }
   };
@@ -272,6 +310,51 @@ export default function Cadastro() {
                     onExpired={() => setCaptchaValido(false)}
                   />
                 </div>
+                {codeSent && (
+                  <div className="mt-4 border p-4 rounded">
+                    <p className="text-sm mb-2">Um código de verificação foi enviado para o seu e-mail. Insira abaixo:</p>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => { setVerificationCode(e.target.value); setCodeError(""); }}
+                        className="input input-bordered w-full"
+                        placeholder="Código de 6 dígitos"
+                      />
+                      <button
+                        type="button"
+                        className="btn bg-[#2e7d32] text-white"
+                        onClick={async () => {
+                          // quick verify without submitting form
+                          if (!verificationCode) {
+                            setCodeError("Insira o código");
+                            return;
+                          }
+                          setVerifying(true);
+                          try {
+                            const verifyRes = await axios.post("http://localhost:5001/api/registro/verify-code", {
+                              email: watch("email"),
+                              code: verificationCode,
+                            });
+                            if (verifyRes.data.success) {
+                              setCodeError("");
+                              // optionally auto-submit the form
+                            } else {
+                              setCodeError(verifyRes.data.message || "Código inválido");
+                            }
+                          } catch (err) {
+                            setCodeError("Erro ao verificar código");
+                          } finally {
+                            setVerifying(false);
+                          }
+                        }}
+                      >
+                        {verifying ? "Verificando..." : "Verificar"}
+                      </button>
+                    </div>
+                    {codeError && <p className="text-red-500 text-sm mt-2">{codeError}</p>}
+                  </div>
+                )}
               </>
             )}
 
