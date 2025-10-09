@@ -6,6 +6,7 @@ import cadastroImg from "../../assets/cadastro.jpg";
 import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
 import Step3 from "../../componentes/cadastro/step3";
+import VerificationStep from "../../componentes/cadastro/step4";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -14,6 +15,7 @@ export default function Cadastro() {
   const [estados, setEstados] = useState([]);
   const [cidades, setCidades] = useState([]);
   const [step, setStep] = useState(1);
+  const [pendingPayload, setPendingPayload] = useState(null);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [captchaValido, setCaptchaValido] = useState(false);
@@ -73,6 +75,69 @@ export default function Cadastro() {
 
     if (step < 3) {
       nextStep();
+    } else if (step === 3) {
+      // prepare payload and move to step 4 (verification)
+      // Corrige o tipo_usuario para não ter acento e ser minúsculo
+      let tipo = data.tipo;
+      if (tipo) {
+        tipo = tipo
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .toLowerCase();
+      }
+      const payload = {
+        nome_completo: data.nome,
+        email: data.email,
+        senha: data.senha,
+        cidade: data.cidade,
+        estado: data.estado,
+        tipo_usuario: tipo,
+        codigo_ibge: null,
+      };
+      //Conforme o tipo
+      if (payload.tipo_usuario === "agricultor") {
+        payload.cpf =
+          data.cpf && data.cpf.replace(/\D/g, "").length === 11
+            ? data.cpf
+            : null;
+        payload.nomePropriedade = data.nomePropriedade;
+        payload.areaCultivada = data.areaCultivada;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "empresario") {
+        payload.cpf =
+          data.cpf && data.cpf.replace(/\D/g, "").length === 11
+            ? data.cpf
+            : null;
+        payload.nomeComercio = data.nomeComercio;
+        payload.cnpj =
+          data.cnpj && data.cnpj.replace(/\D/g, "").length === 14
+            ? data.cnpj
+            : null;
+        payload.graos = data.graos;
+      } else if (payload.tipo_usuario === "cooperativa") {
+        payload.nomeCooperativa = data.nomeCooperativa;
+        payload.cnpj =
+          data.cnpj && data.cnpj.replace(/\D/g, "").length === 14
+            ? data.cnpj
+            : null;
+        payload.areaAtuacao = data.areaAtuacao;
+      }
+
+      try {
+        // store payload pending final submission and request send-code
+        setPendingPayload(payload);
+        await axios.post("http://localhost:5001/api/registro/send-code", { email: payload.email });
+        // advance to step 4 (the verification UI)
+        setStep(4);
+        return;
+      } catch (err) {
+        console.error('Erro ao enviar código para verificação:', err);
+        exibirAlertaErro('Falha ao enviar código', err.message || String(err));
+        return;
+      }
+    } else if (step === 4) {
+      // submitting should happen after VerificationStep calls our handler (see below)
+      return;
     } else {
       // Corrige o tipo_usuario para não ter acento e ser minúsculo
       let tipo = data.tipo;
@@ -206,7 +271,34 @@ export default function Cadastro() {
 
   const data = watch();
   const progresso = calcularProgresso(data);
-  const progressPercentage = step === 1 ? 0 : step === 2 ? 50 : 100;
+  // Now we have 4 steps (1..4). Convert step to percentage
+  const progressPercentage = ((step - 1) / 3) * 100;
+
+  // Called by VerificationStep when code verification succeeded
+  const handleVerificationSuccess = async () => {
+    if (!pendingPayload) return;
+    try {
+      setVerifying(true);
+      const response = await axios.post('http://localhost:5001/api/registro', pendingPayload);
+      if (response.data.success) {
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+          navigate('/login');
+        }, 2000);
+        setPendingPayload(null);
+        setCodeSent(false);
+        setStep(1);
+      } else {
+        exibirAlertaErro('Falha ao cadastrar', response.data.message || 'Erro desconhecido');
+      }
+    } catch (err) {
+      console.error('Erro ao submeter cadastro após verificação:', err);
+      exibirAlertaErro('Falha ao cadastrar', err.message || String(err));
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -251,6 +343,7 @@ export default function Cadastro() {
                   { label: "Dados Pessoais", step: 1 },
                   { label: "Tipo de Cadastro", step: 2 },
                   { label: "Informações Finais", step: 3 },
+                  { label: "Verificação", step: 4 },
                 ].map((etapa) => (
                   <div key={etapa.step} className="flex flex-col items-center z-10 w-24">
                     <div
@@ -356,6 +449,24 @@ export default function Cadastro() {
                   </div>
                 )}
               </>
+            )}
+
+            {step === 4 && (
+              <div className="mt-4">
+                <VerificationStep
+                  email={watch('email')}
+                  onVerificationSuccess={handleVerificationSuccess}
+                  onResendCode={async () => {
+                    try {
+                      await axios.post('http://localhost:5001/api/registro/send-code', { email: watch('email') });
+                      return true;
+                    } catch (err) {
+                      console.error('Erro ao reenviar código:', err);
+                      return false;
+                    }
+                  }}
+                />
+              </div>
             )}
 
             <div className="flex pt-6 justify-center gap-4">
