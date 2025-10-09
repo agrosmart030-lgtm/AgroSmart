@@ -40,9 +40,11 @@ app.set("pool", pool);
 // Importa e usa as rotas de login e registro
 import createLoginRoutes from "./routes/login.js";
 import createRegistroRoutes from "./routes/registro.js";
+import createVerificationRoutes from "./routes/verification.js";
 
 app.use("/api/login", createLoginRoutes(pool));
 app.use("/api/registro", createRegistroRoutes(pool));
+app.use("/api", createVerificationRoutes(pool));
 
 // Importa e usa as rotas de teste de conexão
 import dbTestRoutes from "./routes/dbTest.js";
