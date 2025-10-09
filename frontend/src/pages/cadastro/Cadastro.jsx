@@ -56,8 +56,10 @@ export default function cadastro() {
   };
 
   const nextStep = async () => {
-    const valid = await trigger();
-    if (valid) setStep((prev) => prev + 1);
+    const isFormValid = await trigger();
+    if (isFormValid) {
+      setStep((prev) => prev + 1);
+    }
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
@@ -83,23 +85,36 @@ export default function cadastro() {
           .toLowerCase();
       }
       
+      // Get the selected estado and cidade objects
+      const selectedEstado = data.estado ? estados.find(e => e.sigla === data.estado) : null;
+      const selectedCidade = data.cidade && data.cidade_nome ? {
+        id: data.cidade,
+        nome: data.cidade_nome
+      } : null;
+      
+      if (!selectedEstado || !selectedCidade) {
+        exibirAlertaErro("Erro", "Por favor, selecione um estado e uma cidade válidos");
+        return;
+      }
+      
+      // Create the user payload with all necessary data
       const userPayload = {
         nome_completo: data.nome,
         email: data.email,
         senha: data.senha,
-        cidade: data.cidade,
-        estado: data.estado,
+cidade: selectedCidade.nome,
+        estado: selectedEstado.nome,
         tipo_usuario: tipo,
-        codigo_ibge: null,
+codigo_ibge: selectedCidade.id,
       };
 
       // Add type-specific fields
-      if (userPayload.tipo_usuario === "agricultor") {
+      if (tipo === "agricultor") {
         userPayload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
         userPayload.nomePropriedade = data.nomePropriedade;
         userPayload.areaCultivada = data.areaCultivada;
         userPayload.graos = data.graos;
-      } else if (userPayload.tipo_usuario === "empresario") {
+      } else if (tipo === "empresario") {
         userPayload.cpf = data.cpf && data.cpf.replace(/\D/g, "").length === 11 ? data.cpf : null;
         userPayload.nomeComercio = data.nomeComercio;
         userPayload.cnpj = data.cnpj && data.cnpj.replace(/\D/g, "").length === 14 ? data.cnpj : null;
@@ -167,6 +182,15 @@ export default function cadastro() {
   const data = watch();
   const progresso = calcularProgresso(data);
   const progressPercentage = step === 1 ? 0 : step === 2 ? 33 : step === 3 ? 66 : 100;
+
+  // Add this effect to log form values for debugging
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      console.log('Form values:', value);
+      console.log('Updated field:', name);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
 
   return (
     <div className="flex h-screen">
@@ -247,6 +271,7 @@ export default function cadastro() {
                 handleEstadoChange={handleEstadoChange}
                 watch={watch}
                 setCanProceed={setCanProceed}
+                setValue={setValue}
               />
             )}
             {step === 2 && (
@@ -279,6 +304,25 @@ export default function cadastro() {
                 email={userData.email}
                 onVerificationSuccess={async () => {
                   try {
+                    // Get the latest form data
+                    const formData = watch();
+                    
+                    // Merge form data with userData, prioritizing form data
+                    const completeUserData = {
+                      ...userData,
+                      cidade: formData.cidade || userData.cidade,
+                      estado: formData.estado || userData.estado,
+                      // Include other fields that might be needed
+                      ...(userData.tipo_usuario === 'agricultor' && {
+                        nomePropriedade: formData.nomePropriedade || userData.nomePropriedade,
+                        areaCultivada: formData.areaCultivada || userData.areaCultivada,
+                        graos: formData.graos || userData.graos
+                      })
+                    };
+
+                    // Debug log
+                    console.log('Complete user data:', completeUserData);
+
                     // Validate required fields
                     const requiredFields = {
                       'nome_completo': 'Nome completo',
@@ -286,14 +330,19 @@ export default function cadastro() {
                       'senha': 'Senha',
                       'cidade': 'Cidade',
                       'estado': 'Estado',
-                      'cpf': 'CPF',
                       'tipo_usuario': 'Tipo de usuário'
                     };
+
+                    // Only require CPF for agricultor and empresario
+                    if (['agricultor', 'empresario'].includes(completeUserData.tipo_usuario)) {
+                      requiredFields.cpf = 'CPF';
+                    }
 
                     // Check for missing required fields
                     const missingFields = [];
                     for (const [field, label] of Object.entries(requiredFields)) {
-                      if (!userData[field]) {
+                      if (!completeUserData[field]) {
+                        console.error(`Missing field: ${field}`);
                         missingFields.push(label);
                       }
                     }
@@ -302,43 +351,21 @@ export default function cadastro() {
                       throw new Error(`Por favor, preencha os seguintes campos obrigatórios: ${missingFields.join(', ')}`);
                     }
 
-                    // Prepare the data with default values for optional fields
-                    const registrationData = {
-                      nome_completo: userData.nome_completo || '',
-                      email: userData.email || '',
-                      senha: userData.senha || '',
-                      cidade: userData.cidade || '',
-                      estado: userData.estado || '',
-                      tipo_usuario: userData.tipo_usuario || '',
-                      codigo_ibge: userData.codigo_ibge || null,
-                      cpf: userData.cpf || '',
-                      // Fields specific to agricultor
-                      nomePropriedade: userData.tipo_usuario === 'agricultor' ? (userData.nomePropriedade || '') : undefined,
-                      areaCultivada: userData.tipo_usuario === 'agricultor' ? (userData.areaCultivada || '') : undefined,
-                      graos: userData.tipo_usuario === 'agricultor' ? (userData.graos || '') : undefined,
-                      // Fields specific to empresario
-                      nomeComercio: userData.tipo_usuario === 'empresario' ? (userData.nomeComercio || '') : undefined,
-                      cnpj: userData.tipo_usuario === 'empresario' ? (userData.cnpj || '') : undefined,
-                      // Fields specific to cooperativa
-                      nomeCooperativa: userData.tipo_usuario === 'cooperativa' ? (userData.nomeCooperativa || '') : undefined,
-                      areaAtuacao: userData.tipo_usuario === 'cooperativa' ? (userData.areaAtuacao || '') : undefined
-                    };
-
-                    // Additional validation based on user type
-                    if (registrationData.tipo_usuario === 'agricultor') {
-                      if (!registrationData.nomePropriedade) {
+                    // Additional validation for agricultor
+                    if (completeUserData.tipo_usuario === 'agricultor') {
+                      if (!completeUserData.nomePropriedade) {
                         throw new Error('Por favor, informe o nome da propriedade');
                       }
-                      if (!registrationData.areaCultivada) {
+                      if (!completeUserData.areaCultivada) {
                         throw new Error('Por favor, informe a área cultivada');
                       }
                     }
 
-                    console.log('Sending registration data:', registrationData);
+                    console.log('Sending registration data:', completeUserData);
                     
                     const response = await axios.post(
                       'http://localhost:5001/api/registro',
-                      registrationData,
+                      completeUserData,
                       {
                         validateStatus: (status) => status < 500 // Don't throw for 4xx errors
                       }

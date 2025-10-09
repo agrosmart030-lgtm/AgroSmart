@@ -11,6 +11,7 @@ export default function Step1({
   handleEstadoChange,
   watch,
   setCanProceed,
+  setValue,
 }) {
   const [estadoInput, setEstadoInput] = useState("");
   const [cidadeInput, setCidadeInput] = useState("");
@@ -54,11 +55,28 @@ export default function Step1({
   React.useEffect(() => {
     const estadoValido = !!estadoSelecionado;
     const cidadeValida = !!cidadeSelecionada;
-    setCanProceed && setCanProceed(estadoValido && cidadeValida);
+    const formIsValid = estadoValido && cidadeValida;
+    setCanProceed && setCanProceed(formIsValid);
+    
+    // Log para debug
+    if (formIsValid) {
+      console.log('Estado selecionado:', estadoSelecionado);
+      console.log('Cidade selecionada:', cidadeSelecionada);
+    }
   }, [estadoSelecionado, cidadeSelecionada, setCanProceed]);
+
+  // Hidden inputs to store the actual values
+  const hiddenInputs = (
+    <>
+      <input type="hidden" {...register('estado', { required: 'Selecione um estado' })} />
+      <input type="hidden" {...register('cidade', { required: 'Selecione uma cidade' })} />
+      <input type="hidden" {...register('cidade_nome')} />
+    </>
+  );
 
   return (
     <>
+      {hiddenInputs}
       <InputField
         label="Nome"
         name="nome"
@@ -138,18 +156,24 @@ export default function Step1({
             <div className="absolute bg-white border rounded w-full z-10 max-h-40 overflow-y-auto shadow">
               {estados.filter(e => e.nome.toLowerCase().includes(estadoInput.toLowerCase())).map(e => (
                 <div
-                  key={e.id}
+                  key={`estado-${e.id}`}
                   className="px-2 py-1 cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => {
+                  onMouseDown={(event) => {
+                    event.preventDefault();
                     setEstadoInput(e.nome);
                     setEstadoSelecionado(e);
                     setShowEstadoSugestoes(false);
-                    // Buscar cidades do estado selecionado
+                    // Update form values
+                    setValue('estado', e.sigla, { shouldValidate: true });
+                    // Clear city when state changes
+                    setCidadeInput('');
+                    setCidadeSelecionada(null);
+                    setValue('cidade', '', { shouldValidate: true });
+                    setValue('cidade_nome', '', { shouldValidate: true });
+                    // Load cities for selected state
                     axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${e.id}/municipios`)
                       .then(res => setCidadesEstado(res.data))
                       .catch(() => setCidadesEstado([]));
-                    setCidadeInput("");
-                    setCidadeSelecionada(null);
                   }}
                 >
                   {e.nome}
@@ -181,12 +205,16 @@ export default function Step1({
             <div className="absolute bg-white border rounded w-full z-10 max-h-40 overflow-y-auto shadow">
               {cidadesEstado.filter(c => c.nome.toLowerCase().includes(cidadeInput.toLowerCase())).map(c => (
                 <div
-                  key={c.id}
+                  key={`cidade-${c.id}`}
                   className="px-2 py-1 cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => {
+                  onMouseDown={(event) => {
+                    event.preventDefault();
                     setCidadeInput(c.nome);
                     setCidadeSelecionada(c);
                     setShowCidadeSugestoes(false);
+                    // Update both cidade and cidade_nome fields
+                    setValue('cidade', c.id.toString(), { shouldValidate: true });
+                    setValue('cidade_nome', c.nome, { shouldValidate: true });
                   }}
                 >
                   {c.nome}
