@@ -1,6 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import { AuthProvider } from "./hooks/context/AuthContext";
+import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 
 import Cadastro from "./pages/cadastro/Cadastro";
 import Configuraçao from "./pages/configuracao/Configuracao";
@@ -9,7 +10,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
-import LoginAdmin from "./pages/login/LoginAdmin";
+// import LoginAdmin from "./pages/login/LoginAdmin";
 import GenUser from "./pages/admin/GenUser";
 import TabelasBanco from "./pages/admin/TabelasBanco";
 import FaqAdmin from "./pages/admin/FaqAdmin";
@@ -18,21 +19,21 @@ import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/clima";
 import GrainPriceHistory from "./pages/historico/historico";
-import AccessibilityMenu from "./componentes/acessibilidade"; // ⬅️ Aqui está o menu de acessibilidade
+import AccessibilityMenu from "./componentes/acessibilidade";
 
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-          <AccessibilityMenu />
+      <AccessibilityProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/faq" element={<Faq />} />
-          <Route path="/LoginAdmin" element={<LoginAdmin />} />
+          {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/GenUser" element={<GenUser />} />
           <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
@@ -48,6 +49,7 @@ function App() {
           <Route path="/cotacoes" element={<GrainPriceHistory />} />
         </Routes>
       </Router>
+      </AccessibilityProvider>
     </AuthProvider>
   );
 }

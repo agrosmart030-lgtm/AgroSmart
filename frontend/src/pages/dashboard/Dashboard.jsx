@@ -1,10 +1,7 @@
 // src/pages/dashboard/Dashboard.jsx
-
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Footer from '../../componentes/footer';
 import Navbar from '../../componentes/navbar';
-
-// Importando os novos componentes e o hook
 import { useCotacoes } from '../../hooks/useCotacoes';
 import FilterBar from '../../componentes/dashboard/FilterBar';
 import CooperativaSelectorVertical from '../../componentes/dashboard/CooperativaSelectorVertical';
@@ -15,6 +12,42 @@ import PainelDeConteudo from '../../componentes/dashboard/PainelDeConteudo';
 import coamoLogo from '../../assets/coamo.png';
 import cocamarLogo from '../../assets/cocamar.png';
 import larLogo from '../../assets/lar.png';
+
+function transformarCotacoesParaCooperativas(cotacoes) {
+  if (!cotacoes) return [];
+  return [
+    {
+      nome: 'COAMO',
+      logo: coamoLogo,
+      telefone: '556721088600',
+      produtos: cotacoes.coamo?.map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) || [],
+    },
+    {
+      nome: 'LAR',
+      logo: larLogo,
+      telefone: '556734243449',
+      produtos: cotacoes.larAgro?.map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) || [],
+    },
+    {
+      nome: 'COCAMAR',
+      logo: cocamarLogo,
+      telefone: '551194567890',
+      produtos: cotacoes.cocamar?.map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) || [],
+    },
+  ];
+}
 
 // Os dados mocados agora vivem aqui, prontos para serem substituídos por uma chamada de API.
 const cooperativasData = [
@@ -64,21 +97,60 @@ const DashboardPage = () => {
     filteredData,
     limparFiltros,
     hasActiveFilter,
+    cotacoes,
+    loading,
+    error,
   } = useCotacoes(cooperativasData);
+
+  useEffect(() => {
+    // Loga o retorno da API de cotações para debug
+    console.log('API cotacoes:', cotacoes);
+    if (error) console.error('Erro cotacoes:', error);
+  }, [cotacoes, error]);
   
   const [selectedCoopName, setSelectedCoopName] = useState(null);
 
-  useEffect(() => {
-    const isSelectedInList = filteredData.some(c => c.nome === selectedCoopName);
-    if (!isSelectedInList) {
-        setSelectedCoopName(filteredData.length > 0 ? filteredData[0].nome : null);
+  // Cria lista de cooperativas a partir da API (se houver) ou usa os dados mock/filtrados
+  const apiCooperativas = useMemo(() => transformarCotacoesParaCooperativas(cotacoes), [cotacoes]);
+
+  // caso contrário mantém o comportamento anterior usando filteredData do hook.
+  const displayedData = useMemo(() => {
+    const source = apiCooperativas.some(c => c.produtos && c.produtos.length > 0) ? apiCooperativas : filteredData;
+
+    let data = JSON.parse(JSON.stringify(source));
+
+    if (filtroCooperativa) {
+      data = data.filter(coop => coop.nome === filtroCooperativa);
     }
-  }, [filteredData, selectedCoopName]);
+
+    if (searchTerm) {
+      data = data.map(coop => ({
+        ...coop,
+        produtos: coop.produtos.filter(prod =>
+          prod.nome.toLowerCase().includes(searchTerm.toLowerCase())
+        ),
+      })).filter(coop => coop.produtos.length > 0);
+    }
+
+    return data;
+  }, [apiCooperativas, filteredData, filtroCooperativa, searchTerm]);
+
+  useEffect(() => {
+    const isSelectedInList = displayedData.some(c => c.nome === selectedCoopName);
+    if (!isSelectedInList) {
+        setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
+    }
+  }, [displayedData, selectedCoopName]);
 
   const cooperativaParaExibir = useMemo(() => {
       if (!selectedCoopName) return null;
-      return filteredData.find(c => c.nome === selectedCoopName);
-  }, [filteredData, selectedCoopName]);
+      return displayedData.find(c => c.nome === selectedCoopName) || null;
+  }, [displayedData, selectedCoopName]);
+
+  // Atualiza lista de disponíveis no FilterBar para refletir os dados atualmente mostrados
+  const cooperativasDisponiveisLocal = useMemo(() => {
+    return Array.from(new Set((apiCooperativas.some(c => c.produtos?.length > 0) ? apiCooperativas : cooperativasData).map(coop => coop.nome))).sort();
+  }, [apiCooperativas]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -90,14 +162,14 @@ const DashboardPage = () => {
                 setSearchTerm={setSearchTerm}
                 filtroCooperativa={filtroCooperativa}
                 setFiltroCooperativa={setFiltroCooperativa}
-                cooperativasDisponiveis={cooperativasDisponiveis}
+                cooperativasDisponiveis={cooperativasDisponiveisLocal}
                 onClear={limparFiltros}
             />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1">
               <CooperativaSelectorVertical 
-                cooperativas={filteredData}
+                cooperativas={displayedData}
                 selecionada={cooperativaParaExibir}
                 onSelect={(coop) => setSelectedCoopName(coop.nome)}
               />

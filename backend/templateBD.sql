@@ -58,6 +58,14 @@ CREATE TABLE tb_historico_cotacao (
     data_cotacao DATE NOT NULL
 );
 
+-- Tabela simples para cachear cotações por cooperativa/provedor
+CREATE TABLE tb_cotacoes_cache (
+    id SERIAL PRIMARY KEY,
+    provedor VARCHAR(100) NOT NULL,
+    dados JSONB NOT NULL,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE tb_faq (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
