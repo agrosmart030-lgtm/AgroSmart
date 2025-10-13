@@ -17,7 +17,7 @@ import FaqAdmin from "./pages/admin/FaqAdmin";
 import EstatisticasAdmin from "./pages/admin/EstatisticasAdmin";
 import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
-import Clima from "./pages/clima/clima";
+import Clima from "./pages/clima/Clima";
 import GrainPriceHistory from "./pages/historico/historico";
 import AccessibilityMenu from "./componentes/acessibilidade";
 
