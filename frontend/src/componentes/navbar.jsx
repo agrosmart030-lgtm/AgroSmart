@@ -116,14 +116,6 @@ export default function Navbar() {
               </li>
               <li>
                 <Link 
-                  to="/cotacoes"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
-                >
-                  Histórico de Cotações
-                </Link>
-              </li>
-              <li>
-                <Link 
                   to="/clima"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
                 >

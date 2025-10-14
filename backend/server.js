@@ -503,33 +503,121 @@ app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
 
-// --- Inicialização: tenta popular cache de cotações ao iniciar (se COTACOES_URL estiver configurada)
-async function refreshCotacoesCacheOnStartup() {
-  const fetchUrl = process.env.COTACOES_URL;
-  if (!fetchUrl) {
-    console.log('COTACOES_URL não configurada — pulando fetch inicial de cotações.');
-    return;
-  }
-
+// Garante que a tabela de cache de cotações exista
+async function ensureCotacoesCacheTable() {
   try {
-    console.log('Buscando cotações externas e populando cache...');
-    const axios = await import('axios');
-    const resp = await axios.default.get(fetchUrl);
-    const data = resp.data;
-    if (!data || typeof data !== 'object') {
-      console.warn('Resposta de cotações inesperada, não populando cache.');
-      return;
-    }
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tb_cotacoes_cache (
+        id SERIAL PRIMARY KEY,
+        provedor TEXT NOT NULL,
+        dados JSONB NOT NULL,
+        data_atualizacao TIMESTAMP NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_tb_cotacoes_cache_provedor ON tb_cotacoes_cache(provedor);
+    `);
+  } catch (e) {
+    console.error('Erro ao garantir tabela tb_cotacoes_cache:', e.message || e);
+  }
+}
+
+// Top-level: garante a tabela de histórico de cotações
+async function ensureCotacoesHistoricoTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tb_cotacoes_historico (
+        id SERIAL PRIMARY KEY,
+        provedor TEXT NOT NULL,
+        grao TEXT,
+        preco NUMERIC,
+        unidade TEXT,
+        local TEXT,
+        data_hora TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_hist_provedor ON tb_cotacoes_historico(provedor);
+      CREATE INDEX IF NOT EXISTS idx_hist_grao ON tb_cotacoes_historico(grao);
+      CREATE INDEX IF NOT EXISTS idx_hist_created_at ON tb_cotacoes_historico(created_at);
+    `);
+  } catch (e) {
+    console.error('Erro ao garantir tabela tb_cotacoes_historico:', e.message || e);
+  }
+}
+
+// --- Inicialização: usa scrapers internos para popular cache de cotações
+import scrapeCoamo from "./services/scrapers/coamoScraper.js";
+import scrapeLarAgro from "./services/scrapers/larScraper.js";
+
+async function refreshCotacoesCacheOnStartup() {
+  try {
+    console.log("Executando scrapers de cotações e populando cache...");
+    const [coamoData, larAgroData] = await Promise.all([
+      scrapeCoamo(),
+      scrapeLarAgro(),
+    ]);
+    const data = {
+      coamo: coamoData || [],
+      larAgro: larAgroData || [],
+    };
 
     const now = new Date();
-    // Limpa cache antigo e insere novo
     await pool.query('DELETE FROM tb_cotacoes_cache');
     const inserts = [];
-    for (const provedor of Object.keys(data)) {
-      inserts.push(pool.query(`INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2, $3)`, [provedor, data[provedor], now]));
-    }
+    inserts.push(pool.query(
+      `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+      ['coamo', JSON.stringify(data.coamo), now]
+    ));
+    inserts.push(pool.query(
+      `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+      ['larAgro', JSON.stringify(data.larAgro), now]
+    ));
     await Promise.all(inserts);
     console.log('Cache de cotações populado com sucesso.');
+
+    // Persiste no histórico (append)
+    const parsePreco = (s) => {
+      if (!s || typeof s !== 'string') return null;
+      const cleaned = s.replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? null : num;
+    };
+    const toTimestamp = (s) => {
+      const d = s ? new Date(s) : null;
+      return isNaN(d?.getTime?.()) ? null : d;
+    };
+
+    const histInserts = [];
+    for (const item of data.coamo) {
+      histInserts.push(pool.query(
+        `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          'COAMO',
+          item.grao || null,
+          parsePreco(item.preco),
+          item.unidade || null,
+          item.local || null,
+          toTimestamp(item.data_hora) || now,
+          now,
+        ]
+      ));
+    }
+    for (const item of data.larAgro) {
+      histInserts.push(pool.query(
+        `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          'LAR',
+          item.grao || null,
+          parsePreco(item.preco),
+          item.unidade || null,
+          item.local || null,
+          toTimestamp(item.data_hora) || now,
+          now,
+        ]
+      ));
+    }
+    await Promise.all(histInserts);
+    console.log('Histórico de cotações atualizado.');
   } catch (err) {
     console.error('Erro ao popular cache de cotações na inicialização:', err.message || err);
   }
@@ -537,10 +625,8 @@ async function refreshCotacoesCacheOnStartup() {
 
 // Executa no próximo tick para não bloquear o listen
 setImmediate(() => {
-  refreshCotacoesCacheOnStartup();
-  // Agendamento de atualização periódica: usar COTACOES_REFRESH_MINUTES (padrão 15)
+  Promise.all([ensureCotacoesCacheTable(), ensureCotacoesHistoricoTable()])
+    .then(() => refreshCotacoesCacheOnStartup());
   const mins = parseInt(process.env.COTACOES_REFRESH_MINUTES || '15', 10);
-  if (process.env.COTACOES_URL) {
-    setInterval(refreshCotacoesCacheOnStartup, mins * 60 * 1000);
-  }
+  setInterval(refreshCotacoesCacheOnStartup, mins * 60 * 1000);
 });

@@ -18,7 +18,6 @@ import EstatisticasAdmin from "./pages/admin/EstatisticasAdmin";
 import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/Clima";
-import GrainPriceHistory from "./pages/historico/historico";
 import AccessibilityMenu from "./componentes/acessibilidade";
 
 
@@ -46,7 +45,6 @@ function App() {
           <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
           <Route path="/configuracao" element={<Configuraçao />} />
           <Route path="/clima" element={<Clima />} />
-          <Route path="/cotacoes" element={<GrainPriceHistory />} />
         </Routes>
       </Router>
       </AccessibilityProvider>

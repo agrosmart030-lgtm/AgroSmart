@@ -39,7 +39,7 @@ const PainelDeConteudo = ({ cooperativa }) => {
           Fale com Vendedor
         </a>
         <button
-          onClick={() => navigate('/cotacoes')}
+          onClick={() => navigate('/dashboard?tab=historico')}
           className="flex-1 text-center bg-yellow-400 text-green-900 px-5 py-3 rounded-lg font-semibold shadow-md hover:bg-yellow-500 transition-colors duration-300 flex items-center justify-center gap-2"
         >
           <TrendingUp size={20} />
