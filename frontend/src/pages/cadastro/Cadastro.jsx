@@ -318,7 +318,7 @@ export default function Cadastro() {
       </div>
 
       <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] overflow-y-auto flex flex-col justify-between">
+        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] overflow-y-auto h-[700px]">
           <h2 className="text-2xl font-bold mb-4 text-center">
             Realize seu cadastro abaixo!
           </h2>
@@ -423,7 +423,7 @@ export default function Cadastro() {
                             setCodeError("Insira o código");
                             return;
                           }
-                          setVerifying(true);
+                          setVerificando(true);
                           try {
                             const verifyRes = await axios.post("http://localhost:5001/api/registro/verify-code", {
                               email: watch("email"),
@@ -438,11 +438,11 @@ export default function Cadastro() {
                           } catch (err) {
                             setCodeError("Erro ao verificar código");
                           } finally {
-                            setVerifying(false);
+                            setVerificando(false);
                           }
                         }}
                       >
-                        {verifying ? "Verificando..." : "Verificar"}
+                        {verificando ? "Verificando..." : "Verificar"}
                       </button>
                     </div>
                     {codeError && <p className="text-red-500 text-sm mt-2">{codeError}</p>}
