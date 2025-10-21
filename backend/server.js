@@ -1,11 +1,11 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import pkg from "pg";
 import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
+import supabase from './utils/supabase.js';
+
 dotenv.config();
-const { Pool } = pkg;
 
 const app = express();
 const port = 5001;
@@ -13,57 +13,43 @@ const port = 5001;
 app.use(cors());
 app.use(bodyParser.json());
 
-const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
-});
+app.set("supabase", supabase);
 
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error("Erro ao conectar ao banco de dados:", err.stack);
-  } else {
-    console.log("Conexão com o banco de dados estabelecida com sucesso.");
-    release();
+const testConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('tb_usuario').select('count');
+    if (error) throw error;
+    console.log("Conexão com Supabase estabelecida com sucesso.");
+  } catch (err) {
+    console.error("Erro ao conectar ao Supabase:", err);
   }
-});
+};
 
-pool.on("error", (err) => {
-  console.error("Erro inesperado no cliente do banco de dados:", err);
-});
-
-// Adiciona pool no app para acesso nas rotas
-app.set("pool", pool);
+testConnection();
 
 // Importa e usa as rotas de login e registro
 import createLoginRoutes from "./routes/login.js";
 import createRegistroRoutes from "./routes/registro.js";
 
-app.use("/api/login", createLoginRoutes(pool));
-app.use("/api/registro", createRegistroRoutes(pool));
-
-// Importa e usa as rotas de teste de conexão
-import dbTestRoutes from "./routes/dbTest.js";
-app.use("/test", dbTestRoutes);
+app.use("/api/login", createLoginRoutes(supabase));
+app.use("/api/registro", createRegistroRoutes(supabase));
 
 // Importa e usa as rotas de tabelas
 import createTabelasRoutes from "./routes/tabelas.js";
-app.use("/api/tabelas", createTabelasRoutes(pool));
+app.use("/api/tabelas", createTabelasRoutes(supabase));
 
 // Importa e usa as rotas de FAQ
 import createFaqRoutes from "./routes/faq.js";
-app.use("/api/faq", createFaqRoutes(pool));
+app.use("/api/faq", createFaqRoutes(supabase));
 
 // Importa e usa as rotas de configuração
 import createConfiguracaoRoutes from "./routes/configuracao.js";
-app.use("/api/configuracao", createConfiguracaoRoutes(pool));
+app.use("/api/configuracao", createConfiguracaoRoutes(supabase));
 
 import usuarios from "./routes/usuarios.js";
 app.use("/api", usuarios);
 import createCotacoesRoutes from "./routes/cotacoes.js";
-app.use("/api/cotacoes", createCotacoesRoutes(pool));
+app.use("/api/cotacoes", createCotacoesRoutes(supabase));
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -499,46 +485,4 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
-});
-
-// --- Inicialização: tenta popular cache de cotações ao iniciar (se COTACOES_URL estiver configurada)
-async function refreshCotacoesCacheOnStartup() {
-  const fetchUrl = process.env.COTACOES_URL;
-  if (!fetchUrl) {
-    console.log('COTACOES_URL não configurada — pulando fetch inicial de cotações.');
-    return;
-  }
-
-  try {
-    console.log('Buscando cotações externas e populando cache...');
-    const axios = await import('axios');
-    const resp = await axios.default.get(fetchUrl);
-    const data = resp.data;
-    if (!data || typeof data !== 'object') {
-      console.warn('Resposta de cotações inesperada, não populando cache.');
-      return;
-    }
-
-    const now = new Date();
-    // Limpa cache antigo e insere novo
-    await pool.query('DELETE FROM tb_cotacoes_cache');
-    const inserts = [];
-    for (const provedor of Object.keys(data)) {
-      inserts.push(pool.query(`INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2, $3)`, [provedor, data[provedor], now]));
-    }
-    await Promise.all(inserts);
-    console.log('Cache de cotações populado com sucesso.');
-  } catch (err) {
-    console.error('Erro ao popular cache de cotações na inicialização:', err.message || err);
-  }
-}
-
-// Executa no próximo tick para não bloquear o listen
-setImmediate(() => {
-  refreshCotacoesCacheOnStartup();
-  // Agendamento de atualização periódica: usar COTACOES_REFRESH_MINUTES (padrão 15)
-  const mins = parseInt(process.env.COTACOES_REFRESH_MINUTES || '15', 10);
-  if (process.env.COTACOES_URL) {
-    setInterval(refreshCotacoesCacheOnStartup, mins * 60 * 1000);
-  }
 });
