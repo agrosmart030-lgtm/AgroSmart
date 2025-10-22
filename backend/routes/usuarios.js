@@ -2,34 +2,31 @@ import { Router } from "express";
 
 const router = Router();
 
-// Rota para buscar todos os usuários com detalhes específicos
 router.get("/usuarios", async (req, res) => {
+  const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
   try {
-    const pool = req.app.get("pool");
-    // Busca todos os usuários
-    const usuariosResult = await pool.query("SELECT * FROM tb_usuario");
-    const usuarios = usuariosResult.rows;
+    const { data: usuarios, error: errorUsuarios } = await supabase
+      .from("tb_usuario")
+      .select("*");
 
-    // Busca detalhes de cada tipo
+    if (errorUsuarios) throw errorUsuarios;
+
     const [agricultores, empresarios, cooperativas] = await Promise.all([
-      pool.query("SELECT * FROM tb_agricultor"),
-      pool.query("SELECT * FROM tb_empresario"),
-      pool.query("SELECT * FROM tb_cooperativa"),
+      supabase.from("tb_agricultor").select("*"),
+      supabase.from("tb_empresario").select("*"),
+      supabase.from("tb_cooperativa").select("*"),
     ]);
 
-    // Indexar detalhes por usuario_id
-    const mapDetalhes = (arr) => {
+    const mapDetalhes = (dados) => {
       const map = {};
-      arr.rows.forEach((item) => {
-        map[item.usuario_id] = item;
-      });
+      (dados.data || []).forEach((item) => (map[item.usuario_id] = item));
       return map;
     };
+
     const detalhesAgricultor = mapDetalhes(agricultores);
     const detalhesEmpresario = mapDetalhes(empresarios);
     const detalhesCooperativa = mapDetalhes(cooperativas);
 
-    // Montar lista final
     const usuariosComDetalhes = usuarios.map((user) => {
       let detalhes = null;
       if (user.tipo_usuario === "agricultor") {
@@ -44,30 +41,36 @@ router.get("/usuarios", async (req, res) => {
 
     res.json(usuariosComDetalhes);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Erro ao buscar usuários", details: err.message });
+    res.status(500).json({
+      error: "Erro ao buscar usuários",
+      details: err.message,
+    });
   }
 });
 
-// Atualizar status do usuário
 router.patch("/usuarios/:id/status", async (req, res) => {
+  const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
   try {
-    const pool = req.app.get("pool");
     const { id } = req.params;
     const { status } = req.body;
+
     if (!["ativo", "inativo"].includes(status)) {
       return res.status(400).json({ error: "Status inválido" });
     }
-    await pool.query("UPDATE tb_usuario SET status = $1 WHERE id = $2", [
-      status,
-      id,
-    ]);
+
+    const { error } = await supabase
+      .from("tb_usuario")
+      .update({ status })
+      .eq("id", id);
+
+    if (error) throw error;
+
     res.json({ success: true });
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Erro ao atualizar status", details: err.message });
+    res.status(500).json({
+      error: "Erro ao atualizar status",
+      details: err.message,
+    });
   }
 });
 

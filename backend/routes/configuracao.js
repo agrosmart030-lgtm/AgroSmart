@@ -1,47 +1,65 @@
 import { Router } from "express";
 
-export default function createConfiguracaoRoutes(pool) {
+export default function createConfiguracaoRoutes() {
   const router = Router();
 
   // GET /api/configuracao/:usuario_id
   router.get("/:usuario_id", async (req, res) => {
     const { usuario_id } = req.params;
+    const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
+
     try {
       // Busca dados básicos do usuário
-      const usuarioResult = await pool.query(
-        "SELECT * FROM tb_usuario WHERE id = $1",
-        [usuario_id]
-      );
-      if (usuarioResult.rows.length === 0) {
-        return res.status(404).json({ error: "Usuário não encontrado" });
+      const { data: usuario, error: errorUsuario } = await supabase
+        .from("tb_usuario")
+        .select("*")
+        .eq("id", usuario_id)
+        .single();
+
+      if (errorUsuario) {
+        if (errorUsuario.code === "PGRST116") {
+          // código de "No rows found"
+          return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+        throw errorUsuario;
       }
-      const usuario = usuarioResult.rows[0];
 
       // Busca dados específicos conforme o tipo
       let dadosEspecificos = {};
+
       if (usuario.tipo_usuario === "agricultor") {
-        const agri = await pool.query(
-          "SELECT cpf, nome_propriedade, area_cultivada FROM tb_agricultor WHERE usuario_id = $1",
-          [usuario_id]
-        );
-        if (agri.rows.length > 0) dadosEspecificos = agri.rows[0];
+        const { data, error } = await supabase
+          .from("tb_agricultor")
+          .select("cpf, nome_propriedade, area_cultivada")
+          .eq("usuario_id", usuario_id)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+        if (data) dadosEspecificos = data;
       } else if (usuario.tipo_usuario === "empresario") {
-        const emp = await pool.query(
-          "SELECT cpf, nome_empresa, cnpj FROM tb_empresario WHERE usuario_id = $1",
-          [usuario_id]
-        );
-        if (emp.rows.length > 0) dadosEspecificos = emp.rows[0];
+        const { data, error } = await supabase
+          .from("tb_empresario")
+          .select("cpf, nome_empresa, cnpj")
+          .eq("usuario_id", usuario_id)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+        if (data) dadosEspecificos = data;
       } else if (usuario.tipo_usuario === "cooperativa") {
-        const coop = await pool.query(
-          "SELECT nome_cooperativa, cnpj, numero_associados FROM tb_cooperativa WHERE usuario_id = $1",
-          [usuario_id]
-        );
-        if (coop.rows.length > 0) dadosEspecificos = coop.rows[0];
+        const { data, error } = await supabase
+          .from("tb_cooperativa")
+          .select("nome_cooperativa, cnpj, numero_associados")
+          .eq("usuario_id", usuario_id)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+        if (data) dadosEspecificos = data;
       }
 
       // Junta tudo num objeto só
       res.json({ ...usuario, ...dadosEspecificos });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: error.message });
     }
   });

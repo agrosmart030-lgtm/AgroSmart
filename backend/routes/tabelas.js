@@ -1,192 +1,162 @@
 import { Router } from "express";
 
-export default function createTabelasRoutes(pool) {
+export default function createTabelasRoutes() {
   const router = Router();
 
+  // Lista todas as tabelas do schema "public"
   router.get("/", async (req, res) => {
+    const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
     try {
-      const result = await pool.query(`
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-        ORDER BY table_name;
-      `);
-      res.json({ tabelas: result.rows.map((r) => r.table_name) });
+      const { data, error } = await supabase.rpc("listar_tabelas_public"); // precisa criar essa função RPC
+      if (error) throw error;
+      res.json({ tabelas: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
+  // Lista todas as tabelas + dados + colunas
   router.get("/dados", async (req, res) => {
+    const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
     try {
-      const tabelasResult = await pool.query(`
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-        ORDER BY table_name;
-      `);
-      const tabelas = tabelasResult.rows.map((r) => r.table_name);
+      const { data: tabelas, error: tabelasError } = await supabase.rpc("listar_tabelas_public");
+      if (tabelasError) throw tabelasError;
+
       const dados = {};
       const colunas = {};
+
       for (const tabela of tabelas) {
-        try {
-          const registros = await pool.query(`SELECT * FROM ${tabela}`);
-          const colunasResult = await pool.query(
-            `
-            SELECT column_name, data_type
-            FROM information_schema.columns
-            WHERE table_name = $1 AND table_schema = 'public'
-            ORDER BY ordinal_position;
-          `,
-            [tabela]
-          );
-          colunas[tabela] = colunasResult.rows.map((col) => ({
-            nome: col.column_name,
-            nomeExibicao: col.column_name,
-            tipo: col.data_type,
-          }));
-          dados[tabela] = registros.rows;
-        } catch (err) {
-          dados[tabela] = { erro: err.message };
-          colunas[tabela] = [];
-        }
+        const { data, error } = await supabase.from(tabela).select("*");
+        dados[tabela] = error ? { erro: error.message } : data;
+
+        const { data: cols, error: colError } = await supabase.rpc("listar_colunas_public", {
+          tabela_nome: tabela,
+        });
+        colunas[tabela] = colError
+          ? []
+          : cols.map((col) => ({
+              nome: col.column_name,
+              nomeExibicao: col.column_name,
+              tipo: col.data_type,
+            }));
       }
+
       res.json({ tabelas, dados, colunas });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
+  // Retorna dados e colunas de uma tabela específica
   router.get("/:tabela", async (req, res) => {
+    const supabase = req.app.get("supabase"); // Obtém o cliente Supabase configurado
     const { tabela } = req.params;
     try {
-      const validTablesResult = await pool.query(`
-        SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
-      `);
-      const validTables = validTablesResult.rows.map((r) => r.table_name);
-      if (!validTables.includes(tabela)) {
-        return res.status(400).json({ error: "Tabela não encontrada." });
-      }
-      // Busca os dados completos
-      const result = await pool.query(`SELECT * FROM ${tabela}`);
-      // Busca os tipos das colunas
-      const colunasResult = await pool.query(
-        `
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = $1 AND table_schema = 'public'
-        ORDER BY ordinal_position;
-      `,
-        [tabela]
-      );
-      const colunas = colunasResult.rows.map((col) => ({
+      const { data, error } = await supabase.from(tabela).select("*");
+      if (error) throw error;
+
+      const { data: colunasData, error: colunasError } = await supabase.rpc("listar_colunas_public", {
+        tabela_nome: tabela,
+      });
+      if (colunasError) throw colunasError;
+
+      const colunas = colunasData.map((col) => ({
         nome: col.column_name,
         nomeExibicao: col.column_name,
         tipo: col.data_type,
       }));
-      res.json({ tabela, dados: result.rows, colunas });
+
+      res.json({ tabela, dados: data, colunas });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona agricultor (exemplo de payload: { usuario_id, cpf, nome_propriedade, area_cultivada })
+  // Agricultor
   router.post("/agricultores", async (req, res) => {
-    const { usuario_id, cpf, nome_propriedade, area_cultivada } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_agricultor (usuario_id, cpf, nome_propriedade, area_cultivada)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [usuario_id, cpf, nome_propriedade, area_cultivada]
-      );
-      res.status(201).json({ agricultor: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_agricultor")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ agricultor: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona empresário (exemplo de payload: { usuario_id, cpf, nome_empresa, cnpj })
+  // Empresário
   router.post("/empresarios", async (req, res) => {
-    const { usuario_id, cpf, nome_empresa, cnpj } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_empresario (usuario_id, cpf, nome_empresa, cnpj)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [usuario_id, cpf, nome_empresa, cnpj]
-      );
-      res.status(201).json({ empresario: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_empresario")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ empresario: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona cooperativa (exemplo de payload: { usuario_id, nome_cooperativa, cnpj, regiao_atuacao, numero_associados })
+  // Cooperativa
   router.post("/cooperativas", async (req, res) => {
-    const {
-      usuario_id,
-      nome_cooperativa,
-      cnpj,
-      regiao_atuacao,
-      numero_associados,
-    } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_cooperativa (usuario_id, nome_cooperativa, cnpj, regiao_atuacao, numero_associados)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [usuario_id, nome_cooperativa, cnpj, regiao_atuacao, numero_associados]
-      );
-      res.status(201).json({ cooperativa: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_cooperativa")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ cooperativa: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona grão (exemplo de payload: { nome, codigo_api, unidade_medida, cotacao_atual, data_atualizacao })
+  // Grão
   router.post("/graos", async (req, res) => {
-    const {
-      nome,
-      codigo_api,
-      unidade_medida,
-      cotacao_atual,
-      data_atualizacao,
-    } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_grao (nome, codigo_api, unidade_medida, cotacao_atual, data_atualizacao)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [nome, codigo_api, unidade_medida, cotacao_atual, data_atualizacao]
-      );
-      res.status(201).json({ grao: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_grao")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ grao: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona relacionamento usuário-grão (exemplo de payload: { usuario_id, grao_id, tipo_relacao })
+  // Usuário-Grão
   router.post("/usuario-grao", async (req, res) => {
-    const { usuario_id, grao_id, tipo_relacao } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_usuario_grao (usuario_id, grao_id, tipo_relacao)
-         VALUES ($1, $2, $3) RETURNING *`,
-        [usuario_id, grao_id, tipo_relacao]
-      );
-      res.status(201).json({ usuario_grao: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_usuario_grao")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ usuario_grao: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Adiciona histórico de cotação (exemplo de payload: { grao_id, preco, data_cotacao })
+  // Histórico de Cotação
   router.post("/historico-cotacao", async (req, res) => {
-    const { grao_id, preco, data_cotacao } = req.body;
     try {
-      const result = await pool.query(
-        `INSERT INTO tb_historico_cotacao (grao_id, preco, data_cotacao)
-         VALUES ($1, $2, $3) RETURNING *`,
-        [grao_id, preco, data_cotacao]
-      );
-      res.status(201).json({ historico_cotacao: result.rows[0] });
+      const { data, error } = await supabase
+        .from("tb_historico_cotacao")
+        .insert(req.body)
+        .select()
+        .single();
+      if (error) throw error;
+      res.status(201).json({ historico_cotacao: data });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
