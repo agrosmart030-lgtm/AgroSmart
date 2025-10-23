@@ -16,7 +16,8 @@
     "nodemailer": "^7.0.9",
     "pg": "^8.16.0",
     "swagger-ui": "^5.29.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "puppeteer": "^24.4.0"
   },
   "type": "module"
 }
