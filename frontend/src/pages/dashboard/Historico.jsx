@@ -1,12 +1,10 @@
 // src/pages/dashboard/Historico.jsx
-import axios from "axios";
-import { Calendar } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Activity, TrendingDown, TrendingUp } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -17,445 +15,387 @@ import {
 import Footer from "../../componentes/footer";
 import Navbar from "../../componentes/navbar";
 
-// Dados para o histórico de preços (mesmos mocks usados antes)
-const historyData = {
-  soja: {
-    name: "Soja",
-    unit: "R$/sc 60kg",
-    color: "#10B981",
-    gradient: "from-emerald-400 to-emerald-600",
-    data6m: [
-      { date: "2024-11", price: 165.3, volume: 2840 },
-      { date: "2024-12", price: 172.8, volume: 3120 },
-      { date: "2025-01", price: 169.4, volume: 2950 },
-      { date: "2025-02", price: 174.2, volume: 3280 },
-      { date: "2025-03", price: 176.9, volume: 3450 },
-      { date: "2025-04", price: 175.6, volume: 3180 },
-      { date: "2025-05", price: 178.5, volume: 3380 },
-    ],
-    data1y: [
-      { date: "2024-05", price: 152.3, volume: 2640 },
-      { date: "2024-06", price: 158.7, volume: 2780 },
-      { date: "2024-07", price: 161.2, volume: 2890 },
-      { date: "2024-08", price: 163.8, volume: 3020 },
-      { date: "2024-09", price: 160.4, volume: 2750 },
-      { date: "2024-10", price: 167.9, volume: 3150 },
-      { date: "2024-11", price: 165.3, volume: 2840 },
-      { date: "2024-12", price: 172.8, volume: 3120 },
-      { date: "2025-01", price: 169.4, volume: 2950 },
-      { date: "2025-02", price: 174.2, volume: 3280 },
-      { date: "2025-03", price: 176.9, volume: 3450 },
-      { date: "2025-04", price: 175.6, volume: 3180 },
-      { date: "2025-05", price: 178.5, volume: 3380 },
-    ],
-  },
-  milho: {
-    name: "Milho",
-    unit: "R$/sc 60kg",
-    color: "#F59E0B",
-    gradient: "from-amber-400 to-amber-600",
-    data6m: [
-      { date: "2024-11", price: 92.8, volume: 4120 },
-      { date: "2024-12", price: 88.5, volume: 3890 },
-      { date: "2025-01", price: 91.2, volume: 4050 },
-      { date: "2025-02", price: 87.6, volume: 3780 },
-      { date: "2025-03", price: 90.1, volume: 4180 },
-      { date: "2025-04", price: 91.3, volume: 4220 },
-      { date: "2025-05", price: 89.4, volume: 4080 },
-    ],
-    data1y: [
-      { date: "2024-11", price: 92.8, volume: 4120 },
-      { date: "2024-12", price: 88.5, volume: 3890 },
-      { date: "2025-01", price: 91.2, volume: 4050 },
-      { date: "2025-02", price: 87.6, volume: 3780 },
-      { date: "2025-03", price: 90.1, volume: 4180 },
-      { date: "2025-04", price: 91.3, volume: 4220 },
-      { date: "2025-05", price: 89.4, volume: 4080 },
-    ],
-  },
-};
-
-// Componente StatCard para exibir estatísticas
-const StatCard = ({
-  title,
-  value,
-  subtitle,
-  icon: Icon,
-  gradient,
-  isPositive,
-  change,
-}) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full">
-    <div className="flex justify-between items-start h-full">
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-bold mt-1 text-gray-800">{value}</p>
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-        {change !== undefined && (
-          <div className="mt-2 flex items-center">
-            {isPositive ? (
-              <span className="text-green-500 mr-1">▲</span>
-            ) : (
-              <span className="text-red-500 mr-1">▼</span>
-            )}
-            <span
-              className={`text-xs font-medium ${
-                isPositive ? "text-green-600" : "text-red-600"
-              }`}
-            >
-              {change}% {isPositive ? "alta" : "baixa"}
-            </span>
-          </div>
-        )}
-      </div>
-      <div
-        className={`p-2 rounded-lg ${gradient} bg-gradient-to-br text-white`}
-      >
-        <Icon size={20} />
-      </div>
-    </div>
-  </div>
-);
-
-// Componente ChartCard para envolver os gráficos
-const ChartCard = ({ title, children, subtitle }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-    </div>
-    <div className="p-4">{children}</div>
-  </div>
-);
-
 const HistoricoPage = () => {
-  const [currentGrain, setCurrentGrain] = useState("soja");
-  const [timeRange, setTimeRange] = useState("6m");
-  const [historyCoop, setHistoryCoop] = useState("LAR");
-  const [historyGrao, setHistoryGrao] = useState("");
-  const [historySeries, setHistorySeries] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState(null);
+  const location = useLocation();
 
-  // API base URL (Vite or CRA)
-  const viteEnv =
-    typeof import.meta !== "undefined" ? import.meta.env : undefined;
-  const craEnv = typeof process !== "undefined" ? process.env : undefined;
-  const apiBaseUrl =
-    (viteEnv && viteEnv.VITE_API_URL) ||
-    (craEnv && craEnv.REACT_APP_API_URL) ||
-    "http://localhost:5001/api";
+  // inicializa a partir do estado de navegação (quando vindo do Dashboard)
+  const initialCoop = (location.state && location.state.coop) || "COAMO";
+  const initialGraoRaw = (location.state && location.state.grao) || "SOJA";
+  const initialGrao = String(initialGraoRaw).toUpperCase();
 
+  const [produtosSelecionados, setProdutosSelecionados] = useState([
+    initialGrao,
+  ]);
+  const [cooperativaSelecionada, setCooperativaSelecionada] =
+    useState(initialCoop);
+  const [periodo, setPeriodo] = useState("30");
+
+  const produtos = ["SOJA", "MILHO", "TRIGO", "CAFÉ"];
+
+  const cooperativas = [
+    { id: "COAMO", nome: "COAMO", logo: "🌾" },
+    { id: "LAR", nome: "LAR", logo: "❤️" },
+    { id: "COCAMAR", nome: "COCAMAR", logo: "🌱" },
+  ];
+
+  const coresProdutos = {
+    SOJA: "#22c55e",
+    MILHO: "#f59e0b",
+    TRIGO: "#eab308",
+    CAFÉ: "#84cc16",
+  };
+
+  // --- Novas funções: converte hex para rgba e cria box-shadow verde com profundidade
+  const hexToRgba = (hex, alpha = 1) => {
+    const h = hex.replace("#", "");
+    const bigint = parseInt(
+      h.length === 3
+        ? h
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : h,
+      16
+    );
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const getBoxShadow = (hex = "#10B981", intensity = 0.12) => {
+    // profundidade principal + leve elevação
+    return `0 30px 60px ${hexToRgba(hex, intensity)}, 0 6px 18px ${hexToRgba(hex, intensity * 0.5)}, inset 0 -6px 24px ${hexToRgba("#000000", 0.02)}`;
+  };
+  // --- fim das funções
+
+  // atualiza caso location.state mude após montagem
   useEffect(() => {
-    const controller = new AbortController();
-    async function loadHistory() {
-      try {
-        setHistoryLoading(true);
-        setHistoryError(null);
-        const params = new URLSearchParams();
-        params.set("coop", historyCoop);
-        params.set("period", timeRange);
-        if (historyGrao) params.set("grao", historyGrao);
-        const resp = await axios.get(
-          `${apiBaseUrl}/cotacoes/historico?${params.toString()}`,
-          { signal: controller.signal }
-        );
-        const series = Array.isArray(resp.data?.series) ? resp.data.series : [];
-        const mapped = series.map((pt) => ({
-          date:
-            typeof pt.date === "string" ? pt.date.substring(0, 10) : pt.date,
-          price: Number(pt.price),
-          volume: pt.volume !== undefined ? Number(pt.volume) : undefined,
-        }));
-        setHistorySeries(mapped);
-      } catch (e) {
-        if (e.name !== "CanceledError") {
-          setHistoryError("Falha ao carregar histórico");
-          setHistorySeries([]);
+    if (location.state) {
+      if (
+        location.state.coop &&
+        location.state.coop !== cooperativaSelecionada
+      ) {
+        setCooperativaSelecionada(location.state.coop);
+      }
+      if (location.state.grao) {
+        const g = String(location.state.grao).toUpperCase();
+        if (!produtosSelecionados.includes(g)) {
+          setProdutosSelecionados([g]);
         }
-      } finally {
-        setHistoryLoading(false);
       }
     }
-    loadHistory();
-    return () => controller.abort();
-  }, [historyCoop, historyGrao, timeRange, apiBaseUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
-  const chartData =
-    historySeries.length > 0
-      ? historySeries
-      : timeRange === "6m"
-        ? historyData[currentGrain].data6m
-        : historyData[currentGrain].data1y;
-  const last = chartData.length > 0 ? chartData[chartData.length - 1] : null;
-  const prev = chartData.length > 1 ? chartData[chartData.length - 2] : null;
-  const currentPrice = last ? Number(last.price) : 0;
-  const priceChange =
-    last && prev && prev.price
-      ? Number(((currentPrice - prev.price) / prev.price) * 100).toFixed(2)
-      : 0;
-  const isPositiveChange = priceChange >= 0;
-  const averagePrice =
-    chartData.length > 0
-      ? (
-          chartData.reduce((sum, item) => sum + Number(item.price), 0) /
-          chartData.length
-        ).toFixed(2)
-      : "0.00";
-  const currentUnit = historyData[currentGrain]?.unit || "R$";
-  const currentColor = historyData[currentGrain]?.color || "#10B981";
+  // Gera histórico simulado para um produto/cooperativa em 'periodo' dias
+  const gerarHistorico = (produto, cooperativa) => {
+    const dias = parseInt(periodo, 10) || 15;
+    const historico = [];
+    const precoBase =
+      produto === "SOJA"
+        ? 128.5
+        : produto === "MILHO"
+          ? 56.3
+          : produto === "TRIGO"
+            ? 67.0
+            : 29.24;
+
+    for (let i = dias - 1; i >= 0; i--) {
+      const data = new Date();
+      data.setDate(data.getDate() - i);
+      const variacao = (Math.random() - 0.5) * 10;
+      const preco = parseFloat((precoBase + variacao).toFixed(2));
+      historico.push({
+        data: data.toLocaleDateString("pt-BR"),
+        dataSimples: `${data.getDate()}/${data.getMonth() + 1}`,
+        preco: preco.toFixed(2),
+        precoNum: preco,
+        variacao: parseFloat(((Math.random() - 0.5) * 5).toFixed(2)),
+      });
+    }
+    return historico;
+  };
+
+  // dados para o gráfico (últimos 15 dias por padrão)
+  const gerarDadosGrafico = () => {
+    const dias = 15;
+    const dadosGrafico = [];
+    for (let i = dias - 1; i >= 0; i--) {
+      const data = new Date();
+      data.setDate(data.getDate() - i);
+      const item = {
+        data: `${data.getDate()}/${data.getMonth() + 1}`,
+        dataCompleta: data.toLocaleDateString("pt-BR"),
+      };
+
+      produtosSelecionados.forEach((produto) => {
+        const precoBase =
+          produto === "SOJA"
+            ? 128.5
+            : produto === "MILHO"
+              ? 56.3
+              : produto === "TRIGO"
+                ? 67.0
+                : 29.24;
+        const variacao = (Math.random() - 0.5) * 8;
+        item[produto] = parseFloat((precoBase + variacao).toFixed(2));
+      });
+
+      dadosGrafico.push(item);
+    }
+    return dadosGrafico;
+  };
+
+  const toggleProduto = (produto) => {
+    if (produtosSelecionados.includes(produto)) {
+      setProdutosSelecionados(
+        produtosSelecionados.filter((p) => p !== produto)
+      );
+    } else {
+      setProdutosSelecionados([...produtosSelecionados, produto]);
+    }
+  };
+
+  const dadosGrafico = useMemo(
+    () => gerarDadosGrafico(),
+    [produtosSelecionados, periodo]
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="pt-28 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Painel principal com Tabs (mesma aparência do Dashboard) */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
-              Histórico de Preços
+              Painel de Historico
             </h1>
 
             <div className="flex border-b border-gray-200">
               <Link
                 to="/dashboard"
-                className={`px-4 py-2 font-medium text-sm text-gray-500 hover:text-gray-700`}
+                className="px-4 py-2 font-medium text-sm text-gray-500 hover:text-gray-700"
               >
                 Cotação
               </Link>
               <Link
                 to="/dashboard/historico"
-                className={`px-4 py-2 font-medium text-sm text-green-600 border-b-2 border-green-600`}
+                className="px-4 py-2 font-medium text-sm text-green-600 border-b-2 border-green-600"
               >
                 Histórico
               </Link>
             </div>
           </div>
-
-          <div className="space-y-6">
-            {/* Filtros do Histórico */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-              <h3 className="text-base font-medium text-gray-700 mb-3">
-                Filtros
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Cooperativa
-                  </label>
-                  <select
-                    value={historyCoop}
-                    onChange={(e) => setHistoryCoop(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2"
-                  >
-                    <option value="LAR">LAR</option>
-                    <option value="COAMO">COAMO</option>
-                    <option value="COCAMAR">COCAMAR</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Grão
-                  </label>
-                  <input
-                    value={historyGrao}
-                    onChange={(e) => setHistoryGrao(e.target.value)}
-                    placeholder="ex: Soja, Milho"
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2 px-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Período
-                  </label>
-                  <select
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2"
-                  >
-                    <option value="6m">Últimos 6 meses</option>
-                    <option value="1y">Último ano</option>
-                  </select>
-                </div>
-              </div>
-              {historyLoading && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Carregando histórico...
-                </p>
-              )}
-              {historyError && (
-                <p className="text-xs text-red-500 mt-2">{historyError}</p>
-              )}
-            </div>
-
-            {/* Estatísticas */}
+          {/* Filtros */}
+          <div
+            className="bg-white rounded-2xl p-6 shadow mb-6 border"
+            style={{ boxShadow: getBoxShadow("#10B981", 0.08) }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard
-                title="Média"
-                value={`R$ ${averagePrice.replace(".", ",")}`}
-                subtitle={`${timeRange === "6m" ? "6 meses" : "1 ano"}`}
-                icon={Calendar}
-                gradient="from-blue-500 to-blue-600"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Cooperativa
+                </label>
+                <select
+                  value={cooperativaSelecionada}
+                  onChange={(e) => setCooperativaSelecionada(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300"
+                >
+                  {cooperativas.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Grão
+                </label>
+                <input
+                  value={produtosSelecionados.join(", ")}
+                  readOnly
+                  className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50"
+                />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {produtos.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => toggleProduto(p)}
+                      className={`px-3 py-1 rounded-full font-semibold text-sm ${produtosSelecionados.includes(p) ? "text-white" : "text-gray-700"}`}
+                      style={{
+                        background: produtosSelecionados.includes(p)
+                          ? coresProdutos[p]
+                          : "#f3f4f6",
+                      }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Período (dias)
+                </label>
+                <select
+                  value={periodo}
+                  onChange={(e) => setPeriodo(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300"
+                >
+                  <option value="7">Últimos 7 dias</option>
+                  <option value="15">Últimos 15 dias</option>
+                  <option value="30">Últimos 30 dias</option>
+                  <option value="60">Últimos 60 dias</option>
+                </select>
+              </div>
             </div>
-
-            {/* Gráfico de Preço */}
-            <ChartCard
-              title="Variação de Preço"
-              subtitle={`${historyCoop}${
-                historyGrao ? " - " + historyGrao : ""
-              } • ${timeRange === "6m" ? "Últimos 6 meses" : "Último ano"}`}
-            >
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={chartData}
-                    margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="colorPrice"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor={currentColor}
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={currentColor}
-                          stopOpacity={0.1}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f0f0f0"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12, fill: "#6b7280" }}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      width={60}
-                      tickFormatter={(value) => `R$ ${value}`}
-                      tick={{ fontSize: 12, fill: "#6b7280" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      formatter={(value) => [`R$ ${value}`, "Preço"]}
-                      labelFormatter={(label) => `Data: ${label}`}
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "0.5rem",
-                        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-                        padding: "0.5rem",
-                        fontSize: "0.875rem",
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="price"
-                      stroke={currentColor}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{
-                        r: 6,
-                        stroke: "#fff",
-                        strokeWidth: 2,
-                        fill: currentColor,
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
-
-            {/* Gráfico de Volume */}
-            <ChartCard
-              title="Volume de Negociação"
-              subtitle={`${historyCoop}${
-                historyGrao ? " - " + historyGrao : ""
-              } • ${timeRange === "6m" ? "Últimos 6 meses" : "Último ano"}`}
-            >
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={chartData}
-                    margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="colorVolume"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor={currentColor}
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor={currentColor}
-                          stopOpacity={0.2}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f0f0f0"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12, fill: "#6b7280" }}
-                      tickMargin={10}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      width={60}
-                      tick={{ fontSize: 12, fill: "#6b7280" }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip
-                      formatter={(value) => [
-                        new Intl.NumberFormat("pt-BR").format(value),
-                        "Volume",
-                      ]}
-                      labelFormatter={(label) => `Data: ${label}`}
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "0.5rem",
-                        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-                        padding: "0.5rem",
-                        fontSize: "0.875rem",
-                      }}
-                    />
-                    <Bar
-                      dataKey="volume"
-                      fill="url(#colorVolume)"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </ChartCard>
           </div>
+
+          {/* Tabelas e Gráfico */}
+          {produtosSelecionados.length === 0 ? (
+            <div className="rounded-2xl p-8 bg-yellow-50 border mb-6">
+              <p className="text-center font-semibold">
+                Selecione pelo menos um produto para visualizar o histórico
+              </p>
+            </div>
+          ) : (
+            <>
+              {produtosSelecionados.map((produto) => {
+                const historico = gerarHistorico(
+                  produto,
+                  cooperativaSelecionada
+                );
+                const ultimoPreco = parseFloat(
+                  historico[historico.length - 1].preco
+                );
+                const primeiroPreco = parseFloat(historico[0].preco);
+                const variacaoTotal =
+                  ((ultimoPreco - primeiroPreco) / primeiroPreco) * 100;
+                const corProduto = coresProdutos[produto];
+
+                return (
+                  <div
+                    key={produto}
+                    className="bg-white rounded-2xl p-6 shadow mb-6 border"
+                    style={{ boxShadow: getBoxShadow(corProduto, 0.18) }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3
+                          className="text-xl font-bold"
+                          style={{ color: corProduto }}
+                        >
+                          {produto}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          🏢 {cooperativaSelecionada} • Saca 60kg
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-extrabold">
+                          R$ {ultimoPreco.toFixed(2)}
+                        </div>
+                        <div
+                          className={`inline-flex items-center gap-2 mt-2 font-bold px-3 py-1 rounded-full ${variacaoTotal >= 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}
+                        >
+                          {variacaoTotal >= 0 ? (
+                            <TrendingUp size={16} />
+                          ) : (
+                            <TrendingDown size={16} />
+                          )}{" "}
+                          {variacaoTotal >= 0 ? "+" : ""}
+                          {variacaoTotal.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr>
+                            <th className="p-3 text-sm font-bold text-gray-700">
+                              Data
+                            </th>
+                            <th className="p-3 text-sm font-bold text-gray-700 text-right">
+                              Preço (R$)
+                            </th>
+                            <th className="p-3 text-sm font-bold text-gray-700 text-right">
+                              Variação
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {historico.map((item, idx) => (
+                            <tr key={idx} className="border-t">
+                              <td className="p-3 text-gray-700">{item.data}</td>
+                              <td
+                                className="p-3 text-right font-bold"
+                                style={{ color: corProduto }}
+                              >
+                                {item.preco}
+                              </td>
+                              <td className="p-3 text-right">
+                                <span
+                                  className={`px-2 py-1 rounded-full font-bold ${item.variacao >= 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}
+                                >
+                                  {item.variacao >= 0 ? "+" : ""}
+                                  {item.variacao.toFixed(1)}%
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Gráfico */}
+              <div
+                className="bg-white rounded-2xl p-6 shadow mb-12 border"
+                style={{ boxShadow: getBoxShadow("#10B981", 0.1) }}
+              >
+                <h3 className="text-xl font-bold mb-2">
+                  Evolução dos Preços - Últimos 15 Dias
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Visualize as tendências de preços por produto
+                </p>
+
+                <div style={{ width: "100%", height: 400 }}>
+                  <ResponsiveContainer>
+                    <LineChart data={dadosGrafico}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e6e6e6" />
+                      <XAxis
+                        dataKey="data"
+                        tick={{ fontSize: 12, fill: "#6b7280" }}
+                      />
+                      <YAxis tick={{ fontSize: 12, fill: "#6b7280" }} />
+                      <Tooltip />
+                      <Legend />
+                      {produtosSelecionados.map((produto) => (
+                        <Line
+                          key={produto}
+                          type="monotone"
+                          dataKey={produto}
+                          stroke={coresProdutos[produto]}
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
       <Footer />
