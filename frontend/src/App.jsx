@@ -19,6 +19,7 @@ import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/Clima";
 import AccessibilityMenu from "./componentes/acessibilidade";
+import Historico from "./pages/dashboard/Historico";
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/faq" element={<Faq />} />
+          <Route path="/dashboard/historico" element={<Historico />} />
           {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/GenUser" element={<GenUser />} />
@@ -45,6 +47,7 @@ function App() {
           <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
           <Route path="/configuracao" element={<Configuraçao />} />
           <Route path="/clima" element={<Clima />} />
+
         </Routes>
       </Router>
       </AccessibilityProvider>
