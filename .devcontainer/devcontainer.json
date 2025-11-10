@@ -1,0 +1,50 @@
+{
+  "name": "AgroSmart (Node.js & PostgreSQL)",
+  // 1. Defina a imagem base do contêiner
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+
+  // 2. Adicione "Features" (serviços extras)
+  "features": {
+    // Esta feature instala e configura o PostgreSQL
+    "ghcr.io/devcontainers/features/postgres:1": {
+      "version": "latest",
+      "username": "postgres",
+      "password": "postgres",
+      "database": "agrosmart" // Nome do banco
+    }
+  },
+
+  // 3. Encaminhe as portas do seu app
+  "forwardPorts": [
+    5001, // Backend
+    5173, // Frontend (Vite)
+    5432  // Porta do Banco de Dados (PostgreSQL)
+  ],
+
+  // 4. Defina as variáveis de ambiente para o backend
+  "remoteEnv": {
+    "PGHOST": "localhost",
+    "PGUSER": "postgres",
+    "PGPASSWORD": "postgres",
+    "PGDATABASE": "agrosmart",
+    "PGPORT": "5432"
+  },
+
+  // 5. Comandos para rodar APÓS o contêiner ser criado
+  "postCreateCommand": "npm run install:all && psql -U postgres -d agrosmart -f backend/templateBD.sql && psql -U postgres -d agrosmart -f backend/insertValues.sql",
+
+  // 6. Comando para rodar QUANDO o contêiner iniciar
+  "postStartCommand": "npm run dev",
+
+  // 7. Configurações do VS Code (opcional, mas útil)
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "cweijan.vscode-postgresql-client2"
+      ]
+    }
+  }
+}
