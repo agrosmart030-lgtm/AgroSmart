@@ -1,4 +1,4 @@
-CREATE TABLE tb_usuario (
+npCREATE TABLE tb_usuario (
     id SERIAL PRIMARY KEY,
     nome_completo VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
