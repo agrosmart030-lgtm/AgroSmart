@@ -48,11 +48,26 @@ export default function Cadastro() {
     watch,
     trigger,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({
     mode: "onChange",
     shouldUnregister: false,
   });
+
+  // Validação de força de senha
+  function validarSenhaRules(senha = "") {
+    const rules = [
+      { regex: /.{8,}/, msg: "mínimo 8 caracteres" },
+      { regex: /[A-Z]/, msg: "pelo menos 1 letra maiúscula" },
+      { regex: /[a-z]/, msg: "pelo menos 1 letra minúscula" },
+      { regex: /[0-9]/, msg: "pelo menos 1 número" },
+      { regex: /[^A-Za-z0-9]/, msg: "pelo menos 1 caractere especial" },
+    ];
+    const failed = rules.filter((r) => !r.regex.test(senha));
+    return failed.map((f) => f.msg);
+  }
 
   const tipo = watch("tipo");
 
@@ -77,9 +92,26 @@ export default function Cadastro() {
 
   const nextStep = async () => {
     const isFormValid = await trigger();
-    if (isFormValid) {
-      setStep((prev) => prev + 1);
+    if (!isFormValid) return;
+
+    // Se estivermos na etapa 1, validar força da senha antes de avançar
+    if (step === 1) {
+      const senhaAtual = watch("senha") || "";
+      const failedMsgs = validarSenhaRules(senhaAtual);
+      if (failedMsgs.length > 0) {
+        const message = `Senha inválida: ${failedMsgs.join(", ")}`;
+        // marca erro no campo para que o Step1 mostre a mensagem (errors.senha)
+        setError("senha", { type: "manual", message });
+        // opcional: alerta global
+        exibirAlertaErro(message);
+        return;
+      } else {
+        // limpa erro caso anteriormente exista
+        clearErrors("senha");
+      }
     }
+
+    setStep((prev) => prev + 1);
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
