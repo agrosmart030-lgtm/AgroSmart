@@ -64,8 +64,15 @@ app.use("/api/configuracao", createConfiguracaoRoutes(pool));
 
 import usuarios from "./routes/usuarios.js";
 app.use("/api", usuarios);
+
 import createCotacoesRoutes from "./routes/cotacoes.js";
 app.use("/api/cotacoes", createCotacoesRoutes(pool));
+
+// ==========================================
+// ROTA DA EMBRAPA (RESPONDE AGRO)
+// ==========================================
+import respondeAgroRoutes from "./routes/respondeAgro.js";
+app.use("/api/responde-agro", respondeAgroRoutes);
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -497,8 +504,6 @@ const swaggerDocument = {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// ...adicione suas rotas e lógica aqui...
-
 app.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
@@ -516,7 +521,7 @@ async function ensureCotacoesCacheTable() {
       CREATE INDEX IF NOT EXISTS idx_tb_cotacoes_cache_provedor ON tb_cotacoes_cache(provedor);
     `);
   } catch (e) {
-    console.error('Erro ao garantir tabela tb_cotacoes_cache:', e.message || e);
+    console.error("Erro ao garantir tabela tb_cotacoes_cache:", e.message || e);
   }
 }
 
@@ -539,7 +544,10 @@ async function ensureCotacoesHistoricoTable() {
       CREATE INDEX IF NOT EXISTS idx_hist_created_at ON tb_cotacoes_historico(created_at);
     `);
   } catch (e) {
-    console.error('Erro ao garantir tabela tb_cotacoes_historico:', e.message || e);
+    console.error(
+      "Erro ao garantir tabela tb_cotacoes_historico:",
+      e.message || e,
+    );
   }
 }
 
@@ -560,23 +568,30 @@ async function refreshCotacoesCacheOnStartup() {
     };
 
     const now = new Date();
-    await pool.query('DELETE FROM tb_cotacoes_cache');
+    await pool.query("DELETE FROM tb_cotacoes_cache");
     const inserts = [];
-    inserts.push(pool.query(
-      `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
-      ['coamo', JSON.stringify(data.coamo), now]
-    ));
-    inserts.push(pool.query(
-      `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
-      ['larAgro', JSON.stringify(data.larAgro), now]
-    ));
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+        ["coamo", JSON.stringify(data.coamo), now],
+      ),
+    );
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+        ["larAgro", JSON.stringify(data.larAgro), now],
+      ),
+    );
     await Promise.all(inserts);
-    console.log('Cache de cotações populado com sucesso.');
+    console.log("Cache de cotações populado com sucesso.");
 
     // Persiste no histórico (append)
     const parsePreco = (s) => {
-      if (!s || typeof s !== 'string') return null;
-      const cleaned = s.replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.');
+      if (!s || typeof s !== "string") return null;
+      const cleaned = s
+        .replace(/[^0-9,.-]/g, "")
+        .replace(/\./g, "")
+        .replace(",", ".");
       const num = parseFloat(cleaned);
       return isNaN(num) ? null : num;
     };
@@ -587,46 +602,55 @@ async function refreshCotacoesCacheOnStartup() {
 
     const histInserts = [];
     for (const item of data.coamo) {
-      histInserts.push(pool.query(
-        `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          'COAMO',
-          item.grao || null,
-          parsePreco(item.preco),
-          item.unidade || null,
-          item.local || null,
-          toTimestamp(item.data_hora) || now,
-          now,
-        ]
-      ));
+          [
+            "COAMO",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
     }
     for (const item of data.larAgro) {
-      histInserts.push(pool.query(
-        `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          'LAR',
-          item.grao || null,
-          parsePreco(item.preco),
-          item.unidade || null,
-          item.local || null,
-          toTimestamp(item.data_hora) || now,
-          now,
-        ]
-      ));
+          [
+            "LAR",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
     }
     await Promise.all(histInserts);
-    console.log('Histórico de cotações atualizado.');
+    console.log("Histórico de cotações atualizado.");
   } catch (err) {
-    console.error('Erro ao popular cache de cotações na inicialização:', err.message || err);
+    console.error(
+      "Erro ao popular cache de cotações na inicialização:",
+      err.message || err,
+    );
   }
 }
 
 // Executa no próximo tick para não bloquear o listen
 setImmediate(() => {
-  Promise.all([ensureCotacoesCacheTable(), ensureCotacoesHistoricoTable()])
-    .then(() => refreshCotacoesCacheOnStartup());
-  const mins = parseInt(process.env.COTACOES_REFRESH_MINUTES || '15', 10);
+  Promise.all([
+    ensureCotacoesCacheTable(),
+    ensureCotacoesHistoricoTable(),
+  ]).then(() => refreshCotacoesCacheOnStartup());
+  const mins = parseInt(process.env.COTACOES_REFRESH_MINUTES || "15", 10);
   setInterval(refreshCotacoesCacheOnStartup, mins * 60 * 1000);
 });
