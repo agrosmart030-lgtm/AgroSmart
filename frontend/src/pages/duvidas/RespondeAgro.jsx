@@ -32,51 +32,19 @@ export default function RespondeAgro() {
   const buscarDuvidas = async () => {
     setIsLoading(true);
     try {
-      // ---------------------------------------------------------
-      // AQUI ENTRARÁ A CONEXÃO REAL COM SEU BACKEND
-      // Exemplo usando fetch apontando para sua rota Express:
-      //
-      // const url = `http://localhost:5000/api/responde-agro?categoria=${selectedCategory}&busca=${searchTerm}`;
-      // const response = await fetch(url);
-      // const data = await response.json();
-      // setFaqs(data);
-      // ---------------------------------------------------------
+      const url = `http://localhost:5001/api/responde-agro?categoria=${encodeURIComponent(selectedCategory)}&busca=${encodeURIComponent(searchTerm)}`;
+      const response = await fetch(url);
 
-      console.log(
-        `📡 Disparando API -> Categoria: ${selectedCategory} | Busca: "${searchTerm}"`,
-      );
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
 
-      // DADOS MOCKADOS: Isso simula o retorno da API para a tela já funcionar
-      // Quando a API estiver pronta, basta apagar este setFaqs abaixo
-      setTimeout(() => {
-        setFaqs([
-          {
-            id: 1,
-            tag: "Soja",
-            iconeTag: <FaLeaf className="mr-2" />,
-            corFundo: "bg-[#E8F5E9]",
-            corTexto: "text-[#2D5A27]",
-            pergunta:
-              "Qual o melhor período para o plantio da soja no Centro-Oeste?",
-            resposta:
-              "O período ideal para o plantio da soja no Centro-Oeste brasileiro ocorre geralmente entre outubro e novembro, logo após o início das chuvas regulares. Entretanto, é fundamental consultar o Calendário de Zoneamento Agrícola de Risco Climático (ZARC).",
-          },
-          {
-            id: 2,
-            tag: "Milho",
-            iconeTag: <FaSeedling className="mr-2" />,
-            corFundo: "bg-[#FFF8E1]",
-            corTexto: "text-[#795548]",
-            pergunta:
-              "Como identificar e controlar a lagarta-do-cartucho no milho?",
-            resposta:
-              "A lagarta-do-cartucho é identificada pelo formato de 'Y' invertido na cabeça. O dano principal ocorre no cartucho da planta, onde a lagarta se aloja e consome as folhas.",
-          },
-        ]);
-        setIsLoading(false);
-      }, 500); // Simulando um atraso de rede de meio segundo
+      const data = await response.json();
+      setFaqs(data);
     } catch (error) {
       console.error("Erro ao buscar dados da Embrapa:", error);
+      setFaqs([]);
+    } finally {
       setIsLoading(false);
     }
   };
