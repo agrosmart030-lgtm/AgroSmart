@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
+import { isValidCPF, isValidCNPJ } from "../utils/validators.js";
 
 export default function createRegistroRoutes(pool) {
   const router = Router();
@@ -23,6 +24,19 @@ export default function createRegistroRoutes(pool) {
       nomeCooperativa,
       areaAtuacao,
     } = req.body;
+
+    // Server-side validation for CPF/CNPJ
+    if (tipo_usuario === "agricultor" || tipo_usuario === "empresario") {
+      if (cpf && !isValidCPF(cpf)) {
+        return res.status(400).json({ success: false, message: "CPF inválido" });
+      }
+    }
+    if (tipo_usuario === "empresario" || tipo_usuario === "cooperativa") {
+      if (cnpj && !isValidCNPJ(cnpj)) {
+        return res.status(400).json({ success: false, message: "CNPJ inválido" });
+      }
+    }
+
     try {
       // Remove máscara de CPF e CNPJ
       const cleanCPF = cpf ? cpf.replace(/\D/g, "") : undefined;

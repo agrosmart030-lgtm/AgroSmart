@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import api from "../../services/api";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import cadastroImg from "../../assets/cadastro.jpg";
 import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
@@ -126,8 +127,8 @@ codigo_ibge: selectedCidade.id,
       }
 
       try {
-        // First, send verification email
-        const response = await axios.post('http://localhost:5001/api/send-verification-email', {
+        // First, send verification email using central api service
+        const response = await api.post('/send-verification-email', {
           email: userPayload.email,
           nome: userPayload.nome_completo
         });
@@ -138,11 +139,12 @@ codigo_ibge: selectedCidade.id,
           // Move to verification step
           nextStep();
         } else {
-          exibirAlertaErro("Erro", "Falha ao enviar o código de verificação. Tente novamente.");
+          exibirAlertaErro("Falha no E-mail", response.data.message || "O servidor não conseguiu enviar o código de verificação.");
         }
       } catch (error) {
         console.error("Verification email error:", error);
-        exibirAlertaErro("Erro", "Não foi possível enviar o código de verificação. Tente novamente mais tarde.");
+        const errorMsg = error.response?.data?.message || error.message || "Erro desconhecido";
+        exibirAlertaErro("Falha de Conexão", `Não foi possível enviar o código: ${errorMsg}. Verifique a configuração do servidor.`);
       }
     }
   };
@@ -363,8 +365,8 @@ codigo_ibge: selectedCidade.id,
 
                     console.log('Sending registration data:', completeUserData);
                     
-                    const response = await axios.post(
-                      'http://localhost:5001/api/registro',
+                    const response = await api.post(
+                      '/registro',
                       completeUserData,
                       {
                         validateStatus: (status) => status < 500 // Don't throw for 4xx errors
@@ -391,7 +393,7 @@ codigo_ibge: selectedCidade.id,
                   }
                 }}
                 onResendCode={async () => {
-                  const response = await axios.post('http://localhost:5001/api/send-verification-email', {
+                  const response = await api.post('/send-verification-email', {
                     email: userData.email,
                     nome: userData.nome_completo
                   });
@@ -422,12 +424,12 @@ codigo_ibge: selectedCidade.id,
           </form>
           <div className="text-center text-sm pt-8">
             Já tem uma conta?{' '}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="text-primary hover:underline transition-all"
             >
               Faça login
-            </a>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 import axios from "axios";
+import api from "../../services/api";
 import { useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import loginImg from "../../assets/cadastro.jpg";
 import eyeOff from "../../assets/eye-off.svg";
 import eye from "../../assets/eye.svg";
@@ -32,8 +33,8 @@ export default function Login() {
         senha: data.senha,
         recaptchaToken: recaptchaToken,
       };
-      const response = await axios.post(
-        "http://localhost:5001/api/login",
+      const response = await api.post(
+        "/login",
         payload
       );
       if (response.data.success) {
@@ -119,12 +120,12 @@ export default function Login() {
 
           <div className="text-center text-sm border-t pt-4 mt-4">
             Ainda não tem conta?{" "}
-            <a
-              href="/cadastro"
+            <Link
+              to="/cadastro"
               className="text-primary hover:underline transition-all font-medium"
             >
               Cadastre-se
-            </a>
+            </Link>
           </div>
         </div>
       </div>

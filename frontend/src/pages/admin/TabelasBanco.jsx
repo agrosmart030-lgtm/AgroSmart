@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
+import api from "../../services/api";
 import Navbar from "../../componentes/navbar";
 import CartaoTabela from "../../componentes/admin/tabelaBanco/CartaoTabela";
 import VisualizadorTabela from "../../componentes/admin/tabelaBanco/VisualizadorTabela";
-
-const API_URL = "http://localhost:5001/api/tabelas";
 
 const TabelasBanco = () => {
   const [tabelas, setTabelas] = useState([]);
@@ -16,13 +15,13 @@ const TabelasBanco = () => {
     const carregarTabelas = async () => {
       setCarregandoInicial(true);
       try {
-        const resp = await fetch(API_URL);
-        const json = await resp.json();
+        const resp = await api.get("/tabelas");
+        const json = resp.data;
         const tabelasFormatadas = await Promise.all(
           json.tabelas.map(async (nome) => {
             try {
-              const respDados = await fetch(`${API_URL}/${nome}`);
-              const jsonDados = await respDados.json();
+              const respDados = await api.get(`/tabelas/${nome}`);
+              const jsonDados = respDados.data;
               const dados = jsonDados.dados || [];
               const colunas =
                 jsonDados.colunas ||
@@ -65,8 +64,8 @@ const TabelasBanco = () => {
   const aoSelecionarTabela = async (tabela) => {
     setCarregando(true);
     try {
-      const resp = await fetch(`${API_URL}/${tabela.nome}`);
-      const json = await resp.json();
+      const resp = await api.get(`/tabelas/${tabela.nome}`);
+      const json = resp.data;
       const dados = json.dados || [];
       const colunas =
         json.colunas ||

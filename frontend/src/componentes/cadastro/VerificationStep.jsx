@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../../services/api";
 
 export default function VerificationStep({ email, onVerificationSuccess, onResendCode }) {
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
@@ -78,7 +78,7 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
     setError("");
     
     try {
-      const response = await axios.post('http://localhost:5001/api/verify-code', {
+      const response = await api.post('/verify-code', {
         email,
         code
       });
