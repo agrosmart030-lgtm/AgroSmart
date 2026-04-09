@@ -18,8 +18,11 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    const confirmed = await exibirAlertaConfirmacao("Tem certeza?", "Você realmente deseja sair?");
-    if (confirmed) { 
+    const confirmed = await exibirAlertaConfirmacao(
+      "Tem certeza?",
+      "Você realmente deseja sair?",
+    );
+    if (confirmed) {
       logout();
       window.location.reload();
     }
@@ -42,13 +45,13 @@ export default function Navbar() {
           </span>
         </Link>
       </div>
-      
+
       <div className="navbar-center hidden md:flex">
         <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
           {isAdmin ? (
             <>
               <li>
-                <Link 
+                <Link
                   to="/admin"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -56,7 +59,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/GenUser"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -64,7 +67,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/TabelasBanco"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -72,7 +75,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/FaqAdmin"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -80,7 +83,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/EstatisticasAdmin"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -88,7 +91,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/LogsAdmin"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -96,7 +99,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/admin/NovoAdmin"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
                 >
@@ -107,7 +110,7 @@ export default function Navbar() {
           ) : (
             <>
               <li>
-                <Link 
+                <Link
                   to="/dashboard"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
                 >
@@ -115,26 +118,69 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <Link 
+                <Link
                   to="/clima"
                   className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
                 >
                   Clima
                 </Link>
               </li>
-              <li>
-                <Link 
-                  to="/faq"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
+
+              {/* === NOVO MENU DROPDOWN DE AJUDA === */}
+              <li className="dropdown dropdown-hover">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 flex items-center gap-1"
                 >
-                  FAQ
-                </Link>
+                  Central de Ajuda
+                  {/* Ícone de setinha para baixo */}
+                  <svg
+                    width="14"
+                    height="14"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content z-50 menu p-2 shadow rounded-box w-52"
+                  style={{
+                    backgroundColor: "#2e7d32",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                >
+                  <li>
+                    <Link
+                      to="/faq"
+                      className="hover:bg-white/20 transition-colors"
+                    >
+                      Suporte do Sistema
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/duvidas"
+                      className="hover:bg-white/20 transition-colors"
+                    >
+                      Consultoria Técnica
+                    </Link>
+                  </li>
+                </ul>
               </li>
+              {/* ==================================== */}
             </>
           )}
         </ul>
       </div>
-      
+
       <div className="navbar-end mr-4 gap-3">
         {/* Botão de Acessibilidade */}
         <div className="relative">
@@ -148,17 +194,17 @@ export default function Navbar() {
               minHeight: "36px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
             }}
             aria-label="Menu de Acessibilidade"
             aria-expanded={showAccessibilityMenu}
           >
             <FaUniversalAccess size={18} />
           </button>
-<div className="absolute right-0 bottom-full mb-2 z-50">
-            <AccessibilityMenu 
+          <div className="absolute right-0 bottom-full mb-2 z-50">
+            <AccessibilityMenu
               open={showAccessibilityMenu}
-              onClose={() => setShowAccessibilityMenu(false)} 
+              onClose={() => setShowAccessibilityMenu(false)}
             />
           </div>
         </div>
@@ -171,7 +217,7 @@ export default function Navbar() {
             style={{
               backgroundColor: "rgba(255,255,255,0.15)",
               borderRadius: "25px",
-              fontWeight: "600"
+              fontWeight: "600",
             }}
           >
             <FaSignOutAlt size={14} />
@@ -214,9 +260,7 @@ export default function Navbar() {
                 <Link to="/configuracao">Configurações</Link>
               </li>
               <li>
-                <button onClick={handleLogout}>
-                  Sair
-                </button>
+                <button onClick={handleLogout}>Sair</button>
               </li>
             </ul>
           </div>

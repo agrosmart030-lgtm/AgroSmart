@@ -19,34 +19,38 @@ import NovoAdmin from "./pages/admin/NovoAdmin";
 import LogsAdmin from "./pages/admin/LogsAdmin";
 import Clima from "./pages/clima/Clima";
 import AccessibilityMenu from "./componentes/acessibilidade";
-
+import RespondeAgro from "./pages/duvidas/RespondeAgro";
 
 function App() {
   return (
     <AuthProvider>
       <AccessibilityProvider>
         <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/faq" element={<Faq />} />
-          {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/GenUser" element={<GenUser />} />
-          <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
-          <Route path="/admin/FaqAdmin" element={<FaqAdmin />} />
-          <Route
-            path="/admin/EstatisticasAdmin"
-            element={<EstatisticasAdmin />}
-          />
-          <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
-          <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
-          <Route path="/configuracao" element={<Configuraçao />} />
-          <Route path="/clima" element={<Clima />} />
-        </Routes>
-      </Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/faq" element={<Faq />} />
+            {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/GenUser" element={<GenUser />} />
+            <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
+
+            {/* Rota corrigida para /duvidas */}
+            <Route path="/duvidas" element={<RespondeAgro />} />
+
+            <Route path="/admin/FaqAdmin" element={<FaqAdmin />} />
+            <Route
+              path="/admin/EstatisticasAdmin"
+              element={<EstatisticasAdmin />}
+            />
+            <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
+            <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
+            <Route path="/configuracao" element={<Configuraçao />} />
+            <Route path="/clima" element={<Clima />} />
+          </Routes>
+        </Router>
       </AccessibilityProvider>
     </AuthProvider>
   );
