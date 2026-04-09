@@ -1,5 +1,6 @@
 import React from "react";
 import InputField from "../inputField";
+import { isValidCPF, isValidCNPJ } from "../../utils/validators";
 
 export default function Step3({ tipo, register, errors }) {
   return (
@@ -17,10 +18,7 @@ export default function Step3({ tipo, register, errors }) {
               errors={errors}
               mask="cpf"
               validate={{
-                validate: (value) => {
-                  const cpf = value.replace(/\D/g, "");
-                  return cpf.length === 11 || "CPF deve conter 11 dígitos";
-                },
+                validate: isValidCPF,
               }}
             />
             <InputField
@@ -58,10 +56,7 @@ export default function Step3({ tipo, register, errors }) {
               errors={errors}
               mask="cpf"
               validate={{
-                validate: (value) => {
-                  const cpf = value.replace(/\D/g, "");
-                  return cpf.length === 11 || "CPF deve conter 11 dígitos";
-                },
+                validate: isValidCPF,
               }}
             />
             <InputField
@@ -77,10 +72,7 @@ export default function Step3({ tipo, register, errors }) {
               errors={errors}
               mask="cnpj"
               validate={{
-                validate: (value) => {
-                  const cnpj = value.replace(/\D/g, "");
-                  return cnpj.length === 14 || "CNPJ deve conter 14 dígitos";
-                },
+                validate: isValidCNPJ,
               }}
             />
             <InputField
@@ -101,10 +93,7 @@ export default function Step3({ tipo, register, errors }) {
               errors={errors}
               mask="cnpj"
               validate={{
-                validate: (value) => {
-                  const cnpj = value.replace(/\D/g, "");
-                  return cnpj.length === 14 || "CNPJ deve conter 14 dígitos";
-                },
+                validate: isValidCNPJ,
               }}
             />
             <InputField

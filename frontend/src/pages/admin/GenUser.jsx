@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../../services/api";
 import Navbar from "../../componentes/navbar";
 import UserFilters from "../../componentes/admin/genUser/UserFilters";
 import UsersTable from "../../componentes/admin/genUser/UsersTable";
@@ -23,8 +24,8 @@ const UserManagement = () => {
     const loadUsers = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5001/api/usuarios");
-        const data = await response.json();
+        const response = await api.get("/usuarios");
+        const data = response.data;
         const dataSemSenha = data.map((user) => {
           const { senha: _, ...rest } = user;
           return rest;
@@ -74,11 +75,7 @@ const UserManagement = () => {
   const handleToggleStatus = async (user) => {
     const newStatus = user.status === "ativo" ? "inativo" : "ativo";
     try {
-      await fetch(`http://localhost:5001/api/usuarios/${user.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      await api.patch(`/usuarios/${user.id}/status`, { status: newStatus });
       const updatedUsers = users.map((u) =>
         u.id === user.id ? { ...u, status: newStatus } : u
       );

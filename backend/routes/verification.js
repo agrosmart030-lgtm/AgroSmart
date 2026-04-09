@@ -1,21 +1,12 @@
 import express from 'express';
-import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { sendEmail } from '../services/emailService.js';
 
 dotenv.config();
 
 // In-memory storage for verification codes (in production, use a database)
 const verificationCodes = new Map();
-
-// Create a transporter for sending emails
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your email service
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
 
 const router = express.Router();
 
@@ -40,36 +31,42 @@ router.post('/send-verification-email', async (req, res) => {
     // Store the verification code
     verificationCodes.set(email, { code: verificationCode, expiresAt });
 
-    // Send email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    // Send email using centralized service
+    const result = await sendEmail({
       to: email,
       subject: 'Código de Verificação - AgroSmart',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Olá, ${nome}!</h2>
-          <p>Seu código de verificação para o AgroSmart é:</p>
-          <div style="background-color: #f5f5f5; padding: 15px; text-align: center; margin: 20px 0; font-size: 24px; letter-spacing: 5px; font-weight: bold;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
+          <h2 style="color: #2e7d32;">Olá, ${nome}!</h2>
+          <p>Para prosseguir com seu cadastro no <strong>AgroSmart</strong>, utilize o código de verificação abaixo:</p>
+          <div style="background-color: #f1f8e9; color: #2e7d32; padding: 20px; text-align: center; margin: 25px 0; font-size: 32px; letter-spacing: 8px; font-weight: bold; border-radius: 4px;">
             ${verificationCode}
           </div>
-          <p>Este código expira em 10 minutos.</p>
-          <p>Se você não solicitou este código, por favor, ignore este e-mail.</p>
-          <p>Atenciosamente,<br>Equipe AgroSmart</p>
+          <p style="color: #666; font-size: 14px;">Este código é válido por 10 minutos. Caso não tenha solicitado, ignore este e-mail.</p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #888; font-size: 12px; text-align: center;">Equipe AgroSmart - Tecnologia para o Campo</p>
         </div>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    
-    res.status(200).json({ 
-      success: true, 
-      message: 'Código de verificação enviado com sucesso' 
     });
+
+    if (result.success) {
+      res.status(200).json({ 
+        success: true, 
+        message: 'Código de verificação enviado com sucesso' 
+      });
+    } else {
+      // Return a 500 but still with a nice message for the user
+      res.status(500).json({ 
+        success: false, 
+        message: 'Ocorreu uma falha ao enviar o e-mail. Por favor, tente novamente mais tarde.' ,
+        error: result.error // helps the developer see what's wrong (e.g., EAUTH)
+      });
+    }
   } catch (error) {
-    console.error('Erro ao enviar email de verificação:', error);
+    console.error('Erro na rota de verificação:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Erro ao enviar código de verificação' 
+      message: 'Erro interno no servidor de verificação' 
     });
   }
 });
