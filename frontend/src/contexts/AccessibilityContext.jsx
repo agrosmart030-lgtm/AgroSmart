@@ -41,8 +41,13 @@ export const AccessibilityProvider = ({ children }) => {
 
   // Aplica as configurações de acessibilidade na inicialização
   useEffect(() => {
-    // Aplica o tema escuro/claro
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    // Aplica o tema escuro/claro - 'agrosmart' é o nosso tema marketing
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'agrosmart');
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
     
     // Aplica o contraste alto
     if (highContrast) {
@@ -89,7 +94,12 @@ export const AccessibilityProvider = ({ children }) => {
 
   useEffect(() => {
     saveSetting('darkMode', darkMode);
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'agrosmart');
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [darkMode, saveSetting]);
 
   useEffect(() => {
@@ -258,7 +268,6 @@ export const AccessibilityProvider = ({ children }) => {
   }, [
     setFontScale, 
     setHighContrast, 
-    setDarkMode, 
     setLineHeight, 
     setLetterSpacing, 
     setScreenReaderEnabled, 
@@ -314,4 +323,3 @@ export const useAccessibility = () => {
   return context;
 };
 
-export default AccessibilityContext;

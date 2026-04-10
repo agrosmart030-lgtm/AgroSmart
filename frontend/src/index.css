@@ -2,3 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    font-family: 'Manrope', sans-serif;
+    background-color: #f8f9fa;
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Dark Mode Overrides for Tailwind Extension Colors */
+[data-theme="dark"] body {
+  background-color: #121212 !important;
+  color: #e5e5e5;
+}
+
+/* Backgrounds */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-surface,
+[data-theme="dark"] .bg-surface-container,
+[data-theme="dark"] .bg-surface-container-low,
+[data-theme="dark"] .bg-surface-container-high {
+  background-color: #1e1e1e !important;
+  border-color: #333 !important;
+  color: #e5e5e5 !important;
+}
+
+[data-theme="dark"] nav.bg-white {
+  background-color: #121212 !important;
+}
+
+[data-theme="dark"] .bg-primary {
+  background-color: #0d402b !important;
+}
+
+/* Glass Cards */
+[data-theme="dark"] .glass-card,
+[data-theme="dark"] [class*="bg-white/80"] {
+  background: rgba(30, 30, 30, 0.7) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dropdowns & Modals */
+[data-theme="dark"] [class*="bg-white"].absolute {
+  background-color: #1e1e1e !important;
+}
+[data-theme="dark"] [class*="hover:bg-emerald-50"]:hover {
+  background-color: #2a2a2a !important;
+  color: #fff !important;
+}
+
+/* Texts */
+[data-theme="dark"] .text-primary {
+  color: #a5d0b9 !important;
+}
+
+[data-theme="dark"] [class*="text-emerald-950"],
+[data-theme="dark"] [class*="text-emerald-800"] {
+  color: #e5e5e5 !important;
+}
+
+[data-theme="dark"] [class*="text-on-surface-variant"] {
+  color: #b0b5b2 !important;
+}
+
+/* Borders & Shadows */
+[data-theme="dark"] [class*="border-gray-"],
+[data-theme="dark"] .border-emerald-100 {
+  border-color: #333 !important;
+}
+
+[data-theme="dark"] .shadow-2xl,
+[data-theme="dark"] .shadow-xl {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
