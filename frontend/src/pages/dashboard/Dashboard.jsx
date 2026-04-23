@@ -16,6 +16,7 @@ import axios from 'axios';
 import coamoLogo from '../../assets/coamo.png';
 import cocamarLogo from '../../assets/cocamar.png';
 import larLogo from '../../assets/lar.png';
+import granosLogo from '../../assets/folha.svg'; // Usando folha.svg como logo temporário para Granos
 
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
@@ -52,6 +53,16 @@ function transformarCotacoesParaCooperativas(cotacoes) {
         preco: item.preco,
         variacao: item.variacao || '',
       })) || [],
+    },
+    {
+      nome: 'GRANOS',
+      logo: granosLogo,
+      telefone: '556734243449',
+      produtos: Array.isArray(cotacoes.granos) ? cotacoes.granos.map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) : [],
     },
   ];
 }
@@ -204,7 +215,7 @@ const DashboardPage = () => {
   const [historySeries, setHistorySeries] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
-  
+
   const {
     searchTerm,
     setSearchTerm,
@@ -270,7 +281,7 @@ const DashboardPage = () => {
     loadHistory();
     return () => controller.abort();
   }, [activeTab, historyCoop, historyGrao, timeRange, apiBaseUrl]);
-  
+
   const [selectedCoopName, setSelectedCoopName] = useState(null);
 
   // Cria lista de cooperativas a partir da API (se houver) ou usa os dados mock/filtrados
@@ -301,13 +312,13 @@ const DashboardPage = () => {
   useEffect(() => {
     const isSelectedInList = displayedData.some(c => c.nome === selectedCoopName);
     if (!isSelectedInList) {
-        setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
+      setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
     }
   }, [displayedData, selectedCoopName]);
 
   const cooperativaParaExibir = useMemo(() => {
-      if (!selectedCoopName) return null;
-      return displayedData.find(c => c.nome === selectedCoopName) || null;
+    if (!selectedCoopName) return null;
+    return displayedData.find(c => c.nome === selectedCoopName) || null;
   }, [displayedData, selectedCoopName]);
 
   // Atualiza lista de disponíveis no FilterBar para refletir os dados atualmente mostrados
@@ -337,21 +348,21 @@ const DashboardPage = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               {activeTab === 'cotacao' ? 'Painel de Cotações' : 'Histórico de Preços'}
             </h1>
-            
+
             {/* Tabs */}
             <div className="flex border-b border-gray-200">
               <button
                 onClick={() => setActiveTab('cotacao')}
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'cotacao' 
-                  ? 'text-green-600 border-b-2 border-green-600' 
+                className={`px-4 py-2 font-medium text-sm ${activeTab === 'cotacao'
+                  ? 'text-green-600 border-b-2 border-green-600'
                   : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Cotação
               </button>
               <button
                 onClick={() => setActiveTab('historico')}
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'historico' 
-                  ? 'text-green-600 border-b-2 border-green-600' 
+                className={`px-4 py-2 font-medium text-sm ${activeTab === 'historico'
+                  ? 'text-green-600 border-b-2 border-green-600'
                   : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Histórico
@@ -361,7 +372,7 @@ const DashboardPage = () => {
 
           {activeTab === 'cotacao' ? (
             <>
-              <FilterBar 
+              <FilterBar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 filtroCooperativa={filtroCooperativa}
@@ -372,14 +383,14 @@ const DashboardPage = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-6">
                 <div className="lg:col-span-1">
-                  <CooperativaSelectorVertical 
+                  <CooperativaSelectorVertical
                     cooperativas={displayedData}
                     selecionada={cooperativaParaExibir}
                     onSelect={(coop) => setSelectedCoopName(coop.nome)}
                   />
                   {!hasActiveFilter && <MarketHighlightsCard />}
                 </div>
-                
+
                 <div className="lg:col-span-3">
                   <PainelDeConteudo cooperativa={cooperativaParaExibir} />
                 </div>
@@ -400,6 +411,7 @@ const DashboardPage = () => {
                     >
                       <option value="LAR">LAR</option>
                       <option value="COAMO">COAMO</option>
+                      <option value="GRANOS">GRANOS</option>
                     </select>
                   </div>
                   <div>
@@ -443,8 +455,8 @@ const DashboardPage = () => {
               </div>
 
               {/* Gráfico de Preço */}
-              <ChartCard 
-                title="Variação de Preço" 
+              <ChartCard
+                title="Variação de Preço"
                 subtitle={`${historyCoop}${historyGrao ? ' - ' + historyGrao : ''} • ${timeRange === '6m' ? 'Últimos 6 meses' : 'Último ano'}`}
               >
                 <div className="h-72">
@@ -452,26 +464,26 @@ const DashboardPage = () => {
                     <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <defs>
                         <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.1}/>
+                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8} />
+                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.1} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                      <XAxis 
-                        dataKey="date" 
+                      <XAxis
+                        dataKey="date"
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         tickMargin={10}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <YAxis 
+                      <YAxis
                         width={60}
                         tickFormatter={(value) => `R$ ${value}`}
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [`R$ ${value}`, 'Preço']}
                         labelFormatter={(label) => `Data: ${label}`}
                         contentStyle={{
@@ -483,9 +495,9 @@ const DashboardPage = () => {
                           fontSize: '0.875rem'
                         }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="price" 
+                      <Line
+                        type="monotone"
+                        dataKey="price"
                         stroke={currentColor}
                         strokeWidth={2}
                         dot={{
@@ -508,8 +520,8 @@ const DashboardPage = () => {
               </ChartCard>
 
               {/* Gráfico de Volume */}
-              <ChartCard 
-                title="Volume de Negociação" 
+              <ChartCard
+                title="Volume de Negociação"
                 subtitle={`${historyCoop}${historyGrao ? ' - ' + historyGrao : ''} • ${timeRange === '6m' ? 'Últimos 6 meses' : 'Último ano'}`}
               >
                 <div className="h-72">
@@ -517,25 +529,25 @@ const DashboardPage = () => {
                     <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <defs>
                         <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8} />
+                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.2} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                      <XAxis 
-                        dataKey="date" 
+                      <XAxis
+                        dataKey="date"
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         tickMargin={10}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <YAxis 
+                      <YAxis
                         width={60}
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => [new Intl.NumberFormat('pt-BR').format(value), 'Volume']}
                         labelFormatter={(label) => `Data: ${label}`}
                         contentStyle={{
@@ -547,8 +559,8 @@ const DashboardPage = () => {
                           fontSize: '0.875rem'
                         }}
                       />
-                      <Bar 
-                        dataKey="volume" 
+                      <Bar
+                        dataKey="volume"
                         fill="url(#colorVolume)"
                         radius={[4, 4, 0, 0]}
                       />

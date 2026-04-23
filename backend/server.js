@@ -561,17 +561,20 @@ async function ensureCotacoesHistoricoTable() {
 // --- Inicialização: usa scrapers internos para popular cache de cotações
 import scrapeCoamo from "./services/scrapers/coamoScraper.js";
 import scrapeLarAgro from "./services/scrapers/larScraper.js";
+import scrapeGranos from "./services/scrapers/granosScraper.js";
 
 async function refreshCotacoesCacheOnStartup() {
   try {
     console.log("Executando scrapers de cotações e populando cache...");
-    const [coamoData, larAgroData] = await Promise.all([
+    const [coamoData, larAgroData, granosData] = await Promise.all([
       scrapeCoamo(),
       scrapeLarAgro(),
+      scrapeGranos(),
     ]);
     const data = {
       coamo: coamoData || [],
       larAgro: larAgroData || [],
+      granos: granosData || [],
     };
 
     const now = new Date();
@@ -587,6 +590,12 @@ async function refreshCotacoesCacheOnStartup() {
       pool.query(
         `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
         ["larAgro", JSON.stringify(data.larAgro), now],
+      ),
+    );
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+        ["granos", JSON.stringify(data.granos), now],
       ),
     );
     await Promise.all(inserts);
@@ -632,6 +641,23 @@ async function refreshCotacoesCacheOnStartup() {
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [
             "LAR",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+    for (const item of data.granos) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "GRANOS",
             item.grao || null,
             parsePreco(item.preco),
             item.unidade || null,
