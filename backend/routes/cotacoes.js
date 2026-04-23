@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import scrapeCoamo from '../services/scrapers/coamoScraper.js';
 import scrapeLarAgro from '../services/scrapers/larScraper.js';
+import scrapeGranos from '../services/scrapers/granosScraper.js';
 
 export default function createCotacoesRoutes(pool) {
   const router = Router();
@@ -13,7 +14,7 @@ export default function createCotacoesRoutes(pool) {
 
   // Rota base para verificar montagem
   router.get('/', (_req, res) => {
-    res.json({ ok: true, routes: ['/coamo', '/lar', '/todos', '/historico'] });
+    res.json({ ok: true, routes: ['/coamo', '/lar', '/granos', '/todos', '/historico'] });
   });
 
   // GET /api/cotacoes/coamo - executa scraper da Coamo
@@ -38,6 +39,17 @@ export default function createCotacoesRoutes(pool) {
     }
   });
 
+  // GET /api/cotacoes/granos - executa scraper da Granos
+  router.get('/granos', async (_req, res) => {
+    try {
+      const dados = await scrapeGranos();
+      res.json(dados);
+    } catch (err) {
+      console.error('Erro ao obter cotações da Granos:', err);
+      res.status(500).json({ error: 'Erro ao obter cotações da Granos' });
+    }
+  });
+
   // GET /api/cotacoes/todos - lê cache; se vazio, executa scrapers, salva e retorna
   router.get('/todos', async (_req, res) => {
     try {
@@ -53,11 +65,12 @@ export default function createCotacoesRoutes(pool) {
       }
 
       // Sem cache: executa scrapers
-      const [coamoData, larAgroData] = await Promise.all([
+      const [coamoData, larAgroData, granosData] = await Promise.all([
         scrapeCoamo(),
         scrapeLarAgro(),
+        scrapeGranos(),
       ]);
-      const aggregated = { coamo: coamoData || [], larAgro: larAgroData || [], cocamar: [] };
+      const aggregated = { coamo: coamoData || [], larAgro: larAgroData || [], granos: granosData || [], cocamar: [] };
 
       // Salva no cache
       const now = new Date();
@@ -72,6 +85,12 @@ export default function createCotacoesRoutes(pool) {
         pool.query(
           'INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2, $3)',
           ['larAgro', aggregated.larAgro, now]
+        )
+      );
+      inserts.push(
+        pool.query(
+          'INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2, $3)',
+          ['granos', aggregated.granos, now]
         )
       );
       await Promise.all(inserts);
@@ -91,8 +110,8 @@ export default function createCotacoesRoutes(pool) {
     try {
       const coopRaw = (req.query.coop || '').toString().trim();
       const coop = coopRaw.toUpperCase();
-      if (!coop || (coop !== 'COAMO' && coop !== 'LAR')) {
-        return res.status(400).json({ error: "Parâmetro 'coop' inválido. Use 'COAMO' ou 'LAR'." });
+      if (!coop || (coop !== 'COAMO' && coop !== 'LAR' && coop !== 'GRANOS')) {
+        return res.status(400).json({ error: "Parâmetro 'coop' inválido. Use 'COAMO', 'LAR' ou 'GRANOS'." });
       }
 
       const grao = (req.query.grao || '').toString().trim();
