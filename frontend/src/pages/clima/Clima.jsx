@@ -7,6 +7,11 @@ import {
   MapPin,
   Search,
   RefreshCw,
+  ArrowUp,
+  ArrowDown,
+  CloudSun,
+  AlertTriangle,
+  Leaf,
 } from "lucide-react";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
@@ -162,43 +167,90 @@ const WeatherApp = () => {
     fetchWeatherData(cityName);
   };
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-600 via-slate-800 to-slate-900">
-      <Navbar />
-      <main className="flex-grow pt-28 ">
-        <div className="min-h-screen p-4">
-          <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-yellow-400 mb-2">
-                Previsão do Tempo
-              </h1>
-              <p className="text-green-200">
-                Informações meteorológicas em tempo real
-              </p>
-            </div>
+  // Helper to get wind direction string from degrees
+  const getWindDirection = (deg) => {
+    if (deg == null) return "";
+    const dirs = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
+    return dirs[Math.round(deg / 45) % 8];
+  };
 
-            {/* Search Bar */}
-            <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 mb-6 border border-green-500/30 relative z-20">
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-300 w-5 h-5" />
+  // Helper to get a humidity status message
+  const getHumidityStatus = (humidity) => {
+    if (humidity == null) return "";
+    if (humidity < 30) return "Ar muito seco";
+    if (humidity < 60) return "Confortável";
+    if (humidity < 80) return "Ideal para a fase atual";
+    return "Umidade elevada";
+  };
+
+  // Helper to get pressure status
+  const getPressureStatus = (pressure) => {
+    if (pressure == null) return "";
+    if (pressure < 1010) return "Baixa";
+    if (pressure <= 1020) return "Estável";
+    return "Alta";
+  };
+
+  // Helper to get visibility status
+  const getVisibilityStatus = (visibility) => {
+    if (visibility == null) return "";
+    const km = visibility / 1000;
+    if (km >= 10) return "Condições claras";
+    if (km >= 5) return "Visibilidade moderada";
+    return "Visibilidade reduzida";
+  };
+
+  // Format the last update time
+  const getUpdateTime = () => {
+    const now = new Date();
+    return `Atualizado: Hoje, ${now.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })} BRT`;
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-[#f3f4f5]">
+      <Navbar />
+      <main className="flex-grow">
+        <div className="max-w-7xl mx-auto w-full p-6 lg:p-12">
+
+          {/* Header with Search */}
+          <div className="flex justify-between mb-12 flex-col lg:flex-row lg:items-start gap-6 lg:gap-0">
+            <div className="flex flex-col md:flex-row md:items-center gap-6 w-full lg:w-auto flex-1">
+              {/* City Name & Description */}
+              <div className="min-w-fit">
+                <h2 className="text-4xl font-bold tracking-tight text-[#012d1d]">
+                  {weatherData ? weatherData.name : city}
+                </h2>
+                <p className="text-xl text-[#3e6653] font-medium mt-1">
+                  {weatherData
+                    ? weatherData.weather[0].description.charAt(0).toUpperCase() +
+                      weatherData.weather[0].description.slice(1)
+                    : "Carregando..."}
+                </p>
+              </div>
+
+              {/* Search Bar */}
+              <div className="flex items-center gap-2 flex-1 max-w-2xl w-full">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3e6653] w-4 h-4" />
                   <input
                     type="text"
                     value={searchCity}
                     onChange={(e) => setSearchCity(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSearch(e)}
-                    placeholder="Digite o nome da cidade..."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-700/60 border border-green-500/40 rounded-xl text-white placeholder-green-300/70 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400"
+                    placeholder="Pesquisar cidade..."
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-[#e1e3e4] rounded-xl shadow-sm focus:ring-2 focus:ring-[#1B4332] focus:border-transparent outline-none text-[#012d1d] text-sm transition-all"
                     autoComplete="off"
                   />
-                  {/* Sugestões */}
+                  {/* Suggestions Dropdown */}
                   {suggestions.length > 0 && (
-                    <ul className="absolute z-50 left-0 right-0 bg-slate-800 border border-green-500/40 rounded-xl mt-1 max-h-48 overflow-y-auto shadow-2xl">
+                    <ul className="absolute z-40 left-0 right-0 bg-white border border-[#e1e3e4] rounded-xl mt-1 max-h-48 overflow-y-auto shadow-lg">
                       {suggestions.map((s, idx) => (
                         <li
                           key={idx}
-                          className="px-4 py-2 cursor-pointer hover:bg-green-700 text-white"
+                          className="px-4 py-2.5 cursor-pointer hover:bg-[#e8f5e9] text-[#012d1d] text-sm transition-colors"
                           onClick={() => handleSuggestionClick(s)}
                         >
                           {s.name}
@@ -211,21 +263,23 @@ const WeatherApp = () => {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-6 py-3 bg-green-600 hover:bg-green-700 border border-green-500 rounded-xl text-white font-medium transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-2 bg-[#1B4332] text-white rounded-xl shadow-sm hover:bg-[#012d1d] transition-colors text-sm font-semibold flex items-center gap-2 border border-[#1B4332]"
                 >
-                  <Search className="w-5 h-5" />
-                  Buscar
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">Pesquisar</span>
                 </button>
                 <button
                   onClick={getCurrentLocation}
-                  className="px-4 py-3 bg-yellow-500 hover:bg-yellow-600 border border-yellow-400 rounded-xl text-slate-900 transition-all duration-200"
+                  className="p-2 bg-white border border-[#e1e3e4] rounded-xl shadow-sm hover:bg-[#f8f9fa] text-[#1B4332] transition-colors"
+                  title="Usar minha localização"
                 >
                   <MapPin className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => fetchWeatherData()}
                   disabled={loading}
-                  className="px-4 py-3 bg-slate-700 hover:bg-slate-600 border border-green-500/50 rounded-xl text-green-300 transition-all duration-200"
+                  className="p-2 bg-white border border-[#e1e3e4] rounded-xl shadow-sm hover:bg-[#f8f9fa] text-[#FFBA27] transition-colors"
+                  title="Atualizar"
                 >
                   <RefreshCw
                     className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
@@ -233,134 +287,261 @@ const WeatherApp = () => {
                 </button>
               </div>
             </div>
+            <p className="text-sm text-[#3e6653] hidden lg:block whitespace-nowrap ml-6 pt-2">
+              {getUpdateTime()}
+            </p>
+          </div>
 
-            {/* Loading State */}
-            {loading && (
-              <div className="text-center py-12">
-                <RefreshCw className="w-12 h-12 text-yellow-400 animate-spin mx-auto mb-4" />
-                <p className="text-green-200 text-lg">
-                  Carregando dados do clima...
-                </p>
-              </div>
-            )}
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-20">
+              <RefreshCw className="w-12 h-12 text-[#1B4332] animate-spin mx-auto mb-4" />
+              <p className="text-[#3e6653] text-lg font-medium">
+                Carregando dados do clima...
+              </p>
+            </div>
+          )}
 
-            {/* Error State */}
-            {error && (
-              <div className="bg-red-600/20 backdrop-blur-md rounded-2xl p-6 mb-6 border border-red-500/40">
-                <p className="text-red-200 text-center font-medium">{error}</p>
-              </div>
-            )}
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-50 rounded-2xl p-6 mb-6 border border-red-200">
+              <p className="text-red-700 text-center font-medium">{error}</p>
+            </div>
+          )}
 
-            {/* Weather Data */}
-            {weatherData && !loading && (
-              <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-8 mb-6 border border-green-500/30">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-yellow-400 mb-2">
-                    {weatherData.name}
-                  </h2>
-                  <p className="text-green-200">{weatherData.sys?.country}</p>
+          {/* Weather Data */}
+          {weatherData && !loading && (
+            <>
+              {/* Bento Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                {/* Hero Weather Card */}
+                <div className="col-span-1 lg:col-span-2 bg-gradient-to-br from-[#1B4332] to-[#012d1d] rounded-2xl p-8 relative overflow-hidden flex flex-col justify-between shadow-lg min-h-[240px]">
+                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+                  <div className="flex justify-between items-start z-10">
+                    {/* Weather Icon from API */}
+                    <img
+                      src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@4x.png`}
+                      alt={weatherData.weather[0].description}
+                      className="w-24 h-24 drop-shadow-lg"
+                    />
+                    <div className="text-right">
+                      <span className="text-[5rem] leading-none font-extrabold text-white tracking-tighter">
+                        {Math.round(weatherData.main.temp)}°
+                      </span>
+                      <p className="text-base text-[#a5d0b9] font-semibold">
+                        Sensação térmica{" "}
+                        {Math.round(weatherData.main.feels_like)}°
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-8 flex items-center gap-6 z-10">
+                    <div className="flex items-center gap-2">
+                      <ArrowUp className="w-5 h-5 text-[#FFBA27]" />
+                      <span className="text-xl font-bold text-white">
+                        {Math.round(weatherData.main.temp_max)}°
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ArrowDown className="w-5 h-5 text-[#FFBA27]" />
+                      <span className="text-xl font-bold text-[#a5d0b9]">
+                        {Math.round(weatherData.main.temp_min)}°
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Main Weather */}
-                  <div className="text-center">
-                    <div className="flex justify-center mb-4">
-                      <img
-                        src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
-                        alt={weatherData.weather[0].description}
-                        className="w-20 h-20 mx-auto"
-                      />
+                {/* Metrics Cells Wrapper */}
+                <div className="col-span-1 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Umidade */}
+                  <div className="bg-[#e8f5e9] rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-[#c8e6c9] rounded-lg">
+                        <Droplets className="w-5 h-5 text-[#1b4332]" />
+                      </div>
+                      <span className="text-base font-semibold text-[#1b4332]">
+                        Umidade
+                      </span>
                     </div>
-                    <div className="text-6xl font-bold text-yellow-400 mb-2">
-                      {Math.round(weatherData.main.temp)}°C
-                    </div>
-                    <p className="text-xl text-green-200 mb-2">
-                      {weatherData.weather[0].description}
-                    </p>
-                    <p className="text-green-300">
-                      Sensação térmica:{" "}
-                      {Math.round(weatherData.main.feels_like)}°C
-                    </p>
-                  </div>
-
-                  {/* Weather Details */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
-                      <Droplets className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                      <p className="text-green-200 text-sm">Umidade</p>
-                      <p className="text-yellow-400 font-bold text-lg">
+                    <div>
+                      <p className="text-2xl font-extrabold text-[#012d1d]">
                         {weatherData.main.humidity}%
                       </p>
+                      <p className="text-sm text-[#3e6653] mt-1">
+                        {getHumidityStatus(weatherData.main.humidity)}
+                      </p>
                     </div>
-                    <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
-                      <Wind className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                      <p className="text-green-200 text-sm">Vento</p>
-                      <p className="text-yellow-400 font-bold text-lg">
+                  </div>
+
+                  {/* Vento */}
+                  <div className="bg-[#fff8e1] rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-[#ffecb3] rounded-lg">
+                        <Wind className="w-5 h-5 text-[#513700]" />
+                      </div>
+                      <span className="text-base font-semibold text-[#513700]">
+                        Velocidade do Vento
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-[#352300]">
                         {weatherData.wind.speed} km/h
                       </p>
-                    </div>
-                    <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
-                      <Gauge className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                      <p className="text-green-200 text-sm">Pressão</p>
-                      <p className="text-yellow-400 font-bold text-lg">
-                        {weatherData.main.pressure} mb
+                      <p className="text-sm text-[#5f4100] mt-1">
+                        Direção {getWindDirection(weatherData.wind.deg)}
                       </p>
                     </div>
-                    <div className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20">
-                      <Eye className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-                      <p className="text-green-200 text-sm">Visibilidade</p>
-                      <p className="text-yellow-400 font-bold text-lg">
+                  </div>
+
+                  {/* Pressão */}
+                  <div className="bg-[#e0f2f1] rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-[#b2dfdb] rounded-lg">
+                        <Gauge className="w-5 h-5 text-[#004d40]" />
+                      </div>
+                      <span className="text-base font-semibold text-[#004d40]">
+                        Pressão
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-[#002114]">
+                        {weatherData.main.pressure} hPa
+                      </p>
+                      <p className="text-sm text-[#004d40] mt-1">
+                        {getPressureStatus(weatherData.main.pressure)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Visibilidade */}
+                  <div className="bg-[#e1f5fe] rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-[#b3e5fc] rounded-lg">
+                        <Eye className="w-5 h-5 text-[#01579b]" />
+                      </div>
+                      <span className="text-base font-semibold text-[#01579b]">
+                        Visibilidade
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-[#01579b]">
                         {weatherData.visibility / 1000} km
+                      </p>
+                      <p className="text-sm text-[#0277bd] mt-1">
+                        {getVisibilityStatus(weatherData.visibility)}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Forecast Data */}
-            {forecastData.length > 0 && !loading && (
-              <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-green-500/30 mt-6">
-                <h3 className="text-xl font-bold text-yellow-400 mb-6 text-center">
-                  Previsão para os próximos dias
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                  {forecastData.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-slate-700/60 rounded-xl p-4 text-center border border-green-500/20"
-                    >
-                      <p className="text-green-200 text-sm font-medium mb-2">
-                        {idx === 0 ? "Hoje" : formatDate(item.dt_txt)}
-                      </p>
-                      <div className="flex justify-center mb-3">
-                        <img
-                          src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
-                          alt={item.weather[0].description}
-                          className="w-10 h-10 mx-auto"
-                        />
+              {/* Forecast Row */}
+              {forecastData.length > 0 && (
+                <section className="bg-white p-8 rounded-2xl shadow-sm border border-[#e1e3e4] mb-6">
+                  <h3 className="text-xl font-bold text-[#012d1d] mb-6">
+                    Previsão para 5 Dias
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {forecastData.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`rounded-2xl p-5 flex flex-col items-center justify-center text-center shadow-sm transition-colors cursor-pointer ${
+                          idx === 0
+                            ? "bg-[#FFBA27] text-[#352300] border border-[#FFBA27]"
+                            : "bg-[#f8f9fa] hover:bg-[#edeeef] border border-[#e1e3e4]"
+                        }`}
+                      >
+                        <p
+                          className={`text-base font-bold mb-3 ${
+                            idx === 0 ? "text-[#352300]" : "text-[#414844]"
+                          }`}
+                        >
+                          {idx === 0 ? "Amanhã" : formatDate(item.dt_txt)}
+                        </p>
+                        <div className="w-16 h-16 rounded-full bg-[#1B4332]/10 flex items-center justify-center mb-2">
+                          <img
+                            src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
+                            alt={item.weather[0].description}
+                            className="w-12 h-12"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`font-bold ${
+                              idx === 0 ? "text-[#352300]" : "text-[#012d1d]"
+                            }`}
+                          >
+                            {Math.round(item.main.temp_max)}°
+                          </span>
+                          <span
+                            className={
+                              idx === 0 ? "text-[#513700]" : "text-[#717973]"
+                            }
+                          >
+                            {Math.round(item.main.temp_min)}°
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2 text-xs">
+                          <Droplets className={`w-3 h-3 ${idx === 0 ? "text-[#352300]" : "text-[#3e6653]"}`} />
+                          <span className={idx === 0 ? "text-[#513700]" : "text-[#717973]"}>
+                            {item.pop ? Math.round(item.pop * 100) : 0}%
+                          </span>
+                        </div>
                       </div>
-                      <div className="mb-2">
-                        <span className="text-yellow-400 font-bold text-lg">
-                          {Math.round(item.main.temp_max)}°
-                        </span>
-                        <span className="text-green-300 text-sm ml-1">
-                          {Math.round(item.main.temp_min)}°
-                        </span>
-                      </div>
-                      <p className="text-green-200 text-xs mb-2">
-                        {item.weather[0].description}
-                      </p>
-                      <div className="flex items-center justify-center text-blue-300 text-xs">
-                        <Droplets className="w-3 h-3 mr-1" />
-                        {item.pop ? Math.round(item.pop * 100) : 0}%
-                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Tips and Alerts Section */}
+              <section className="bg-[#1b4332]/5 p-6 rounded-2xl border border-[#1b4332]/10 shadow-sm flex flex-col md:flex-row gap-6 mb-12">
+                {/* Alertas Meteorológicos */}
+                <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-[#e1e3e4]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#ffecb3] rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-[#513700]" />
                     </div>
-                  ))}
+                    <h4 className="text-lg font-bold text-[#012d1d]">
+                      Alertas Meteorológicos
+                    </h4>
+                  </div>
+                  <p className="text-sm text-[#414844] leading-relaxed">
+                    Nenhum alerta severo ativo para a região de{" "}
+                    {weatherData.name} no momento. Condições favoráveis para
+                    atividades a campo.
+                  </p>
                 </div>
-              </div>
-            )}
-          </div>
+
+                {/* Dicas de Manejo */}
+                <div className="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-[#e1e3e4]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-[#c8e6c9] rounded-lg">
+                      <Leaf className="w-5 h-5 text-[#1b4332]" />
+                    </div>
+                    <h4 className="text-lg font-bold text-[#012d1d]">
+                      Dicas de Manejo
+                    </h4>
+                  </div>
+                  <ul className="text-sm text-[#414844] space-y-2 list-disc list-inside leading-relaxed">
+                    <li>
+                      Umidade em {weatherData.main.humidity}%:{" "}
+                      {weatherData.main.humidity >= 50 &&
+                      weatherData.main.humidity <= 80
+                        ? "Condições ideais para pulverização."
+                        : weatherData.main.humidity < 50
+                        ? "Ar seco — evite pulverização nas horas mais quentes."
+                        : "Umidade alta — risco de doenças fúngicas."}
+                    </li>
+                    <li>
+                      Ventos a {weatherData.wind.speed} km/h:{" "}
+                      {weatherData.wind.speed <= 15
+                        ? "Risco baixo de deriva, monitore à tarde."
+                        : "Ventos fortes — evite pulverização aérea."}
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </>
+          )}
         </div>
       </main>
       <Footer />

@@ -16,6 +16,7 @@ import axios from 'axios';
 import coamoLogo from '../../assets/coamo.png';
 import cocamarLogo from '../../assets/cocamar.png';
 import larLogo from '../../assets/lar.png';
+import granosLogo from '../../assets/granos_logo.png';
 
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
@@ -48,6 +49,16 @@ function transformarCotacoesParaCooperativas(cotacoes) {
       logo: cocamarLogo,
       telefone: '551194567890',
       produtos: cocamarArr.map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) || [],
+    },
+    {
+      nome: 'GRANOS',
+      logo: granosLogo,
+      telefone: '556730278700',
+      produtos: (cotacoes.granos || []).map(item => ({
         nome: item.grao,
         preco: item.preco,
         variacao: item.variacao || '',
@@ -88,6 +99,17 @@ const cooperativasData = [
       { nome: 'SOJA', preco: 'R$ 132,00', variacao: '+1.5%' },
       { nome: 'MILHO', preco: 'R$ 60,00', variacao: '-0.2%' },
       { nome: 'TRIGO', preco: 'R$ 72,00', variacao: '+1.8%' },
+      { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
+    ],
+  },
+  {
+    nome: 'GRANOS',
+    logo: granosLogo,
+    telefone: '556730278700',
+    produtos: [
+      { nome: 'SOJA', preco: 'R$ 130,00', variacao: '+1.3%' },
+      { nome: 'MILHO', preco: 'R$ 58,00', variacao: '-0.4%' },
+      { nome: 'TRIGO', preco: 'R$ 69,00', variacao: '+2.0%' },
       { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
     ],
   },
@@ -394,9 +416,13 @@ const DashboardPage = () => {
                                 : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:pl-6 border-l-4 border-transparent'
                             }`}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className={`flex items-center ${coop.nome === 'GRANOS' ? 'gap-6' : 'gap-3'}`}>
                               <div className="h-8 w-14 flex-shrink-0 flex items-center justify-center transition-transform hover:scale-105">
-                                <img src={coop.logo} alt={coop.nome} className="max-h-full max-w-full object-contain dark:brightness-0 dark:invert" />
+                                <img 
+                                  src={coop.logo} 
+                                  alt={coop.nome} 
+                                  className={`max-h-full max-w-full object-contain dark:brightness-0 dark:invert ${coop.nome === 'GRANOS' ? 'scale-[1.4] translate-y-0.5' : ''}`} 
+                                />
                               </div>
                               <span className="text-sm font-bold">{coop.nome}</span>
                             </div>
@@ -477,6 +503,7 @@ const DashboardPage = () => {
                     >
                       <option value="LAR">LAR</option>
                       <option value="COAMO">COAMO</option>
+                      <option value="GRANOS">GRANOS</option>
                     </select>
                   </div>
                   <div>

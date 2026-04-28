@@ -8,11 +8,13 @@ import climaImg from "../../assets/clima.jpg";
 import coamoLogo from "../../assets/coamo.png";
 import cocamarLogo from "../../assets/cocamar.png";
 import larLogo from "../../assets/lar.png";
+import granosLogo from "../../assets/granos_logo.png";
 
 const partners = [
   { nome: "Coamo", logo: coamoLogo, site: "https://www.coamo.com.br/" },
   { nome: "Cocamar", logo: cocamarLogo, site: "https://www.cocamar.com.br/" },
   { nome: "Lar", logo: larLogo, site: "https://www.lar.ind.br/" },
+  { nome: "Granos", logo: granosLogo, site: "https://granoscorretora.com.br" },
 ];
 
 export default function Home() {
@@ -63,41 +65,41 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Bento Card 1 - Cotações - 50/50 Grid for symmetry */}
-            <div className="md:col-span-6 group bg-white/80 backdrop-blur-md rounded-full p-12 transition-all duration-500 hover:shadow-2xl flex flex-col justify-between min-h-[480px] border border-emerald-100 overflow-hidden relative shadow-sm">
+            <div className="md:col-span-6 group bg-zinc-900 rounded-full p-12 transition-all duration-500 hover:shadow-2xl flex flex-col justify-between min-h-[480px] overflow-hidden relative shadow-sm">
               <div className="flex justify-between items-start relative z-10">
                 <div className="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center">
                   <span className="material-symbols-outlined text-3xl">currency_exchange</span>
                 </div>
-                <span className="text-primary/20 font-extrabold text-6xl tracking-tighter">01</span>
+                <span className="text-white/20 font-extrabold text-6xl tracking-tighter">01</span>
               </div>
               <div className="relative z-10 transition-all duration-500 group-hover:translate-x-2">
-                <h3 className="text-primary text-2xl font-extrabold mb-4 drop-shadow-[0_2px_10px_rgba(255,255,255,0.8)] group-hover:drop-shadow-none dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">Cotações em Tempo Real</h3>
-                <p className="text-on-surface-variant text-base leading-relaxed max-w-sm drop-shadow-[0_2px_10px_rgba(255,255,255,0.8)] group-hover:drop-shadow-none dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                <h3 className="text-white text-2xl font-extrabold mb-4 drop-shadow-md">Cotações em Tempo Real</h3>
+                <p className="text-stone-200 text-base leading-relaxed max-w-sm drop-shadow-md">
                   Acompanhe as flutuações das principais commodities globais com precisão milimétrica e insights preditivos.
                 </p>
               </div>
-              {/* Dynamic Gradient Overlay - Increases opacity on hover to protect text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/10 to-transparent z-[5] transition-all duration-500 group-hover:from-white/90 group-hover:via-white/40 dark:from-black/80 dark:via-black/20 dark:group-hover:from-black/95 dark:group-hover:via-black/60"></div>
-              <img src={cotacaoImg} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-opacity duration-700" alt="" />
+              {/* Dynamic Gradient Overlay - Subtle shadow for readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-[5] transition-all duration-500 group-hover:from-black/90"></div>
+              <img src={cotacaoImg} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105" alt="" />
             </div>
 
             {/* Bento Card 2 - Clima - 50/50 Grid for symmetry */}
-            <div className="md:col-span-6 group bg-white/80 backdrop-blur-md rounded-full p-12 transition-all duration-500 hover:shadow-2xl flex flex-col justify-between min-h-[480px] border border-emerald-100 overflow-hidden relative shadow-sm">
+            <div className="md:col-span-6 group bg-zinc-900 rounded-full p-12 transition-all duration-500 hover:shadow-2xl flex flex-col justify-between min-h-[480px] overflow-hidden relative shadow-sm">
               <div className="flex justify-between items-start relative z-10">
                 <div className="w-16 h-16 bg-tertiary-fixed-dim text-on-tertiary-fixed rounded-2xl flex items-center justify-center">
                   <span className="material-symbols-outlined text-3xl">cloudy_snowing</span>
                 </div>
-                <span className="text-primary/20 font-extrabold text-6xl tracking-tighter">02</span>
+                <span className="text-white/20 font-extrabold text-6xl tracking-tighter">02</span>
               </div>
               <div className="relative z-10 transition-all duration-500 group-hover:translate-x-2">
-                <h3 className="text-primary text-2xl font-extrabold mb-4 drop-shadow-[0_2px_10px_rgba(255,255,255,0.8)] group-hover:drop-shadow-none dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">Previsão de Clima</h3>
-                <p className="text-on-surface-variant text-base leading-relaxed max-w-sm drop-shadow-[0_2px_10px_rgba(255,255,255,0.8)] group-hover:drop-shadow-none dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+                <h3 className="text-white text-2xl font-extrabold mb-4 drop-shadow-md">Previsão de Clima</h3>
+                <p className="text-stone-200 text-base leading-relaxed max-w-sm drop-shadow-md">
                   Modelagem hiper-localizada para planejar seu plantio e colheita com segurança absoluta.
                 </p>
               </div>
-              {/* Dynamic Gradient Overlay - Increases opacity on hover to protect text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-white/10 to-transparent z-[5] transition-all duration-500 group-hover:from-white/90 group-hover:via-white/40 dark:from-black/80 dark:via-black/20 dark:group-hover:from-black/95 dark:group-hover:via-black/60"></div>
-              <img src={climaImg} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-90 transition-opacity duration-700" alt="" />
+              {/* Dynamic Gradient Overlay - Subtle shadow for readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-[5] transition-all duration-500 group-hover:from-black/90"></div>
+              <img src={climaImg} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105" alt="" />
             </div>
 
             {/* Bento Card 3 - Gestão */}
@@ -129,9 +131,9 @@ export default function Home() {
       </section>
 
       {/* Partners Section */}
-      <section id="parceiros" className="py-20 bg-surface-container border-y border-gray-200">
+      <section id="parceiros" className="py-32 bg-surface-container border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-8 text-center">
-          <p className="text-on-surface-variant/40 font-manrope text-xs uppercase tracking-[0.3em] font-bold mb-14">
+          <p className="text-on-surface-variant/40 font-manrope text-xs uppercase tracking-[0.3em] font-bold mb-2 translate-x-8 -translate-y-16 pl-[0.3em]">
             Alianças Estratégicas de Confiança
           </p>
           <div className="flex justify-center items-center gap-16 md:gap-24">
@@ -144,7 +146,11 @@ export default function Home() {
                 className="flex flex-col items-center justify-center gap-3 group hover:opacity-100 hover:-translate-y-3 transition-all duration-300 w-40"
               >
                 <div className="h-20 flex items-center justify-center">
-                  <img src={partner.logo} alt={partner.nome} className="max-h-full max-w-full object-contain" />
+                  <img
+                    src={partner.logo}
+                    alt={partner.nome}
+                    className={`max-h-full max-w-full object-contain ${partner.nome === 'Granos' ? 'scale-[1.4] translate-y-2' : ''}`}
+                  />
                 </div>
                 <div className="h-0.5 w-0 group-hover:w-full bg-tertiary-fixed-dim transition-all duration-300"></div>
               </a>
