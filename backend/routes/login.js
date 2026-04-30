@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export default function createLoginRoutes(pool) {
   const router = Router();
@@ -30,7 +31,18 @@ export default function createLoginRoutes(pool) {
               .status(401)
               .json({ success: false, message: "Credenciais inválidas" });
           }
-          return res.json({ success: true, usuario: admin, tipo_usuario: "admin" });
+          
+          // Adiciona o tipo_usuario ao objeto do admin para o frontend
+          admin.tipo_usuario = "admin";
+
+          const token = jwt.sign(
+            { id: admin.id, email: admin.email, tipo_usuario: "admin" },
+            process.env.JWT_SECRET,
+            { expiresIn: "24h" }
+          );
+
+          delete admin.senha; 
+          return res.json({ success: true, usuario: admin, tipo_usuario: "admin", token });
         }
         const usuario = result.rows[0];
         const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
@@ -39,7 +51,18 @@ export default function createLoginRoutes(pool) {
             .status(401)
             .json({ success: false, message: "Credenciais inválidas" });
         }
-        res.json({ success: true, usuario, tipo_usuario: "usuario" });
+
+        // Para usuários comuns, o tipo_usuario já vem do banco (agricultor, etc.)
+        // Mas garantimos que ele exista ou definimos um padrão se necessário.
+
+        const token = jwt.sign(
+          { id: usuario.id, email: usuario.email, tipo_usuario: usuario.tipo_usuario },
+          process.env.JWT_SECRET,
+          { expiresIn: "24h" }
+        );
+
+        delete usuario.senha;
+        res.json({ success: true, usuario, tipo_usuario: usuario.tipo_usuario, token });
       } catch (error) {
         res.status(500).json({ success: false, error: error.message });
       }

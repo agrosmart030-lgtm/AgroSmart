@@ -41,6 +41,7 @@ app.set("pool", pool);
 import createLoginRoutes from "./routes/login.js";
 import createRegistroRoutes from "./routes/registro.js";
 import createVerificationRoutes from "./routes/verification.js";
+import { verifyToken } from "./utils/authMiddleware.js";
 
 app.use("/api/login", createLoginRoutes(pool));
 app.use("/api/registro", createRegistroRoutes(pool));
@@ -52,7 +53,7 @@ app.use("/test", dbTestRoutes);
 
 // Importa e usa as rotas de tabelas
 import createTabelasRoutes from "./routes/tabelas.js";
-app.use("/api/tabelas", createTabelasRoutes(pool));
+app.use("/api/tabelas", verifyToken, createTabelasRoutes(pool));
 
 // Importa e usa as rotas de FAQ
 import createFaqRoutes from "./routes/faq.js";
@@ -60,10 +61,10 @@ app.use("/api/faq", createFaqRoutes(pool));
 
 // Importa e usa as rotas de configuração
 import createConfiguracaoRoutes from "./routes/configuracao.js";
-app.use("/api/configuracao", createConfiguracaoRoutes(pool));
+app.use("/api/configuracao", verifyToken, createConfiguracaoRoutes(pool));
 
 import usuarios from "./routes/usuarios.js";
-app.use("/api", usuarios);
+app.use("/api", verifyToken, usuarios);
 import createCotacoesRoutes from "./routes/cotacoes.js";
 app.use("/api/cotacoes", createCotacoesRoutes(pool));
 

@@ -22,6 +22,8 @@ import AccessibilityMenu from "./componentes/acessibilidade";
 import RespondeAgro from "./pages/duvidas/RespondeAgro";
 
 
+import ProtectedRoute from "./componentes/ProtectedRoute";
+
 function App() {
   return (
     <AuthProvider>
@@ -30,23 +32,63 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<Cadastro />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/duvidas" element={<RespondeAgro />} />
-          {/* <Route path="/LoginAdmin" element={<LoginAdmin />} /> */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/GenUser" element={<GenUser />} />
-          <Route path="/admin/TabelasBanco" element={<TabelasBanco />} />
-          <Route path="/admin/FaqAdmin" element={<FaqAdmin />} />
-          <Route
-            path="/admin/EstatisticasAdmin"
-            element={<EstatisticasAdmin />}
-          />
-          <Route path="/admin/NovoAdmin" element={<NovoAdmin />} />
-          <Route path="/admin/LogsAdmin" element={<LogsAdmin />} />
-          <Route path="/configuracao" element={<Configuraçao />} />
-          <Route path="/clima" element={<Clima />} />
+          
+          {/* Rotas Protegidas de Usuário */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/configuracao" element={
+            <ProtectedRoute>
+              <Configuraçao />
+            </ProtectedRoute>
+          } />
+          <Route path="/clima" element={
+            <ProtectedRoute>
+              <Clima />
+            </ProtectedRoute>
+          } />
+
+          {/* Rotas Protegidas de Admin */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/GenUser" element={
+            <ProtectedRoute requiredRole="admin">
+              <GenUser />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/TabelasBanco" element={
+            <ProtectedRoute requiredRole="admin">
+              <TabelasBanco />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/FaqAdmin" element={
+            <ProtectedRoute requiredRole="admin">
+              <FaqAdmin />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/EstatisticasAdmin" element={
+            <ProtectedRoute requiredRole="admin">
+              <EstatisticasAdmin />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/NovoAdmin" element={
+            <ProtectedRoute requiredRole="admin">
+              <NovoAdmin />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/LogsAdmin" element={
+            <ProtectedRoute requiredRole="admin">
+              <LogsAdmin />
+            </ProtectedRoute>
+          } />
         </Routes>
       </Router>
       </AccessibilityProvider>

@@ -4,6 +4,7 @@ import CartaoFaq from "../../componentes/admin/faqAdmin/CartaoFaq";
 import SecaoFiltrosFaq from "../../componentes/admin/faqAdmin/SecaoFiltrosFaq";
 import CartoesEstatisticasFaq from "../../componentes/admin/faqAdmin/CartoesEstatisticasFaq";
 import { MessageCircle } from "lucide-react";
+import api from "../../services/api";
 
 const PaginaFaqAdmin = () => {
   const [faqs, setFaqs] = useState([]);
@@ -17,8 +18,8 @@ const PaginaFaqAdmin = () => {
     const buscarFaqs = async () => {
       setCarregando(true);
       try {
-        const response = await fetch("http://localhost:5001/api/faq");
-        const data = await response.json();
+        const response = await api.get("/api/faq");
+        const data = response.data;
         setFaqs(data.faqs);
       } catch (error) {
         console.error("Erro ao buscar FAQs:", error);

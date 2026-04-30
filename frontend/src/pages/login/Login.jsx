@@ -37,7 +37,7 @@ export default function Login() {
         payload
       );
       if (response.data.success) {
-        login(response.data.usuario);
+        login(response.data.usuario, response.data.token);
         if (response.data.tipo_usuario === "admin") {
           navigate("/admin");
         } else {
