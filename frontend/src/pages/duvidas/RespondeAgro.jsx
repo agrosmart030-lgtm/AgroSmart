@@ -33,51 +33,27 @@ export default function RespondeAgro() {
   const buscarDuvidas = async () => {
     setIsLoading(true);
     try {
-      // ---------------------------------------------------------
-      // AQUI ENTRARÁ A CONEXÃO REAL COM SEU BACKEND
-      // Exemplo usando fetch apontando para sua rota Express:
-      //
-      // const url = `http://localhost:5000/api/responde-agro?categoria=${selectedCategory}&busca=${searchTerm}`;
-      // const response = await fetch(url);
-      // const data = await response.json();
-      // setFaqs(data);
-      // ---------------------------------------------------------
+      const url = `http://localhost:5001/api/responde-agro?categoria=${selectedCategory}&busca=${searchTerm}`;
+      const response = await fetch(url);
+      const data = await response.json();
 
-      console.log(
-        `📡 Disparando API -> Categoria: ${selectedCategory} | Busca: "${searchTerm}"`,
-      );
+      // Mapeia os ícones retornados como string para componentes React
+      const iconeMap = {
+        FaLeaf: <FaLeaf className="mr-2" />,
+        FaSeedling: <FaSeedling className="mr-2" />,
+        FaSun: <FaSun className="mr-2" />,
+        FaBug: <FaBug className="mr-2" />,
+      };
 
-      // DADOS MOCKADOS: Isso simula o retorno da API para a tela já funcionar
-      // Quando a API estiver pronta, basta apagar este setFaqs abaixo
-      setTimeout(() => {
-        setFaqs([
-          {
-            id: 1,
-            tag: "Soja",
-            iconeTag: <FaLeaf className="mr-2" />,
-            corFundo: "bg-[#e8f5e9]",
-            corTexto: "text-[#1B4332]",
-            pergunta:
-              "Qual o melhor período para o plantio da soja no Centro-Oeste?",
-            resposta:
-              "O período ideal para o plantio da soja no Centro-Oeste brasileiro ocorre geralmente entre outubro e novembro, logo após o início das chuvas regulares. Entretanto, é fundamental consultar o Calendário de Zoneamento Agrícola de Risco Climático (ZARC).",
-          },
-          {
-            id: 2,
-            tag: "Milho",
-            iconeTag: <FaSeedling className="mr-2" />,
-            corFundo: "bg-[#fff8e1]",
-            corTexto: "text-[#513700]",
-            pergunta:
-              "Como identificar e controlar a lagarta-do-cartucho no milho?",
-            resposta:
-              "A lagarta-do-cartucho é identificada pelo formato de 'Y' invertido na cabeça. O dano principal ocorre no cartucho da planta, onde a lagarta se aloja e consome as folhas.",
-          },
-        ]);
-        setIsLoading(false);
-      }, 500); // Simulando um atraso de rede de meio segundo
+      const dadosComIcones = data.map((item) => ({
+        ...item,
+        iconeTag: iconeMap[item.iconeTag] || <FaLeaf className="mr-2" />,
+      }));
+
+      setFaqs(dadosComIcones);
     } catch (error) {
       console.error("Erro ao buscar dados da Embrapa:", error);
+    } finally {
       setIsLoading(false);
     }
   };

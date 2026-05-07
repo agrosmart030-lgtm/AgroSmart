@@ -59,6 +59,12 @@ app.use("/api/tabelas", verifyToken, createTabelasRoutes(pool));
 import createFaqRoutes from "./routes/faq.js";
 app.use("/api/faq", createFaqRoutes(pool));
 
+// ==========================================
+// ROTA DA EMBRAPA (RESPONDE AGRO)
+// ==========================================
+import respondeAgroRoutes from "./routes/respondeAgro.js";
+app.use("/api/responde-agro", respondeAgroRoutes);
+
 // Importa e usa as rotas de configuração
 import createConfiguracaoRoutes from "./routes/configuracao.js";
 app.use("/api/configuracao", verifyToken, createConfiguracaoRoutes(pool));
@@ -67,6 +73,8 @@ import usuarios from "./routes/usuarios.js";
 app.use("/api", verifyToken, usuarios);
 import createCotacoesRoutes from "./routes/cotacoes.js";
 app.use("/api/cotacoes", createCotacoesRoutes(pool));
+
+
 
 const swaggerDocument = {
   openapi: "3.0.0",
