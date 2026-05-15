@@ -14,7 +14,6 @@ import axios from 'axios';
 
 // Importando os logos diretamente
 import coamoLogo from '../../assets/coamo.png';
-import cocamarLogo from '../../assets/cocamar.png';
 import larLogo from '../../assets/lar.png';
 import granosLogo from '../../assets/granos_logo.png';
 
@@ -22,7 +21,6 @@ function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
   const coamoArr = Array.isArray(cotacoes.coamo) ? cotacoes.coamo : [];
   const larArr = Array.isArray(cotacoes.larAgro) ? cotacoes.larAgro : [];
-  const cocamarArr = Array.isArray(cotacoes.cocamar) ? cotacoes.cocamar : [];
   return [
     {
       nome: 'COAMO',
@@ -39,16 +37,6 @@ function transformarCotacoesParaCooperativas(cotacoes) {
       logo: larLogo,
       telefone: '556734243449',
       produtos: larArr.map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) || [],
-    },
-    {
-      nome: 'COCAMAR',
-      logo: cocamarLogo,
-      telefone: '551194567890',
-      produtos: cocamarArr.map(item => ({
         nome: item.grao,
         preco: item.preco,
         variacao: item.variacao || '',
@@ -92,17 +80,6 @@ const cooperativasData = [
     ],
   },
   {
-    nome: 'COCAMAR',
-    logo: cocamarLogo,
-    telefone: '551194567890',
-    produtos: [
-      { nome: 'SOJA', preco: 'R$ 132,00', variacao: '+1.5%' },
-      { nome: 'MILHO', preco: 'R$ 60,00', variacao: '-0.2%' },
-      { nome: 'TRIGO', preco: 'R$ 72,00', variacao: '+1.8%' },
-      { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
-    ],
-  },
-  {
     nome: 'GRANOS',
     logo: granosLogo,
     telefone: '556730278700',
@@ -126,7 +103,6 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 178.5, change: +5.2 },
       lar: { currentPrice: 175.2, change: +4.8 },
-      cocamar: { currentPrice: 180.3, change: +6.0 },
     },
     data6m: [
       { date: "2024-11", price: 165.3, volume: 2840 },
@@ -161,7 +137,6 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 89.4, change: -2.1 },
       lar: { currentPrice: 87.9, change: -1.8 },
-      cocamar: { currentPrice: 90.5, change: -2.5 },
     },
     data6m: [
       { date: "2024-11", price: 92.8, volume: 4120 },
@@ -421,7 +396,7 @@ const DashboardPage = () => {
                                 <img 
                                   src={coop.logo} 
                                   alt={coop.nome} 
-                                  className={`max-h-full max-w-full object-contain dark:brightness-0 dark:invert ${coop.nome === 'GRANOS' ? 'scale-[1.4] translate-y-0.5' : ''}`} 
+                                  className={`max-h-full max-w-full object-contain ${coop.nome !== 'GRANOS' ? 'dark:brightness-0 dark:invert' : ''} ${coop.nome === 'GRANOS' ? 'scale-[1.4] translate-y-0.5' : ''}`} 
                                 />
                               </div>
                               <span className="text-sm font-bold">{coop.nome}</span>

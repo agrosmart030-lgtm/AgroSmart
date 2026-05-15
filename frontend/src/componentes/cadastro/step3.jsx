@@ -18,6 +18,7 @@ export default function Step3({ tipo, register, errors }) {
               mask="cpf"
               validate={{
                 validate: (value) => {
+                  if (!value) return "CPF é obrigatório";
                   const cpf = value.replace(/\D/g, "");
                   return cpf.length === 11 || "CPF deve conter 11 dígitos";
                 },
@@ -37,7 +38,7 @@ export default function Step3({ tipo, register, errors }) {
               type="number"
               validate={{
                 validate: (value) =>
-                  Number(value) > 0 || "A área cultivada deve ser maior que zero",
+                  !value || Number(value) > 0 || "A área cultivada deve ser maior que zero",
               }}
             />
             <InputField
@@ -59,6 +60,7 @@ export default function Step3({ tipo, register, errors }) {
               mask="cpf"
               validate={{
                 validate: (value) => {
+                  if (!value) return "CPF é obrigatório";
                   const cpf = value.replace(/\D/g, "");
                   return cpf.length === 11 || "CPF deve conter 11 dígitos";
                 },
@@ -78,6 +80,7 @@ export default function Step3({ tipo, register, errors }) {
               mask="cnpj"
               validate={{
                 validate: (value) => {
+                  if (!value) return "CNPJ é obrigatório";
                   const cnpj = value.replace(/\D/g, "");
                   return cnpj.length === 14 || "CNPJ deve conter 14 dígitos";
                 },
@@ -102,6 +105,7 @@ export default function Step3({ tipo, register, errors }) {
               mask="cnpj"
               validate={{
                 validate: (value) => {
+                  if (!value) return "CNPJ é obrigatório";
                   const cnpj = value.replace(/\D/g, "");
                   return cnpj.length === 14 || "CNPJ deve conter 14 dígitos";
                 },

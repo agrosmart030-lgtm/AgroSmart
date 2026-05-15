@@ -10,6 +10,8 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
+import EsqueciSenha from "./pages/login/EsqueciSenha";
+import RedefinirSenha from "./pages/login/RedefinirSenha";
 // import LoginAdmin from "./pages/login/LoginAdmin";
 import GenUser from "./pages/admin/GenUser";
 import TabelasBanco from "./pages/admin/TabelasBanco";
@@ -33,6 +35,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/duvidas" element={<RespondeAgro />} />
           

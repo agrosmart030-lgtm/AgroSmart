@@ -28,7 +28,7 @@ function readLocalCache() {
 }
 
 export const useCotacoes = (initialData) => {
-    const [cotacoes, setCotacoes] = useState({ coamo: [], larAgro: [], cocamar: [] });
+    const [cotacoes, setCotacoes] = useState({ coamo: [], larAgro: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');

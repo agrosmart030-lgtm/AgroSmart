@@ -6,13 +6,11 @@ import cotacaoImg from "../../assets/cotacao.jpg";
 import solucoesImg from "../../assets/solucoes.jpg";
 import climaImg from "../../assets/clima.jpg";
 import coamoLogo from "../../assets/coamo.png";
-import cocamarLogo from "../../assets/cocamar.png";
 import larLogo from "../../assets/lar.png";
 import granosLogo from "../../assets/granos_logo.png";
 
 const partners = [
   { nome: "Coamo", logo: coamoLogo, site: "https://www.coamo.com.br/" },
-  { nome: "Cocamar", logo: cocamarLogo, site: "https://www.cocamar.com.br/" },
   { nome: "Lar", logo: larLogo, site: "https://www.lar.ind.br/" },
   { nome: "Granos", logo: granosLogo, site: "https://granoscorretora.com.br" },
 ];

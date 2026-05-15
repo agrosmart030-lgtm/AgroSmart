@@ -111,6 +111,14 @@ export default function Login() {
                 isVisible={showSenha}
                 onToggle={() => setShowSenha((prev) => !prev)}
               />
+              <div className="text-right -mt-2">
+                <a
+                  href="/esqueci-senha"
+                  className="text-xs text-[#1B4332] hover:underline font-semibold transition-colors"
+                >
+                  Esqueci minha senha
+                </a>
+              </div>
               {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
               {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
                 <div className="flex justify-center mt-2">

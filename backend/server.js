@@ -41,11 +41,16 @@ app.set("pool", pool);
 import createLoginRoutes from "./routes/login.js";
 import createRegistroRoutes from "./routes/registro.js";
 import createVerificationRoutes from "./routes/verification.js";
+import createPasswordRoutes, { createResetPasswordRoute } from "./routes/password.js";
 import { verifyToken } from "./utils/authMiddleware.js";
 
 app.use("/api/login", createLoginRoutes(pool));
 app.use("/api/registro", createRegistroRoutes(pool));
 app.use("/api", createVerificationRoutes(pool));
+
+// Rotas públicas de recuperação de senha — sem autenticação
+app.use("/api/forgot-password", createPasswordRoutes(pool));
+app.use("/api/reset-password", createResetPasswordRoute(pool));
 
 // Importa e usa as rotas de teste de conexão
 import dbTestRoutes from "./routes/dbTest.js";
