@@ -3,6 +3,11 @@ import nodemailer from 'nodemailer';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -46,6 +51,11 @@ router.post('/send-verification-email', async (req, res) => {
       from: `"AgroSmart" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: '✅ Seu código de verificação - AgroSmart',
+      attachments: [{
+        filename: 'folha.svg',
+        path: path.join(__dirname, '../../frontend/src/assets/folha.svg'),
+        cid: 'logo_agrosmart'
+      }],
       html: `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -60,7 +70,7 @@ router.post('/send-verification-email', async (req, res) => {
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr><td align="center" style="padding-bottom:16px;">
                     <div style="display:inline-block;background:rgba(255,255,255,0.15);border-radius:14px;padding:12px 18px;">
-                      <span style="font-size:28px;">🌱</span>
+                      <img src="cid:logo_agrosmart" width="32" height="30" alt="🌱" style="display:block;border:none;outline:none;text-decoration:none;" />
                     </div>
                   </td></tr>
                   <tr><td align="center">
