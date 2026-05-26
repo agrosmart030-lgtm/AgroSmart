@@ -14,6 +14,7 @@ import {
   FaGlobeAmericas,
 } from "react-icons/fa";
 import { MdKeyboardArrowDown } from "react-icons/md";
+import { API_URL } from "../../services/api";
 
 export default function RespondeAgro() {
   const [activeFaq, setActiveFaq] = useState(null);
@@ -33,7 +34,7 @@ export default function RespondeAgro() {
   const buscarDuvidas = async () => {
     setIsLoading(true);
     try {
-      const url = `http://localhost:5001/api/responde-agro?categoria=${selectedCategory}&busca=${searchTerm}`;
+      const url = `${API_URL}/responde-agro?categoria=${encodeURIComponent(selectedCategory)}&busca=${encodeURIComponent(searchTerm)}`;
       const response = await fetch(url);
       const data = await response.json();
 

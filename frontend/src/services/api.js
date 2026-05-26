@@ -1,10 +1,14 @@
 import axios from "axios";
 
-const rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
-const apiBaseUrl = rawApiUrl.replace(/\/api\/?$/, "");
+const normalizeApiUrl = (url) => url.replace(/\/+$/, "").replace(/\/api$/, "");
+
+export const API_BASE_URL = normalizeApiUrl(
+  import.meta.env.VITE_API_URL || "http://localhost:5001"
+);
+export const API_URL = `${API_BASE_URL}/api`;
 
 const api = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: API_BASE_URL,
 });
 
 // Interceptor para adicionar o token de autenticação

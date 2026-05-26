@@ -14,9 +14,30 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const { Pool } = pkg;
 
 const app = express();
-const port = 5001;
+const PORT = process.env.PORT || 5001;
+const shouldUseSsl = process.env.PGHOST?.includes("supabase");
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  ...(process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+].map((origin) => origin.replace(/\/$/, ""));
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origem nao permitida pelo CORS: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const pool = new Pool({
@@ -25,6 +46,7 @@ const pool = new Pool({
   database: process.env.PGDATABASE,
   password: process.env.PGPASSWORD,
   port: process.env.PGPORT,
+  ssl: shouldUseSsl ? { rejectUnauthorized: false } : false,
 });
 
 pool.connect((err, client, release) => {
@@ -515,8 +537,8 @@ const swaggerDocument = {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
 
 // Garante que a tabela de cache de cotações exista

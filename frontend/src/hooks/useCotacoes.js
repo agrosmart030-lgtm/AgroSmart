@@ -1,10 +1,9 @@
 // src/hooks/useCotacoes.js
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '../services/api';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
-
-const apiAgrosmart = axios.create({ baseURL: apiBaseUrl });
+const apiAgrosmart = axios.create({ baseURL: API_URL });
 
 const LOCALSTORAGE_KEY = 'agrosmart_cotacoes_cache';
 const LOCALSTORAGE_TTL_MS = 15 * 60 * 1000; // 15 minutos

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Navbar from "../../componentes/navbar";
 import Footer from "../../componentes/footer";
-import axios from "axios";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import api from "../../services/api";
 
 export default function SuporteAgricola() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -17,7 +17,7 @@ export default function SuporteAgricola() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5001/api/faq", {
+      await api.post("/api/faq", {
         nome: form.name,
         email: form.email,
         mensagem: form.message,

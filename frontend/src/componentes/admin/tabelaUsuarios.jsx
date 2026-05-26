@@ -7,7 +7,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import axios from "axios";
+import { API_BASE_URL } from "../../services/api";
 
 // Componente principal para o gráfico de distribuição de usuários
 export default function UserDistributionChart() {
@@ -26,10 +26,11 @@ export default function UserDistributionChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/test/usuarios-tipo");
+        const res = await fetch(`${API_BASE_URL}/test/usuarios-tipo`);
+        const usuarios = await res.json();
         // Conta quantos usuários de cada tipo existem
         const counts = { agricultor: 0, empresario: 0, cooperativa: 0 };
-        res.data.forEach((user) => {
+        usuarios.forEach((user) => {
           if (counts[user.tipo_usuario] !== undefined)
             counts[user.tipo_usuario]++;
         });

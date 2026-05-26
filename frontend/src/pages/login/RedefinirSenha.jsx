@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import loginImg from "../../assets/cadastro.jpg";
 import eye from "../../assets/eye.svg";
 import eyeOff from "../../assets/eye-off.svg";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import api from "../../services/api";
 
 export default function RedefinirSenha() {
   const location = useLocation();
@@ -38,8 +38,8 @@ export default function RedefinirSenha() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/reset-password",
+      const response = await api.post(
+        "/api/reset-password",
         {
           email: data.email,
           code: data.code,
