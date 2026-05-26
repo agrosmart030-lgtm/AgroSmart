@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import api from "../../services/api";
 import Navbar from "../../componentes/navbar";
 import CartaoFaq from "../../componentes/admin/faqAdmin/CartaoFaq";
 import SecaoFiltrosFaq from "../../componentes/admin/faqAdmin/SecaoFiltrosFaq";
 import CartoesEstatisticasFaq from "../../componentes/admin/faqAdmin/CartoesEstatisticasFaq";
 import { MessageCircle } from "lucide-react";
+import api from "../../services/api";
 
 const PaginaFaqAdmin = () => {
   const [faqs, setFaqs] = useState([]);
@@ -18,7 +18,7 @@ const PaginaFaqAdmin = () => {
     const buscarFaqs = async () => {
       setCarregando(true);
       try {
-        const response = await api.get("/faq");
+        const response = await api.get("/api/faq");
         const data = response.data;
         setFaqs(data.faqs);
       } catch (error) {

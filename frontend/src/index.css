@@ -2,3 +2,209 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    font-family: 'Manrope', sans-serif;
+    background-color: #f8f9fa;
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ============================================
+   DARK MODE — cobre todas as telas do projeto
+   Ativado via: document.documentElement.classList.add('dark')
+                + data-theme="dark" no <html>
+   ============================================ */
+
+/* Base */
+[data-theme="dark"],
+[data-theme="dark"] body {
+  background-color: #0f0f0f !important;
+  color: #e5e5e5 !important;
+}
+
+/* ─── Backgrounds genéricos ─── */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] [class*="bg-white"] {
+  background-color: #1e1e1e !important;
+  color: #e5e5e5 !important;
+}
+
+[data-theme="dark"] [class*="bg-\[#f3f4f5\]"],
+[data-theme="dark"] [class*="bg-\[#f8f9fa\]"],
+[data-theme="dark"] [class*="bg-\[#f1f4f2\]"] {
+  background-color: #0f0f0f !important;
+}
+
+[data-theme="dark"] [class*="bg-\[#e8f5e9\]"],
+[data-theme="dark"] [class*="bg-green-50"],
+[data-theme="dark"] [class*="bg-emerald-50"] {
+  background-color: #1a2e1f !important;
+}
+
+[data-theme="dark"] [class*="from-green-50"],
+[data-theme="dark"] [class*="from-\[#1B4332\]"] {
+  --tw-gradient-from: #0b1410 !important;
+}
+
+/* ─── Cards e superfícies ─── */
+[data-theme="dark"] .glass-card,
+[data-theme="dark"] [class*="bg-white/80"],
+[data-theme="dark"] [class*="bg-white/60"] {
+  background: rgba(30, 30, 30, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ─── Navbar ─── */
+[data-theme="dark"] nav.bg-white,
+[data-theme="dark"] nav[class*="bg-white"] {
+  background-color: #111 !important;
+  border-color: #1f1f1f !important;
+}
+
+[data-theme="dark"] nav [class*="text-emerald-800"],
+[data-theme="dark"] nav [class*="text-emerald-950"] {
+  color: #c0edd4 !important;
+}
+
+[data-theme="dark"] nav [class*="text-emerald-800/80"] {
+  color: #a5d0b9 !important;
+}
+
+/* ─── Dropdowns & Menus ─── */
+[data-theme="dark"] [class*="bg-white"].absolute,
+[data-theme="dark"] .dropdown-content {
+  background-color: #1e1e1e !important;
+  border-color: #333 !important;
+}
+
+[data-theme="dark"] [class*="hover:bg-emerald-50"]:hover {
+  background-color: #2a2a2a !important;
+  color: #e5e5e5 !important;
+}
+
+/* ─── Textos ─── */
+[data-theme="dark"] [class*="text-\[#012d1d\]"],
+[data-theme="dark"] [class*="text-\[#1B4332\]"],
+[data-theme="dark"] [class*="text-emerald-950"],
+[data-theme="dark"] [class*="text-emerald-800"] {
+  color: #c0edd4 !important;
+}
+
+[data-theme="dark"] [class*="text-\[#414844\]"],
+[data-theme="dark"] [class*="text-gray-800"],
+[data-theme="dark"] [class*="text-gray-700"] {
+  color: #b0b5b2 !important;
+}
+
+[data-theme="dark"] [class*="text-\[#717973\]"],
+[data-theme="dark"] [class*="text-gray-500"],
+[data-theme="dark"] [class*="text-gray-600"] {
+  color: #6b7280 !important;
+}
+
+[data-theme="dark"] .text-primary {
+  color: #a5d0b9 !important;
+}
+
+[data-theme="dark"] [class*="text-on-surface-variant"] {
+  color: #b0b5b2 !important;
+}
+
+/* ─── Inputs e formulários ─── */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #2a2a2a !important;
+  color: #e5e5e5 !important;
+  border-color: #444 !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #555 !important;
+}
+
+[data-theme="dark"] [class*="bg-\[#f3f4f5\]"] input,
+[data-theme="dark"] [class*="bg-\[#f3f4f5\]"] select {
+  background-color: #2a2a2a !important;
+}
+
+/* ─── Bordas ─── */
+[data-theme="dark"] [class*="border-\[#e1e3e4\]"],
+[data-theme="dark"] [class*="border-gray-100"],
+[data-theme="dark"] [class*="border-gray-200"],
+[data-theme="dark"] [class*="border-green-200"],
+[data-theme="dark"] .border-emerald-100 {
+  border-color: #333 !important;
+}
+
+/* ─── Sombras ─── */
+[data-theme="dark"] .shadow-2xl,
+[data-theme="dark"] .shadow-xl,
+[data-theme="dark"] .shadow-lg,
+[data-theme="dark"] .shadow-sm {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ─── Tabelas ─── */
+[data-theme="dark"] table {
+  color: #e5e5e5 !important;
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] [class*="bg-gray-50"] {
+  background-color: #181818 !important;
+  color: #888 !important;
+}
+
+[data-theme="dark"] tr:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="dark"] .divide-y > * {
+  border-color: #2a2a2a !important;
+}
+
+/* ─── Badges e pills ─── */
+[data-theme="dark"] [class*="bg-green-100"],
+[data-theme="dark"] [class*="bg-\[#e8f5e9\]"] {
+  background-color: #0f2a15 !important;
+}
+
+[data-theme="dark"] [class*="bg-\[#c0edd4\]"] {
+  background-color: #012d1d !important;
+}
+
+/* ─── Footer ─── */
+[data-theme="dark"] footer,
+[data-theme="dark"] [class*="footer"] {
+  background-color: #111 !important;
+  border-color: #1f1f1f !important;
+  color: #888 !important;
+}
+
+/* ─── Gráficos (Recharts) ─── */
+[data-theme="dark"] .recharts-cartesian-grid-horizontal line,
+[data-theme="dark"] .recharts-cartesian-grid-vertical line {
+  stroke: #2a2a2a !important;
+}
+
+[data-theme="dark"] .recharts-text {
+  fill: #888 !important;
+}
+
+[data-theme="dark"] .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1e1e1e !important;
+  border-color: #333 !important;
+  color: #e5e5e5 !important;
+}

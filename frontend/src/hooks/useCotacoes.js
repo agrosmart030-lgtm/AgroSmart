@@ -2,10 +2,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-// Detect base URL from env (supports Vite and CRA)
-const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
-const craEnv = typeof process !== 'undefined' ? process.env : undefined;
-const apiBaseUrl = (viteEnv && viteEnv.VITE_API_URL) || (craEnv && craEnv.REACT_APP_API_URL) || 'http://localhost:5001/api';
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const apiAgrosmart = axios.create({ baseURL: apiBaseUrl });
 
@@ -28,7 +25,7 @@ function readLocalCache() {
 }
 
 export const useCotacoes = (initialData) => {
-    const [cotacoes, setCotacoes] = useState({ coamo: [], larAgro: [], cocamar: [] });
+    const [cotacoes, setCotacoes] = useState({ coamo: [], larAgro: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');

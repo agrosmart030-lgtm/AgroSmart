@@ -1,13 +1,15 @@
-import { FaUser, FaSignOutAlt, FaUniversalAccess } from "react-icons/fa";
+import { FaUniversalAccess, FaUser, FaChevronDown } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import logo from "../assets/folha.svg";
 import { useAuth } from "../hooks/context/AuthContext";
 import { exibirAlertaConfirmacao } from "../hooks/useAlert";
 import { useState } from "react";
 import AccessibilityMenu from "./acessibilidade";
+import { useAccessibility } from "../contexts/AccessibilityContext";
+import folhaLogo from "../assets/folha.svg";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { darkMode } = useAccessibility();
   const isLoggedIn = !!user;
   const isAdmin = user?.tipo_usuario === "admin";
 
@@ -20,7 +22,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     const confirmed = await exibirAlertaConfirmacao(
       "Tem certeza?",
-      "Você realmente deseja sair?",
+      "Você realmente deseja sair?"
     );
     if (confirmed) {
       logout();
@@ -29,243 +31,103 @@ export default function Navbar() {
   };
 
   return (
-    <div
-      className="navbar fixed top-0 left-0 right-0 z-50"
-      style={{ backgroundColor: "#2e7d32", height: "85px" }}
-    >
-      <div className="navbar-start ml-4 md:ml-12">
-        <Link
-          to="/"
-          className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
-        >
-          <img src={logo} alt="Logo AgroSmart" className="w-10 h-10" />
-          <span className="text-3xl font-bold">
-            <span style={{ color: "#ffc107" }}>Agro</span>
-            <span style={{ color: "#fff" }}>Smart</span>
-          </span>
+    <nav className="sticky top-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
+      <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+        {/* Logo - Dynamically swaps between Vector and Folha based on Dark Mode */}
+        <Link to="/" className="flex items-center gap-2">
+          <img src={darkMode ? folhaLogo : "/Vector.svg"} alt="AgroSmart" className="w-8 h-8 relative z-10" />
+          <span className="text-xl font-extrabold tracking-tighter text-emerald-950 dark-theme-text-inverter">AgroSmart</span>
         </Link>
-      </div>
 
-      <div className="navbar-center hidden md:flex">
-        <ul className="menu menu-horizontal px-1 gap-6 text-white text-base">
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center space-x-8 font-manrope text-sm font-semibold tracking-tight">
           {isAdmin ? (
             <>
-              <li>
-                <Link
-                  to="/admin"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Admin
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/GenUser"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Usuários
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/TabelasBanco"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Tabelas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/FaqAdmin"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/EstatisticasAdmin"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Estatísticas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/LogsAdmin"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Logs
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/admin/NovoAdmin"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Novo Admin
-                </Link>
-              </li>
+              <Link to="/admin" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Dashboard</Link>
+              <Link to="/admin/GenUser" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Usuários</Link>
+              <Link to="/admin/TabelasBanco" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Tabelas</Link>
+              <Link to="/admin/FaqAdmin" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">FAQ Admin</Link>
+              <Link to="/admin/EstatisticasAdmin" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Estatísticas</Link>
+              <Link to="/admin/NovoAdmin" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Novo Admin</Link>
+              <Link to="/admin/LogsAdmin" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Logs</Link>
             </>
           ) : (
             <>
-              <li>
-                <Link
-                  to="/dashboard"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
-                >
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/clima"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300"
-                >
-                  Clima
-                </Link>
-              </li>
+              <Link to="/dashboard" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Dashboard</Link>
+              <Link to="/clima" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">Clima</Link>
 
-              {/* === NOVO MENU DROPDOWN DE AJUDA === */}
-              <li className="dropdown dropdown-hover">
-                <div
-                  tabIndex={0}
-                  role="button"
-                  className="hover:bg-white/10 rounded-lg px-4 py-2 transition-all duration-300 flex items-center gap-1"
-                >
+              {/* Dropdown Central de Ajuda - Refined Hover behavior */}
+              <div className="relative group py-2">
+                <button className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300 flex items-center gap-1">
                   Central de Ajuda
-                  {/* Ícone de setinha para baixo */}
-                  <svg
-                    width="14"
-                    height="14"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                  <FaChevronDown size={10} className="group-hover:rotate-180 transition-transform duration-200" />
+                </button>
+
+                {/* Invisible bridge to prevent closing when moving from button to menu */}
+                <div className="absolute top-full left-0 w-full h-2"></div>
+
+                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 translate-y-2 group-hover:translate-y-0">
+                  <Link
+                    to="/faq"
+                    className="block px-4 py-3 text-sm text-emerald-800/80 hover:bg-emerald-50 hover:text-emerald-900 transition-colors"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                    Suporte do Sistema
+                  </Link>
+                  <Link
+                    to="/duvidas"
+                    className="block px-4 py-3 text-sm text-emerald-800/80 hover:bg-emerald-50 hover:text-emerald-900 transition-colors"
+                  >
+                    Consultoria Técnica
+                  </Link>
                 </div>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content z-50 menu p-2 shadow rounded-box w-52"
-                  style={{
-                    backgroundColor: "#2e7d32",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                  }}
-                >
-                  <li>
-                    <Link
-                      to="/faq"
-                      className="hover:bg-white/20 transition-colors"
-                    >
-                      Suporte do Sistema
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/duvidas"
-                      className="hover:bg-white/20 transition-colors"
-                    >
-                      Consultoria Técnica
-                    </Link>
-                  </li>
-                </ul>
-              </li>
-              {/* ==================================== */}
+              </div>
             </>
           )}
-        </ul>
-      </div>
-
-      <div className="navbar-end mr-4 gap-3">
-        {/* Botão de Acessibilidade */}
-        <div className="relative">
-          <button
-            onClick={toggleAccessibilityMenu}
-            className="btn btn-circle btn-sm text-white hover:scale-105 transition-transform duration-300"
-            style={{
-              backgroundColor: "rgba(76,175,80,0.6)",
-              width: "36px",
-              height: "36px",
-              minHeight: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            aria-label="Menu de Acessibilidade"
-            aria-expanded={showAccessibilityMenu}
-          >
-            <FaUniversalAccess size={18} />
-          </button>
-          <div className="absolute right-0 bottom-full mb-2 z-50">
-            <AccessibilityMenu
-              open={showAccessibilityMenu}
-              onClose={() => setShowAccessibilityMenu(false)}
-            />
-          </div>
         </div>
 
-        {isAdmin ? (
-          // Botão de logout específico para admin
-          <button
-            onClick={handleLogout}
-            className="btn btn-sm text-white border-2 border-white/30 hover:border-white/50 hover:bg-white/20 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.15)",
-              borderRadius: "25px",
-              fontWeight: "600",
-            }}
-          >
-            <FaSignOutAlt size={14} />
-            Sair
-          </button>
-        ) : !isLoggedIn ? (
-          <>
-            <Link
-              to="/login"
-              className="btn btn-sm text-white hover:scale-105 transition-transform duration-300"
-              style={{ backgroundColor: "rgba(76,175,80,0.6)" }}
+        {/* Right side: Accessibility + Auth */}
+        <div className="flex items-center space-x-6 font-manrope text-sm font-semibold tracking-tight">
+          <div className="relative">
+            <button
+              onClick={toggleAccessibilityMenu}
+              className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300 p-2"
+              aria-label="Menu de Acessibilidade"
             >
-              Login
-            </Link>
-            <Link
-              to="/cadastro"
-              className="btn btn-sm text-white hover:scale-105 transition-transform duration-300"
-              style={{ backgroundColor: "rgba(255,193,7,0.8)" }}
-            >
-              Cadastre-se
-            </Link>
-          </>
-        ) : (
-          <div className="dropdown dropdown-end">
-            <label
-              tabIndex={0}
-              className="btn btn-circle btn-sm hover:scale-105 transition-transform duration-300"
-              style={{
-                backgroundColor: "rgba(76,175,80,0.6)",
-                color: "#fff",
-              }}
-            >
-              <FaUser size={20} />
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <Link to="/configuracao">Configurações</Link>
-              </li>
-              <li>
-                <button onClick={handleLogout}>Sair</button>
-              </li>
-            </ul>
+              <FaUniversalAccess size={20} />
+            </button>
+            <div className="absolute right-0 top-full mt-2 z-50">
+              <AccessibilityMenu
+                open={showAccessibilityMenu}
+                onClose={() => setShowAccessibilityMenu(false)}
+              />
+            </div>
           </div>
-        )}
+
+          {!isLoggedIn ? (
+            <>
+              <Link to="/login" className="text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">
+                Login
+              </Link>
+              <Link to="/cadastro" className="bg-primary text-on-primary px-5 py-2.5 rounded-full scale-95 transition-transform hover:scale-100">
+                Cadastre-se
+              </Link>
+            </>
+          ) : (
+            <div className="dropdown dropdown-end">
+              <label tabIndex={0} className="flex items-center gap-2 cursor-pointer text-emerald-800/80 hover:text-amber-600 transition-colors duration-300">
+                <FaUser size={18} />
+                <span>{user.nome || "Usuário"}</span>
+              </label>
+              <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 mt-4 border border-outline-variant">
+                <li><Link to="/configuracao">Configurações</Link></li>
+                <li>
+                  <button onClick={handleLogout} className="text-error">Sair</button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </nav>
   );
 }

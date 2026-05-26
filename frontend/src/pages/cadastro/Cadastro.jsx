@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import api from "../../services/api";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import cadastroImg from "../../assets/cadastro.jpg";
 import Step1 from "../../componentes/cadastro/step1";
 import Step2 from "../../componentes/cadastro/step2";
@@ -127,8 +126,8 @@ codigo_ibge: selectedCidade.id,
       }
 
       try {
-        // First, send verification email using central api service
-        const response = await api.post('/send-verification-email', {
+        // First, send verification email
+        const response = await axios.post('http://localhost:5001/api/send-verification-email', {
           email: userPayload.email,
           nome: userPayload.nome_completo
         });
@@ -139,12 +138,11 @@ codigo_ibge: selectedCidade.id,
           // Move to verification step
           nextStep();
         } else {
-          exibirAlertaErro("Falha no E-mail", response.data.message || "O servidor não conseguiu enviar o código de verificação.");
+          exibirAlertaErro("Erro", "Falha ao enviar o código de verificação. Tente novamente.");
         }
       } catch (error) {
         console.error("Verification email error:", error);
-        const errorMsg = error.response?.data?.message || error.message || "Erro desconhecido";
-        exibirAlertaErro("Falha de Conexão", `Não foi possível enviar o código: ${errorMsg}. Verifique a configuração do servidor.`);
+        exibirAlertaErro("Erro", "Não foi possível enviar o código de verificação. Tente novamente mais tarde.");
       }
     }
   };
@@ -195,43 +193,55 @@ codigo_ibge: selectedCidade.id,
   }, [watch]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[#f3f4f5]">
       {showToast && (
-        <div className="toast toast-top toast-center z-50">
-          <div className="alert alert-success">
-            <span>Cadastro realizado com sucesso!</span>
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="bg-[#e8f5e9] text-[#1B4332] font-semibold text-sm px-6 py-3 rounded-xl border border-[#c8e6c9] shadow-lg">
+            ✓ Cadastro realizado com sucesso!
           </div>
         </div>
       )}
 
-      <div
-        className="w-3/5 bg-cover bg-center shadow-md"
-        style={{ backgroundImage: `url(${cadastroImg})` }}
-      >
-        {/* Imagem de cadastro */}
+      {/* Imagem lateral */}
+      <div className="hidden lg:block w-3/5 relative overflow-hidden">
+        <img
+          src={cadastroImg}
+          alt="Campo agrícola"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#012d1d]/60 to-transparent"></div>
+        <div className="absolute bottom-12 left-12 z-10 max-w-md">
+          <h2 className="text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
+            Junte-se à revolução do agro inteligente
+          </h2>
+          <p className="text-white/70 text-base">
+            Crie sua conta e tenha acesso a cotações em tempo real, previsões climáticas e muito mais.
+          </p>
+        </div>
       </div>
 
-      <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-[490px] overflow-y-auto flex flex-col justify-between">
-          <h2 className="text-2xl font-bold mb-4 text-center">
+      {/* Área do formulário */}
+      <div className="w-full lg:w-2/5 flex justify-center items-center p-6 overflow-y-auto bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
+        <div className="bg-white shadow-sm rounded-2xl p-8 w-full max-w-[490px] border border-[#e1e3e4] flex flex-col justify-between">
+          <h2 className="text-xl font-bold mb-5 text-center text-[#012d1d]">
             Realize seu cadastro abaixo!
           </h2>
           
-          {/* *** CÓDIGO DA BARRA DE PROGRESSO COM AJUSTE FINAL *** */}
+          {/* Progress Bar */}
           <div className="w-full px-4 sm:px-8 mb-8">
             <div className="relative">
-              {/* Linha de Fundo - AJUSTE FINAL */}
+              {/* Background Line */}
               <div 
-                  className="absolute top-4 left-12 w-[calc(100%-6rem)] h-1 bg-gray-300 -translate-y-1/2"
+                  className="absolute top-4 left-12 w-[calc(100%-6rem)] h-1 bg-[#e1e3e4] -translate-y-1/2"
               ></div>
 
-              {/* Linha de Progresso - AJUSTE FINAL */}
+              {/* Progress Line */}
               <div
-                className="absolute top-4 left-12 h-1 bg-green-600 -translate-y-1/2 transition-all duration-500"
+                className="absolute top-4 left-12 h-1 bg-[#1B4332] -translate-y-1/2 transition-all duration-500"
                 style={{ width: `calc(${progressPercentage / 100} * (100% - 6rem))` }}
               ></div>
 
-              {/* Etapas (Círculos e Rótulos) */}
+              {/* Steps */}
               <div className="relative flex justify-between items-start">
                 {[
                   { label: "Dados Pessoais", step: 1 },
@@ -241,22 +251,22 @@ codigo_ibge: selectedCidade.id,
                 ].filter(etapa => etapa.step <= 4).map((etapa) => (
                   <div key={etapa.step} className="flex flex-col items-center z-10 w-24">
                     <div
-                      className={`rounded-full w-8 h-8 flex items-center justify-center text-white font-bold border-2
+                      className={`rounded-full w-8 h-8 flex items-center justify-center font-bold border-2 text-sm
                         ${
                           step > etapa.step
-                            ? "bg-green-600 border-green-600"
+                            ? "bg-[#1B4332] border-[#1B4332] text-white"
                             : step === etapa.step
-                            ? "bg-[#2e7d32] border-[#2e7d32]"
-                            : "bg-white border-gray-300"
+                            ? "bg-[#1B4332] border-[#1B4332] text-white"
+                            : "bg-white border-[#e1e3e4] text-[#717973]"
                         }`}
                     >
                       {step > etapa.step ? (
                         <span>&#10003;</span>
                       ) : (
-                        <span className={step < etapa.step ? "text-gray-400" : ""}>{etapa.step}</span>
+                        <span>{etapa.step}</span>
                       )}
                     </div>
-                    <span className="text-xs mt-2 text-center">{etapa.label}</span>
+                    <span className="text-xs mt-2 text-center text-[#414844]">{etapa.label}</span>
                   </div>
                 ))}
               </div>
@@ -365,8 +375,8 @@ codigo_ibge: selectedCidade.id,
 
                     console.log('Sending registration data:', completeUserData);
                     
-                    const response = await api.post(
-                      '/registro',
+                    const response = await axios.post(
+                      'http://localhost:5001/api/registro',
                       completeUserData,
                       {
                         validateStatus: (status) => status < 500 // Don't throw for 4xx errors
@@ -393,7 +403,7 @@ codigo_ibge: selectedCidade.id,
                   }
                 }}
                 onResendCode={async () => {
-                  const response = await api.post('/send-verification-email', {
+                  const response = await axios.post('http://localhost:5001/api/send-verification-email', {
                     email: userData.email,
                     nome: userData.nome_completo
                   });
@@ -406,7 +416,7 @@ codigo_ibge: selectedCidade.id,
               <button
                 type="button"
                 onClick={prevStep}
-                className={`btn btn-outline ${step === 1 || step === 4 ? "invisible" : ""}`}
+                className={`px-6 py-2.5 rounded-xl border border-[#e1e3e4] text-[#414844] font-semibold text-sm hover:bg-[#f3f4f5] transition-colors ${step === 1 || step === 4 ? "invisible" : ""}`}
                 disabled={step === 1 || step === 4}
               >
                 Voltar
@@ -414,7 +424,7 @@ codigo_ibge: selectedCidade.id,
               {step < 4 ? (
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="px-6 py-2.5 rounded-xl bg-[#1B4332] text-white font-semibold text-sm hover:bg-[#012d1d] transition-colors shadow-sm"
                   disabled={!canProceed && step === 1}
                 >
                   {step === 3 ? "Verificar E-mail" : "Próximo"}
@@ -422,14 +432,14 @@ codigo_ibge: selectedCidade.id,
               ) : null}
             </div>
           </form>
-          <div className="text-center text-sm pt-8">
+          <div className="text-center text-sm pt-6 text-[#414844]">
             Já tem uma conta?{' '}
-            <Link
-              to="/login"
-              className="text-primary hover:underline transition-all"
+            <a
+              href="/login"
+              className="text-[#1B4332] hover:underline transition-all font-semibold"
             >
               Faça login
-            </Link>
+            </a>
           </div>
         </div>
       </div>

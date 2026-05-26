@@ -362,11 +362,16 @@ export default function ProfileModal({
         <div className="flex justify-between items-center px-6 pb-6">
           <button
             className="px-6 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
+            onClick={() => {
+              if (step === 0) {
+                closeModal();
+              } else {
+                setStep((s) => Math.max(0, s - 1));
+              }
+            }}
             type="button"
           >
-            Voltar
+            {step === 0 ? "Cancelar" : "Voltar"}
           </button>
           <div className="flex gap-2">
             {/* Botão Salvar sempre visível */}

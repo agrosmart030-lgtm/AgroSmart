@@ -1,28 +1,23 @@
 // src/pages/dashboard/Dashboard.jsx
-import React, { useState, useEffect, useMemo, useHistory } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import Footer from '../../componentes/footer';
 import Navbar from '../../componentes/navbar';
 import { useCotacoes } from '../../hooks/useCotacoes';
 import FilterBar from '../../componentes/dashboard/FilterBar';
-import CooperativaSelectorVertical from '../../componentes/dashboard/CooperativaSelectorVertical';
 import MarketHighlightsCard from '../../componentes/dashboard/MarketHighlightsCard';
-import PainelDeConteudo from '../../componentes/dashboard/PainelDeConteudo';
 import axios from 'axios';
 
 // Importando os logos diretamente
 import coamoLogo from '../../assets/coamo.png';
-import cocamarLogo from '../../assets/cocamar.png';
 import larLogo from '../../assets/lar.png';
-import granosLogo from '../../assets/folha.svg'; // Usando folha.svg como logo temporário para Granos
+import granosLogo from '../../assets/granos_logo.png';
 
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
   const coamoArr = Array.isArray(cotacoes.coamo) ? cotacoes.coamo : [];
   const larArr = Array.isArray(cotacoes.larAgro) ? cotacoes.larAgro : [];
-  const cocamarArr = Array.isArray(cotacoes.cocamar) ? cotacoes.cocamar : [];
   return [
     {
       nome: 'COAMO',
@@ -45,24 +40,14 @@ function transformarCotacoesParaCooperativas(cotacoes) {
       })) || [],
     },
     {
-      nome: 'COCAMAR',
-      logo: cocamarLogo,
-      telefone: '551194567890',
-      produtos: cocamarArr.map(item => ({
+      nome: 'GRANOS',
+      logo: granosLogo,
+      telefone: '556730278700',
+      produtos: (cotacoes.granos || []).map(item => ({
         nome: item.grao,
         preco: item.preco,
         variacao: item.variacao || '',
       })) || [],
-    },
-    {
-      nome: 'GRANOS',
-      logo: granosLogo,
-      telefone: '556734243449',
-      produtos: Array.isArray(cotacoes.granos) ? cotacoes.granos.map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) : [],
     },
   ];
 }
@@ -92,13 +77,13 @@ const cooperativasData = [
     ],
   },
   {
-    nome: 'COCAMAR',
-    logo: cocamarLogo,
-    telefone: '551194567890',
+    nome: 'GRANOS',
+    logo: granosLogo,
+    telefone: '556730278700',
     produtos: [
-      { nome: 'SOJA', preco: 'R$ 132,00', variacao: '+1.5%' },
-      { nome: 'MILHO', preco: 'R$ 60,00', variacao: '-0.2%' },
-      { nome: 'TRIGO', preco: 'R$ 72,00', variacao: '+1.8%' },
+      { nome: 'SOJA', preco: 'R$ 130,00', variacao: '+1.3%' },
+      { nome: 'MILHO', preco: 'R$ 58,00', variacao: '-0.4%' },
+      { nome: 'TRIGO', preco: 'R$ 69,00', variacao: '+2.0%' },
       { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
     ],
   },
@@ -115,7 +100,6 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 178.5, change: +5.2 },
       lar: { currentPrice: 175.2, change: +4.8 },
-      cocamar: { currentPrice: 180.3, change: +6.0 },
     },
     data6m: [
       { date: "2024-11", price: 165.3, volume: 2840 },
@@ -150,7 +134,6 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 89.4, change: -2.1 },
       lar: { currentPrice: 87.9, change: -1.8 },
-      cocamar: { currentPrice: 90.5, change: -2.5 },
     },
     data6m: [
       { date: "2024-11", price: 92.8, volume: 4120 },
@@ -192,41 +175,26 @@ const StatCard = ({ title, value, subtitle, icon: Icon, gradient, isPositive, ch
   </div>
 );
 
-// Componente ChartCard para envolver os gráficos
-const ChartCard = ({ title, children, subtitle }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-    </div>
-    <div className="p-4">
-      {children}
-    </div>
-  </div>
-);
-
 const DashboardPage = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('cotacao');
-  const [currentGrain, setCurrentGrain] = useState('soja');
+  const [currentGrain] = useState('soja');
   const [timeRange, setTimeRange] = useState('6m');
   const [historyCoop, setHistoryCoop] = useState('LAR');
   const [historyGrao, setHistoryGrao] = useState('');
   const [historySeries, setHistorySeries] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
-
+  
   const {
     searchTerm,
     setSearchTerm,
     filtroCooperativa,
     setFiltroCooperativa,
-    cooperativasDisponiveis,
     filteredData,
     limparFiltros,
     hasActiveFilter,
     cotacoes,
-    loading,
     error,
   } = useCotacoes(cooperativasData);
 
@@ -245,10 +213,7 @@ const DashboardPage = () => {
     }
   }, [location.search]);
 
-  // API base URL (Vite or CRA)
-  const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
-  const craEnv = typeof process !== 'undefined' ? process.env : undefined;
-  const apiBaseUrl = (viteEnv && viteEnv.VITE_API_URL) || (craEnv && craEnv.REACT_APP_API_URL) || 'http://localhost:5001/api';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
   // Busca histórico quando aba Histórico estiver ativa ou filtros mudarem
   useEffect(() => {
@@ -281,7 +246,7 @@ const DashboardPage = () => {
     loadHistory();
     return () => controller.abort();
   }, [activeTab, historyCoop, historyGrao, timeRange, apiBaseUrl]);
-
+  
   const [selectedCoopName, setSelectedCoopName] = useState(null);
 
   // Cria lista de cooperativas a partir da API (se houver) ou usa os dados mock/filtrados
@@ -312,13 +277,13 @@ const DashboardPage = () => {
   useEffect(() => {
     const isSelectedInList = displayedData.some(c => c.nome === selectedCoopName);
     if (!isSelectedInList) {
-      setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
+        setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
     }
   }, [displayedData, selectedCoopName]);
 
   const cooperativaParaExibir = useMemo(() => {
-    if (!selectedCoopName) return null;
-    return displayedData.find(c => c.nome === selectedCoopName) || null;
+      if (!selectedCoopName) return null;
+      return displayedData.find(c => c.nome === selectedCoopName) || null;
   }, [displayedData, selectedCoopName]);
 
   // Atualiza lista de disponíveis no FilterBar para refletir os dados atualmente mostrados
@@ -330,40 +295,36 @@ const DashboardPage = () => {
   const chartData = historySeries.length > 0
     ? historySeries
     : (timeRange === '6m' ? historyData[currentGrain].data6m : historyData[currentGrain].data1y);
-  const last = chartData.length > 0 ? chartData[chartData.length - 1] : null;
-  const prev = chartData.length > 1 ? chartData[chartData.length - 2] : null;
-  const currentPrice = last ? Number(last.price) : 0;
-  const priceChange = last && prev && prev.price ? Number(((currentPrice - prev.price) / prev.price * 100).toFixed(2)) : 0;
-  const isPositiveChange = priceChange >= 0;
   const averagePrice = chartData.length > 0 ? (chartData.reduce((sum, item) => sum + Number(item.price), 0) / chartData.length).toFixed(2) : '0.00';
-  const currentUnit = historyData[currentGrain]?.unit || 'R$';
-  const currentColor = historyData[currentGrain]?.color || '#10B981';
-
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#f1f4f2] dark:bg-[#0b1410] flex flex-col relative transition-colors duration-300">
+      
       <Navbar />
-      <main className="pt-28 pb-12">
+      <main className="pt-6 pb-12 flex-grow relative z-10 w-full overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {activeTab === 'cotacao' ? 'Painel de Cotações' : 'Histórico de Preços'}
-            </h1>
-
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold text-[#012d1d] dark:text-white tracking-tight font-manrope">
+                {activeTab === 'cotacao' ? 'Painel de Operações' : 'Inteligência de Mercado'}
+              </h1>
+              <p className="text-[#414844] dark:text-gray-400 text-sm font-medium mt-1">Acompanhe dinâmicas e preços em tempo real.</p>
+            </div>
+            
+            {/* Elegant Pill Tabs */}
+            <div className="flex bg-white/60 dark:bg-[#14241d]/60 p-1 rounded-full shadow-sm border border-gray-200 dark:border-white/10">
               <button
                 onClick={() => setActiveTab('cotacao')}
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'cotacao'
-                  ? 'text-green-600 border-b-2 border-green-600'
-                  : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 ${activeTab === 'cotacao' 
+                  ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
                 Cotação
               </button>
               <button
                 onClick={() => setActiveTab('historico')}
-                className={`px-4 py-2 font-medium text-sm ${activeTab === 'historico'
-                  ? 'text-green-600 border-b-2 border-green-600'
-                  : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 ${activeTab === 'historico' 
+                  ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
                 Histórico
               </button>
@@ -372,7 +333,7 @@ const DashboardPage = () => {
 
           {activeTab === 'cotacao' ? (
             <>
-              <FilterBar
+              <FilterBar 
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 filtroCooperativa={filtroCooperativa}
@@ -381,18 +342,95 @@ const DashboardPage = () => {
                 onClear={limparFiltros}
               />
 
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
                 <div className="lg:col-span-1">
-                  <CooperativaSelectorVertical
-                    cooperativas={displayedData}
-                    selecionada={cooperativaParaExibir}
-                    onSelect={(coop) => setSelectedCoopName(coop.nome)}
-                  />
-                  {!hasActiveFilter && <MarketHighlightsCard />}
+                  <div className="bg-white dark:bg-[#14241d] text-on-surface flex flex-col gap-2 py-5 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
+                    <div className="px-5 mb-2">
+                      <h2 className="text-lg font-bold text-primary dark:text-[#a5d0b9] font-manrope">Cooperativas</h2>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">Troca rápida</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {displayedData.map((coop) => {
+                        const isActive = selectedCoopName === coop.nome;
+                        return (
+                          <button
+                            key={coop.nome}
+                            onClick={() => setSelectedCoopName(coop.nome)}
+                            className={`flex items-center justify-between py-2.5 px-5 rounded-r-full mr-4 font-manrope font-semibold text-sm transition-all duration-200 cursor-pointer ${
+                              isActive
+                                ? 'bg-[#eaf8f1] dark:bg-[#012d1d] text-[#012d1d] dark:text-white border-l-4 border-[#012d1d] dark:border-[#a5d0b9] shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:pl-6 border-l-4 border-transparent'
+                            }`}
+                          >
+                            <div className={`flex items-center ${coop.nome === 'GRANOS' ? 'gap-6' : 'gap-3'}`}>
+                              <div className="h-8 w-14 flex-shrink-0 flex items-center justify-center transition-transform hover:scale-105">
+                                <img 
+                                  src={coop.logo} 
+                                  alt={coop.nome} 
+                                  className={`max-h-full max-w-full object-contain ${coop.nome !== 'GRANOS' ? 'dark:brightness-0 dark:invert' : ''} ${coop.nome === 'GRANOS' ? 'scale-[1.4] translate-y-0.5' : ''}`} 
+                                />
+                              </div>
+                              <span className="text-sm font-bold">{coop.nome}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {!hasActiveFilter && (
+                    <div className="mt-6">
+                       <MarketHighlightsCard />
+                    </div>
+                  )}
                 </div>
-
+                
                 <div className="lg:col-span-3">
-                  <PainelDeConteudo cooperativa={cooperativaParaExibir} />
+                  <div className="flex flex-col gap-6">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <h1 className="text-4xl font-extrabold text-primary tracking-tighter leading-none font-manrope">Cotações de Hoje</h1>
+                        <p className="text-on-surface-variant mt-2 font-medium">Dados atualizados de {cooperativaParaExibir?.nome || 'Mercado'}.</p>
+                      </div>
+                      <div className="hidden sm:flex bg-surface-container rounded-full p-1 gap-1">
+                        <button className="px-6 py-2 rounded-full text-xs font-bold bg-primary text-white">À VISTA</button>
+                        <button className="px-6 py-2 rounded-full text-xs font-bold text-on-surface-variant hover:bg-surface-variant transition-colors">FUTUROS</button>
+                      </div>
+                    </div>
+                    
+                    {cooperativaParaExibir ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                        {cooperativaParaExibir.produtos.map(produto => {
+                          const variacaoStr = produto.variacao || '';
+                          const isNegative = variacaoStr.includes('-');
+
+                          return (
+                            <div key={produto.nome} className="bg-white dark:bg-[#14241d] p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[120px] hover:shadow-md transition-all duration-200 group">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-[#012d1d] dark:text-white font-bold text-base uppercase tracking-tight">{produto.nome}</h3>
+                                  <span className="text-gray-500 dark:text-gray-400 font-medium text-xs">Saca 60kg</span>
+                                </div>
+                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold tracking-tight ${isNegative ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                                  {variacaoStr}
+                                </span>
+                              </div>
+                              <div className="mt-auto pt-3">
+                                <p className="text-2xl font-black text-[#012d1d] dark:text-white font-manrope tracking-tight">{produto.preco}</p>
+                                <div className={`flex items-center gap-1 mt-1 text-[11px] font-bold ${isNegative ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-[#a5d0b9]'}`}>
+                                  {isNegative ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
+                                  {isNegative ? 'Em queda' : 'Em alta'}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="bg-white dark:bg-[#14241d] p-6 rounded-2xl text-center border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200">
+                        Nenhuma cooperativa correspondente
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
@@ -454,120 +492,69 @@ const DashboardPage = () => {
                 />
               </div>
 
-              {/* Gráfico de Preço */}
-              <ChartCard
-                title="Variação de Preço"
-                subtitle={`${historyCoop}${historyGrao ? ' - ' + historyGrao : ''} • ${timeRange === '6m' ? 'Últimos 6 meses' : 'Último ano'}`}
-              >
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <defs>
-                        <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8} />
-                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.1} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        width={60}
-                        tickFormatter={(value) => `R$ ${value}`}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        formatter={(value) => [`R$ ${value}`, 'Preço']}
-                        labelFormatter={(label) => `Data: ${label}`}
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '0.5rem',
-                          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                          padding: '0.5rem',
-                          fontSize: '0.875rem'
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="price"
-                        stroke={currentColor}
-                        strokeWidth={2}
-                        dot={{
-                          fill: currentColor,
-                          stroke: '#fff',
-                          strokeWidth: 2,
-                          r: 4,
-                          fillOpacity: 1
-                        }}
-                        activeDot={{
-                          r: 6,
-                          stroke: '#fff',
-                          strokeWidth: 2,
-                          fill: currentColor
-                        }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+              {/* Historical Minimalist Table Section */}
+              <section className="mt-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-extrabold text-primary dark:text-[#c0edd4] tracking-tight font-manrope">Histórico de Fechamento</h2>
+                  <button className="text-primary dark:text-[#a5d0b9] font-bold text-sm flex items-center gap-1 hover:underline">
+                      Ver relatório completo <span className="material-symbols-outlined text-sm">arrow_outward</span>
+                  </button>
                 </div>
-              </ChartCard>
+                <div className="bg-white dark:bg-[#14241d] rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-200 dark:border-white/10">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-[#0a120e] border-b border-gray-200 dark:border-white/10">
+                        <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase">DATA</th>
+                        <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase">COMMODITY</th>
+                        <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase">VALOR MÉDIO</th>
+                        <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase">VARIAÇÃO</th>
+                        <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase hidden md:table-cell">TENDÊNCIA</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#f3f4f5]">
+                      {chartData && chartData.length > 0 ? chartData.map((row, idx) => {
+                         // Calculamos a variação comparando com o dia anterior no array (que é o próximo item pois geralmente é desc crescente na UI, mas aqui consideramos sequencial)
+                         const previousPrice = idx > 0 ? Number(chartData[idx - 1].price) : Number(row.price);
+                         const currentPriceVal = Number(row.price);
+                         const changeVal = currentPriceVal - previousPrice;
+                         const isNeg = changeVal < 0; 
+                         const changePct = previousPrice > 0 ? ((Math.abs(changeVal) / previousPrice) * 100).toFixed(1) : '0.0';
+                         const changeStr = isNeg ? `-${changePct}%` : `+${changePct}%`;
 
-              {/* Gráfico de Volume */}
-              <ChartCard
-                title="Volume de Negociação"
-                subtitle={`${historyCoop}${historyGrao ? ' - ' + historyGrao : ''} • ${timeRange === '6m' ? 'Últimos 6 meses' : 'Último ano'}`}
-              >
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <defs>
-                        <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={currentColor} stopOpacity={0.8} />
-                          <stop offset="95%" stopColor={currentColor} stopOpacity={0.2} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        width={60}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        formatter={(value) => [new Intl.NumberFormat('pt-BR').format(value), 'Volume']}
-                        labelFormatter={(label) => `Data: ${label}`}
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '0.5rem',
-                          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                          padding: '0.5rem',
-                          fontSize: '0.875rem'
-                        }}
-                      />
-                      <Bar
-                        dataKey="volume"
-                        fill="url(#colorVolume)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                         return (
+                           <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                             <td className="px-6 md:px-8 py-6 font-bold text-primary dark:text-[#a5d0b9] whitespace-nowrap">{row.date}</td>
+                             <td className="px-6 md:px-8 py-6 text-gray-600 dark:text-gray-300 font-semibold">{historyGrao || historyData[currentGrain]?.name || 'Geral'} ({historyCoop})</td>
+                             <td className="px-6 md:px-8 py-6 text-xl font-extrabold text-[#012d1d] dark:text-white whitespace-nowrap">R$ {currentPriceVal.toFixed(2).replace('.', ',')}</td>
+                             <td className="px-6 md:px-8 py-6">
+                               {isNeg ? (
+                                 <span className="text-red-500 font-bold tracking-tight">{changeStr}</span>
+                               ) : (
+                                 <div className="flex items-center">
+                                   <span className="bg-[#c0edd4] dark:bg-[#012d1d] text-[#012d1d] dark:text-[#a5d0b9] px-2 py-0.5 rounded-full text-xs font-bold tracking-tight">{changeStr}</span>
+                                 </div>
+                               )}
+                             </td>
+                             <td className="px-6 md:px-8 py-6 hidden md:table-cell">
+                               <svg className="w-24 h-8" viewBox="0 0 100 30">
+                                 {isNeg ? (
+                                   <path className="fill-none stroke-[2] stroke-[#ba1a1a] dark:stroke-[#ffb4ab]" strokeLinecap="round" d="M0 10 L20 12 L40 10 L60 22 L80 20 L100 25"></path>
+                                 ) : (
+                                   <path className="fill-none stroke-[2] stroke-[#1b4332] dark:stroke-[#549373]" strokeLinecap="round" d="M0 25 L20 22 L40 26 L60 18 L80 20 L100 10"></path>
+                                 )}
+                               </svg>
+                             </td>
+                           </tr>
+                         )
+                      }) : (
+                        <tr>
+                          <td colSpan="5" className="px-8 py-10 text-center text-on-surface-variant font-medium">Nenhum dado encontrado para o período. Tente alterar os filtros.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              </ChartCard>
+              </section>
             </div>
           )}
         </div>

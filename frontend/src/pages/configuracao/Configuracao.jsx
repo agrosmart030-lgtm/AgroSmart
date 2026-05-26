@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/context/AuthContext";
 import ProfileHeader from "../../componentes/configuracao/ProfileHeader";
 import ProfileInfo from "../../componentes/configuracao/ProfileInfo";
 import ProfileModal from "../../componentes/configuracao/ProfileModal";
+import api from "../../services/api";
 
 const SistemaPerfil = () => {
   const { logout, isLoggedIn, user } = useAuth();
@@ -17,9 +18,8 @@ const SistemaPerfil = () => {
   // Buscar dados do usuário autenticado ao carregar a página
   useEffect(() => {
     if (user && user.id) {
-      fetch(`http://localhost:5001/api/configuracao/${user.id}`)
-        .then((res) => res.json())
-        .then((data) => setUsuario(data))
+      api.get(`/api/configuracao/${user.id}`)
+        .then((res) => setUsuario(res.data))
         .catch(() => {
           // fallback: mantém usuário nulo ou mostra erro
         });

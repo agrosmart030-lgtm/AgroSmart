@@ -78,7 +78,7 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
     setError("");
     
     try {
-      const response = await api.post('/verify-code', {
+      const response = await api.post('/api/verify-code', {
         email,
         code
       });

@@ -70,7 +70,11 @@ export default function createCotacoesRoutes(pool) {
         scrapeLarAgro(),
         scrapeGranos(),
       ]);
-      const aggregated = { coamo: coamoData || [], larAgro: larAgroData || [], granos: granosData || [], cocamar: [] };
+      const aggregated = {
+        coamo: coamoData || [],
+        larAgro: larAgroData || [],
+        granos: granosData || [],
+      };
 
       // Salva no cache
       const now = new Date();

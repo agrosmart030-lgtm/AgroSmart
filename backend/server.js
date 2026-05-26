@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
 import pkg from "pg";
 import swaggerUi from "swagger-ui-express";
 import path from "path";
@@ -18,7 +17,7 @@ const app = express();
 const port = 5001;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 const pool = new Pool({
   user: process.env.PGUSER,
@@ -48,9 +47,15 @@ app.set("pool", pool);
 import createLoginRoutes from "./routes/login.js";
 import createRegistroRoutes from "./routes/registro.js";
 import createVerificationRoutes from "./routes/verification.js";
+import createPasswordRoutes, { createResetPasswordRoute } from "./routes/password.js";
+import { verifyToken } from "./utils/authMiddleware.js";
 
 app.use("/api/login", createLoginRoutes(pool));
 app.use("/api/registro", createRegistroRoutes(pool));
+
+// Rotas públicas de recuperação de senha — sem autenticação
+app.use("/api/forgot-password", createPasswordRoutes(pool));
+app.use("/api/reset-password", createResetPasswordRoute(pool));
 app.use("/api", createVerificationRoutes(pool));
 
 // Importa e usa as rotas de teste de conexão
@@ -59,27 +64,26 @@ app.use("/test", dbTestRoutes);
 
 // Importa e usa as rotas de tabelas
 import createTabelasRoutes from "./routes/tabelas.js";
-app.use("/api/tabelas", createTabelasRoutes(pool));
+app.use("/api/tabelas", verifyToken, createTabelasRoutes(pool));
 
 // Importa e usa as rotas de FAQ
 import createFaqRoutes from "./routes/faq.js";
 app.use("/api/faq", createFaqRoutes(pool));
-
-// Importa e usa as rotas de configuração
-import createConfiguracaoRoutes from "./routes/configuracao.js";
-app.use("/api/configuracao", createConfiguracaoRoutes(pool));
-
-import usuarios from "./routes/usuarios.js";
-app.use("/api", usuarios);
-
-import createCotacoesRoutes from "./routes/cotacoes.js";
-app.use("/api/cotacoes", createCotacoesRoutes(pool));
 
 // ==========================================
 // ROTA DA EMBRAPA (RESPONDE AGRO)
 // ==========================================
 import respondeAgroRoutes from "./routes/respondeAgro.js";
 app.use("/api/responde-agro", respondeAgroRoutes);
+
+// Importa e usa as rotas de configuração
+import createConfiguracaoRoutes from "./routes/configuracao.js";
+app.use("/api/configuracao", verifyToken, createConfiguracaoRoutes(pool));
+
+import usuarios from "./routes/usuarios.js";
+app.use("/api", verifyToken, usuarios);
+import createCotacoesRoutes from "./routes/cotacoes.js";
+app.use("/api/cotacoes", createCotacoesRoutes(pool));
 
 const swaggerDocument = {
   openapi: "3.0.0",

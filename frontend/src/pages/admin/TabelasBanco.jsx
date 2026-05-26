@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import api from "../../services/api";
 import Navbar from "../../componentes/navbar";
 import CartaoTabela from "../../componentes/admin/tabelaBanco/CartaoTabela";
 import VisualizadorTabela from "../../componentes/admin/tabelaBanco/VisualizadorTabela";
+import api from "../../services/api";
 
 const TabelasBanco = () => {
   const [tabelas, setTabelas] = useState([]);
@@ -15,12 +15,12 @@ const TabelasBanco = () => {
     const carregarTabelas = async () => {
       setCarregandoInicial(true);
       try {
-        const resp = await api.get("/tabelas");
+        const resp = await api.get("/api/tabelas");
         const json = resp.data;
         const tabelasFormatadas = await Promise.all(
           json.tabelas.map(async (nome) => {
             try {
-              const respDados = await api.get(`/tabelas/${nome}`);
+              const respDados = await api.get(`/api/tabelas/${nome}`);
               const jsonDados = respDados.data;
               const dados = jsonDados.dados || [];
               const colunas =
@@ -64,7 +64,7 @@ const TabelasBanco = () => {
   const aoSelecionarTabela = async (tabela) => {
     setCarregando(true);
     try {
-      const resp = await api.get(`/tabelas/${tabela.nome}`);
+      const resp = await api.get(`/api/tabelas/${tabela.nome}`);
       const json = resp.data;
       const dados = json.dados || [];
       const colunas =

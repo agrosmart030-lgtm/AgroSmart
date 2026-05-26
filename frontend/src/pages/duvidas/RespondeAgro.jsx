@@ -17,6 +17,7 @@ import { MdKeyboardArrowDown } from "react-icons/md";
 
 export default function RespondeAgro() {
   const [activeFaq, setActiveFaq] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState({});
 
   // Novos estados para integração com a API
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,18 +33,26 @@ export default function RespondeAgro() {
   const buscarDuvidas = async () => {
     setIsLoading(true);
     try {
-      const url = `http://localhost:5001/api/responde-agro?categoria=${encodeURIComponent(selectedCategory)}&busca=${encodeURIComponent(searchTerm)}`;
+      const url = `http://localhost:5001/api/responde-agro?categoria=${selectedCategory}&busca=${searchTerm}`;
       const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Erro HTTP: ${response.status}`);
-      }
-
       const data = await response.json();
-      setFaqs(data);
+
+      // Mapeia os ícones retornados como string para componentes React
+      const iconeMap = {
+        FaLeaf: <FaLeaf className="mr-2" />,
+        FaSeedling: <FaSeedling className="mr-2" />,
+        FaSun: <FaSun className="mr-2" />,
+        FaBug: <FaBug className="mr-2" />,
+      };
+
+      const dadosComIcones = data.map((item) => ({
+        ...item,
+        iconeTag: iconeMap[item.iconeTag] || <FaLeaf className="mr-2" />,
+      }));
+
+      setFaqs(dadosComIcones);
     } catch (error) {
       console.error("Erro ao buscar dados da Embrapa:", error);
-      setFaqs([]);
     } finally {
       setIsLoading(false);
     }
@@ -64,30 +73,31 @@ export default function RespondeAgro() {
   // Função auxiliar para mudar o visual do botão da categoria selecionada
   const getCategoryClass = (categoria) => {
     const baseClass =
-      "flex flex-col items-center justify-center min-w-[120px] p-6 rounded-3xl shadow-sm hover:shadow-md transition-all group ";
+      "flex flex-col items-center justify-center min-w-[120px] p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group ";
     if (selectedCategory === categoria) {
       return (
         baseClass +
-        "bg-[#2D5A27] text-white shadow-xl transform hover:scale-105"
+        "bg-[#1B4332] text-white shadow-xl transform hover:scale-105"
       );
     }
     return (
       baseClass +
-      "bg-white border border-stone-200 text-stone-700 hover:border-[#2D5A27] hover:text-[#2D5A27]"
+      "bg-white border border-[#e1e3e4] text-[#414844] hover:border-[#1B4332] hover:text-[#1B4332]"
     );
   };
 
   const getIconClass = (categoria) => {
     if (selectedCategory === categoria) return "mb-2 text-white";
-    return "mb-2 text-stone-400 group-hover:text-[#2D5A27]";
+    return "mb-2 text-[#717973] group-hover:text-[#1B4332]";
   };
 
   return (
-    <div className="bg-[#FDFBF7] text-gray-900 min-h-screen flex flex-col font-sans">
+    <div className="bg-[#f3f4f5] text-[#012d1d] min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="flex-grow pb-16 pt-20">
-        <section className="relative min-h-[500px] flex items-center justify-center text-white overflow-hidden">
+      <main className="flex-grow pb-16">
+        {/* Hero Section */}
+        <section className="relative min-h-[460px] flex items-center justify-center text-white overflow-hidden">
           <img
             alt="Produtor rural em campo"
             className="absolute inset-0 w-full h-full object-cover"
@@ -97,28 +107,28 @@ export default function RespondeAgro() {
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(to bottom, rgba(45, 55, 30, 0.4), rgba(45, 55, 30, 0.8))",
+                "linear-gradient(to bottom, rgba(1, 45, 29, 0.5), rgba(27, 67, 50, 0.9))",
             }}
           ></div>
           <div className="relative z-10 container mx-auto px-4 text-center max-w-4xl pt-10">
-            <span className="inline-block bg-[#E8F5E9]/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-bold mb-6 tracking-wide border border-white/20 uppercase">
+            <span className="inline-block bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-bold mb-6 tracking-wide border border-white/20 uppercase">
               Espaço do Conhecimento
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight drop-shadow-sm">
               Como podemos ajudar você hoje?
             </h1>
-            <p className="text-xl md:text-2xl text-stone-100 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+            <p className="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
               Tire suas dúvidas com a autoridade técnica da Embrapa e leve mais
               produtividade para a sua lida no campo.
             </p>
 
             {/* Search Bar Conectada aos Estados */}
             <div className="relative max-w-3xl mx-auto">
-              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-stone-400">
+              <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-[#717973]">
                 <FaSearch size={20} />
               </div>
               <input
-                className="block w-full pl-16 pr-32 py-6 rounded-2xl border-none focus:ring-4 focus:ring-[#8BC34A]/50 text-stone-900 shadow-2xl text-lg placeholder:text-stone-400"
+                className="block w-full pl-16 pr-32 py-5 rounded-2xl border-none focus:ring-2 focus:ring-[#1B4332] text-[#012d1d] shadow-2xl text-base placeholder:text-[#717973] outline-none"
                 placeholder="Ex: época de plantio da soja..."
                 type="text"
                 value={searchTerm}
@@ -127,7 +137,7 @@ export default function RespondeAgro() {
               />
               <button
                 onClick={buscarDuvidas}
-                className="absolute right-3 top-3 bottom-3 bg-[#558B2F] text-white px-8 rounded-xl font-bold hover:bg-[#33691E] transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg flex items-center justify-center"
+                className="absolute right-3 top-3 bottom-3 bg-[#1B4332] text-white px-8 rounded-xl font-semibold hover:bg-[#012d1d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg flex items-center justify-center text-sm"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -140,10 +150,10 @@ export default function RespondeAgro() {
           </div>
         </section>
 
-        <div className="container mx-auto px-4 py-16">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
           {/* CategoryFilters Conectados aos Estados */}
           <section className="mb-16">
-            <h2 className="text-center text-stone-500 font-bold uppercase tracking-widest text-sm mb-8">
+            <h2 className="text-center text-[#717973] font-bold uppercase tracking-widest text-xs mb-8">
               Navegue por temas de interesse
             </h2>
             <div
@@ -155,7 +165,7 @@ export default function RespondeAgro() {
                 className={getCategoryClass("Todas")}
               >
                 <FaGlobeAmericas size={28} className={getIconClass("Todas")} />
-                <span className="font-bold text-sm">Todas</span>
+                <span className="font-semibold text-sm">Todas</span>
               </button>
 
               <button
@@ -163,7 +173,7 @@ export default function RespondeAgro() {
                 className={getCategoryClass("Plantio")}
               >
                 <FaSeedling size={28} className={getIconClass("Plantio")} />
-                <span className="font-bold text-sm">Plantio</span>
+                <span className="font-semibold text-sm">Plantio</span>
               </button>
 
               <button
@@ -171,7 +181,7 @@ export default function RespondeAgro() {
                 className={getCategoryClass("Solo")}
               >
                 <FaLeaf size={28} className={getIconClass("Solo")} />
-                <span className="font-bold text-sm">Solo</span>
+                <span className="font-semibold text-sm">Solo</span>
               </button>
 
               <button
@@ -179,7 +189,7 @@ export default function RespondeAgro() {
                 className={getCategoryClass("Clima")}
               >
                 <FaSun size={28} className={getIconClass("Clima")} />
-                <span className="font-bold text-sm">Clima</span>
+                <span className="font-semibold text-sm">Clima</span>
               </button>
 
               <button
@@ -187,7 +197,7 @@ export default function RespondeAgro() {
                 className={getCategoryClass("Pragas")}
               >
                 <FaBug size={28} className={getIconClass("Pragas")} />
-                <span className="font-bold text-sm">Pragas</span>
+                <span className="font-semibold text-sm">Pragas</span>
               </button>
             </div>
           </section>
@@ -199,14 +209,14 @@ export default function RespondeAgro() {
                 <span className="loading loading-spinner loading-lg text-success"></span>
               </div>
             ) : faqs.length === 0 ? (
-              <div className="text-center text-stone-500 py-10">
+              <div className="text-center text-[#717973] py-10">
                 Nenhuma dúvida encontrada para essa busca.
               </div>
             ) : (
               faqs.map((faq) => (
                 <article
                   key={faq.id}
-                  className="bg-white border-2 border-stone-100 rounded-3xl shadow-md hover:shadow-xl transition-all overflow-hidden"
+                  className="bg-white border border-[#e1e3e4] rounded-2xl shadow-sm hover:shadow-lg transition-all overflow-hidden"
                 >
                   <button
                     className="w-full text-left p-8 focus:outline-none flex justify-between items-center group"
@@ -218,11 +228,11 @@ export default function RespondeAgro() {
                       >
                         {faq.iconeTag} {faq.tag}
                       </span>
-                      <h3 className="text-xl md:text-2xl font-extrabold text-[#3E2723] leading-tight group-hover:text-[#2D5A27] transition-colors">
+                      <h3 className="text-xl md:text-2xl font-extrabold text-[#012d1d] leading-tight group-hover:text-[#1B4332] transition-colors">
                         {faq.pergunta}
                       </h3>
                     </div>
-                    <div className="bg-stone-50 p-2 rounded-full transition-colors group-hover:bg-[#E8F5E9] text-stone-400">
+                    <div className="bg-[#f3f4f5] p-2 rounded-full transition-colors group-hover:bg-[#e8f5e9] text-[#717973]">
                       <MdKeyboardArrowDown
                         size={32}
                         className={`transition-transform duration-300 ${activeFaq === faq.id ? "rotate-180" : ""}`}
@@ -232,25 +242,44 @@ export default function RespondeAgro() {
                   <div
                     className={`transition-all duration-500 ease-in-out overflow-hidden ${activeFaq === faq.id ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}
                   >
-                    <div className="px-8 pb-8 pt-0 text-[#5D4037] border-t border-stone-50">
-                      <p className="mb-6 text-lg leading-relaxed mt-4">
+                    <div className="px-8 pb-8 pt-0 text-[#414844] border-t border-[#e1e3e4]">
+                      <p className="mb-6 text-base leading-relaxed mt-4">
                         {faq.resposta}
                       </p>
-                      <div className="bg-[#FDFBF7] p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between border border-stone-100">
-                        <span className="text-sm font-bold text-stone-500 mb-4 md:mb-0 flex items-center">
+                      <div className="bg-[#f3f4f5] p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between border border-[#e1e3e4]">
+                        <span className="text-sm font-semibold text-[#3e6653] mb-4 md:mb-0 flex items-center">
                           <FaInfoCircle
                             size={20}
-                            className="mr-2 text-[#558B2F]"
+                            className="mr-2 text-[#1B4332]"
                           />{" "}
                           Esta orientação técnica foi útil para você?
                         </span>
                         <div className="flex space-x-3 w-full md:w-auto">
-                          <button className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-white border-2 border-green-100 text-[#2D5A27] font-bold hover:bg-green-500 hover:text-white hover:border-green-500 transition-all shadow-sm">
-                            <FaThumbsUp /> <span>Sim, ajudou</span>
-                          </button>
-                          <button className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-white border-2 border-red-50 text-stone-500 font-bold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm">
-                            <FaThumbsDown /> <span>Não muito</span>
-                          </button>
+                          {feedbackGiven[faq.id] ? (
+                            <div className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold ${
+                              feedbackGiven[faq.id] === 'yes'
+                                ? 'bg-[#e8f5e9] text-[#1B4332] border border-[#c8e6c9]'
+                                : 'bg-red-50 text-red-600 border border-red-200'
+                            }`}>
+                              {feedbackGiven[faq.id] === 'yes' ? <FaThumbsUp /> : <FaThumbsDown />}
+                              <span>Obrigado pelo feedback!</span>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setFeedbackGiven(prev => ({ ...prev, [faq.id]: 'yes' }))}
+                                className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-white border border-[#a5d0b8] text-[#3e6653] font-semibold hover:bg-[#3e6653] hover:text-white hover:border-[#3e6653] transition-all shadow-sm text-sm"
+                              >
+                                <FaThumbsUp /> <span>Sim, ajudou</span>
+                              </button>
+                              <button
+                                onClick={() => setFeedbackGiven(prev => ({ ...prev, [faq.id]: 'no' }))}
+                                className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-white border border-red-100 text-[#717973] font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm text-sm"
+                              >
+                                <FaThumbsDown /> <span>Não muito</span>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

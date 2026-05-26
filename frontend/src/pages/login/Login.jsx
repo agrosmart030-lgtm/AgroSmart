@@ -1,9 +1,8 @@
 import axios from "axios";
-import api from "../../services/api";
 import { useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import loginImg from "../../assets/cadastro.jpg";
 import eyeOff from "../../assets/eye-off.svg";
 import eye from "../../assets/eye.svg";
@@ -33,12 +32,12 @@ export default function Login() {
         senha: data.senha,
         recaptchaToken: recaptchaToken,
       };
-      const response = await api.post(
-        "/login",
+      const response = await axios.post(
+        "http://localhost:5001/api/login",
         payload
       );
       if (response.data.success) {
-        login(response.data.usuario);
+        login(response.data.usuario, response.data.token);
         if (response.data.tipo_usuario === "admin") {
           navigate("/admin");
         } else {
@@ -59,27 +58,42 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[#f3f4f5]">
       {/* Imagem lateral */}
-      <div
-        className="w-3/5 bg-cover bg-center shadow-md"
-        style={{ backgroundImage: `url(${loginImg})` }}
-      ></div>
+      <div className="hidden lg:block w-3/5 relative overflow-hidden">
+        <img
+          src={loginImg}
+          alt="Campo agrícola"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#012d1d]/60 to-transparent"></div>
+        <div className="absolute bottom-12 left-12 z-10 max-w-md">
+          <h2 className="text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
+            O Futuro do Agronegócio é Inteligente
+          </h2>
+          <p className="text-white/70 text-base">
+            Transformamos dados complexos em decisões de excelência para o campo.
+          </p>
+        </div>
+      </div>
 
       {/* Área do formulário */}
-      <div className="w-2/5 bg-[#2e7d32] flex justify-center items-center">
-        <div className="bg-white shadow-xl rounded-2xl p-8 w-[450px] h-[500px] flex flex-col">
+      <div className="w-full lg:w-2/5 flex justify-center items-center p-8 bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
+        <div className="bg-white shadow-sm rounded-2xl p-10 w-full max-w-[460px] border border-[#e1e3e4] flex flex-col">
           <div className="flex-1">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-extrabold mb-2 text-[#2e7d32]">
+            <div className="text-center mb-8">
+              <div className="w-12 h-12 bg-[#1B4332] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <img src="/Vector.svg" alt="AgroSmart" className="w-6 h-6 brightness-0 invert" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-[#012d1d] mb-1">
                 Bem-vindo de volta!
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[#717973]">
                 Acesse sua conta para continuar
               </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <InputField
                 label="E-mail"
                 name="email"
@@ -93,9 +107,18 @@ export default function Login() {
                 type={showSenha ? "text" : "password"}
                 register={register}
                 errors={errors}
+                showToggle={true}
                 isVisible={showSenha}
                 onToggle={() => setShowSenha((prev) => !prev)}
               />
+              <div className="text-right -mt-2">
+                <a
+                  href="/esqueci-senha"
+                  className="text-xs text-[#1B4332] hover:underline font-semibold transition-colors"
+                >
+                  Esqueci minha senha
+                </a>
+              </div>
               {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
               {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
                 <div className="flex justify-center mt-2">
@@ -107,7 +130,7 @@ export default function Login() {
               ) : null}
               <button
                 type="submit"
-                className="btn w-full mt-6 bg-[#ffc107] text-black hover:brightness-110"
+                className="w-full py-3 mt-2 bg-[#FFBA27] text-[#352300] rounded-xl font-bold text-sm hover:bg-[#e5a820] transition-colors shadow-sm"
                 disabled={
                   Boolean(import.meta.env.VITE_RECAPTCHA_SITE_KEY) &&
                   !recaptchaToken
@@ -118,14 +141,14 @@ export default function Login() {
             </form>
           </div>
 
-          <div className="text-center text-sm border-t pt-4 mt-4">
+          <div className="text-center text-sm border-t border-[#e1e3e4] pt-5 mt-6 text-[#414844]">
             Ainda não tem conta?{" "}
-            <Link
-              to="/cadastro"
-              className="text-primary hover:underline transition-all font-medium"
+            <a
+              href="/cadastro"
+              className="text-[#1B4332] hover:underline transition-all font-semibold"
             >
               Cadastre-se
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -147,28 +170,31 @@ const InputField = ({
 
   return (
     <div className="relative">
+      <label className="block text-sm font-semibold text-[#414844] mb-1.5">
+        {label}
+      </label>
       <input
         type={inputType}
         placeholder={label}
-        className={`input input-bordered w-full pr-10 ${
-          errors[name] ? "border-error" : ""
+        className={`w-full px-4 py-3 bg-[#f3f4f5] border rounded-xl text-[#012d1d] text-sm focus:ring-2 focus:ring-[#1B4332] focus:border-transparent outline-none transition-all placeholder:text-[#717973] ${
+          errors[name] ? "border-red-400" : "border-[#e1e3e4]"
         }`}
         {...register(name, { required: `${label} é obrigatório` })}
       />
       {showToggle && (
         <button
           type="button"
-          className="absolute right-2 top-2.5"
+          className="absolute right-3 top-[38px]"
           onClick={onToggle}
         >
           <img
             src={isVisible ? eye : eyeOff}
             alt="Toggle Senha"
-            className="w-5 h-5 opacity-70 hover:opacity-100 transition"
+            className="w-5 h-5 opacity-50 hover:opacity-100 transition"
           />
         </button>
       )}
-      <p className="text-error text-xs min-h-[1rem] mt-1">
+      <p className="text-red-500 text-xs min-h-[1rem] mt-1">
         {errors[name]?.message}
       </p>
     </div>
