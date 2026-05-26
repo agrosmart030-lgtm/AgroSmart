@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
 import pkg from "pg";
 import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
@@ -11,7 +10,7 @@ const app = express();
 const port = 5001;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 const pool = new Pool({
   user: process.env.PGUSER,
@@ -46,11 +45,11 @@ import { verifyToken } from "./utils/authMiddleware.js";
 
 app.use("/api/login", createLoginRoutes(pool));
 app.use("/api/registro", createRegistroRoutes(pool));
-app.use("/api", createVerificationRoutes(pool));
 
 // Rotas públicas de recuperação de senha — sem autenticação
 app.use("/api/forgot-password", createPasswordRoutes(pool));
 app.use("/api/reset-password", createResetPasswordRoute(pool));
+app.use("/api", createVerificationRoutes(pool));
 
 // Importa e usa as rotas de teste de conexão
 import dbTestRoutes from "./routes/dbTest.js";

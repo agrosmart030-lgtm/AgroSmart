@@ -1,15 +1,12 @@
 // src/pages/dashboard/Dashboard.jsx
-import React, { useState, useEffect, useMemo, useHistory } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import Footer from '../../componentes/footer';
 import Navbar from '../../componentes/navbar';
 import { useCotacoes } from '../../hooks/useCotacoes';
 import FilterBar from '../../componentes/dashboard/FilterBar';
-import CooperativaSelectorVertical from '../../componentes/dashboard/CooperativaSelectorVertical';
 import MarketHighlightsCard from '../../componentes/dashboard/MarketHighlightsCard';
-import PainelDeConteudo from '../../componentes/dashboard/PainelDeConteudo';
 import axios from 'axios';
 
 // Importando os logos diretamente
@@ -178,23 +175,10 @@ const StatCard = ({ title, value, subtitle, icon: Icon, gradient, isPositive, ch
   </div>
 );
 
-// Componente ChartCard para envolver os gráficos
-const ChartCard = ({ title, children, subtitle }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-    </div>
-    <div className="p-4">
-      {children}
-    </div>
-  </div>
-);
-
 const DashboardPage = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('cotacao');
-  const [currentGrain, setCurrentGrain] = useState('soja');
+  const [currentGrain] = useState('soja');
   const [timeRange, setTimeRange] = useState('6m');
   const [historyCoop, setHistoryCoop] = useState('LAR');
   const [historyGrao, setHistoryGrao] = useState('');
@@ -207,12 +191,10 @@ const DashboardPage = () => {
     setSearchTerm,
     filtroCooperativa,
     setFiltroCooperativa,
-    cooperativasDisponiveis,
     filteredData,
     limparFiltros,
     hasActiveFilter,
     cotacoes,
-    loading,
     error,
   } = useCotacoes(cooperativasData);
 
@@ -231,10 +213,7 @@ const DashboardPage = () => {
     }
   }, [location.search]);
 
-  // API base URL (Vite or CRA)
-  const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
-  const craEnv = typeof process !== 'undefined' ? process.env : undefined;
-  const apiBaseUrl = (viteEnv && viteEnv.VITE_API_URL) || (craEnv && craEnv.REACT_APP_API_URL) || 'http://localhost:5001/api';
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
   // Busca histórico quando aba Histórico estiver ativa ou filtros mudarem
   useEffect(() => {
@@ -316,15 +295,7 @@ const DashboardPage = () => {
   const chartData = historySeries.length > 0
     ? historySeries
     : (timeRange === '6m' ? historyData[currentGrain].data6m : historyData[currentGrain].data1y);
-  const last = chartData.length > 0 ? chartData[chartData.length - 1] : null;
-  const prev = chartData.length > 1 ? chartData[chartData.length - 2] : null;
-  const currentPrice = last ? Number(last.price) : 0;
-  const priceChange = last && prev && prev.price ? Number(((currentPrice - prev.price) / prev.price * 100).toFixed(2)) : 0;
-  const isPositiveChange = priceChange >= 0;
   const averagePrice = chartData.length > 0 ? (chartData.reduce((sum, item) => sum + Number(item.price), 0) / chartData.length).toFixed(2) : '0.00';
-  const currentUnit = historyData[currentGrain]?.unit || 'R$';
-  const currentColor = historyData[currentGrain]?.color || '#10B981';
-
   return (
     <div className="min-h-screen bg-[#f1f4f2] dark:bg-[#0b1410] flex flex-col relative transition-colors duration-300">
       
