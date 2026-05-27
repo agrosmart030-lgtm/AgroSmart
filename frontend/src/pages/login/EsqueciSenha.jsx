@@ -1,9 +1,9 @@
-import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import loginImg from "../../assets/cadastro.jpg";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import api from "../../services/api";
 
 export default function EsqueciSenha() {
   const {
@@ -19,8 +19,8 @@ export default function EsqueciSenha() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/forgot-password",
+      const response = await api.post(
+        "/api/forgot-password",
         { email: data.email }
       );
       if (response.data.success) {

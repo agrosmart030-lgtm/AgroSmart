@@ -14,17 +14,72 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const { Pool } = pkg;
 
 const app = express();
-const port = 5001;
+const PORT = process.env.PORT || 5001;
+const databaseUrl = process.env.DATABASE_URL?.trim();
+const pgHost = process.env.PGHOST?.trim();
+const pgSslMode = (process.env.PGSSL || "").trim().toLowerCase();
+const databaseUrlLower = databaseUrl?.toLowerCase() || "";
+const pgHostLower = pgHost?.toLowerCase() || "";
+const shouldUseSsl = Boolean(
+  ["1", "true", "require", "required"].includes(pgSslMode) ||
+    databaseUrlLower.includes("supabase") ||
+    databaseUrlLower.includes("sslmode=require") ||
+    pgHostLower.includes("supabase"),
+);
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  ...(process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+].map((origin) => origin.replace(/\/$/, ""));
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origem nao permitida pelo CORS: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.json({
+    name: "AgroSmart API",
+    status: "ok",
+    health: "/health",
+    docs: "/api-docs",
+  });
+});
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    databaseConfigured: Boolean(databaseUrl || pgHost),
+  });
+});
+
+const databaseConfig = databaseUrl
+  ? { connectionString: databaseUrl }
+  : {
+      user: process.env.PGUSER,
+      host: pgHost,
+      database: process.env.PGDATABASE,
+      password: process.env.PGPASSWORD,
+      port: process.env.PGPORT,
+    };
+
 const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
+  ...databaseConfig,
+  ssl: shouldUseSsl ? { rejectUnauthorized: false } : false,
 });
 
 pool.connect((err, client, release) => {
@@ -515,8 +570,8 @@ const swaggerDocument = {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
 
 // Garante que a tabela de cache de cotações exista

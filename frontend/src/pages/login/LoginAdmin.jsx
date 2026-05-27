@@ -1,9 +1,9 @@
-import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import background1 from "../../assets/background1.jpg";
 import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import api from "../../services/api";
 
 export default function LoginAdmin() {
   const [nome, setNome] = useState("");
@@ -14,8 +14,8 @@ export default function LoginAdmin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5001/api/login/admin",
+      const response = await api.post(
+        "/api/login/admin",
         {
           nome,
           senha,

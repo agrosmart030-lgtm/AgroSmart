@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
@@ -8,6 +7,7 @@ import eyeOff from "../../assets/eye-off.svg";
 import eye from "../../assets/eye.svg";
 import { useAuth } from "../../hooks/context/AuthContext";
 import { exibirAlertaErro } from "../../hooks/useAlert";
+import api from "../../services/api";
 
 export default function Login() {
   const {
@@ -32,8 +32,8 @@ export default function Login() {
         senha: data.senha,
         recaptchaToken: recaptchaToken,
       };
-      const response = await axios.post(
-        "http://localhost:5001/api/login",
+      const response = await api.post(
+        "/api/login",
         payload
       );
       if (response.data.success) {

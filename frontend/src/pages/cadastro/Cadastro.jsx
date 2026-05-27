@@ -9,6 +9,7 @@ import Step3 from "../../componentes/cadastro/step3";
 import VerificationStep from "../../componentes/cadastro/VerificationStep";
 import { exibirAlertaErro } from "../../hooks/useAlert";
 import ReCAPTCHA from "react-google-recaptcha";
+import api from "../../services/api";
 
 export default function cadastro() {
   const [canProceed, setCanProceed] = useState(false);
@@ -127,7 +128,7 @@ codigo_ibge: selectedCidade.id,
 
       try {
         // First, send verification email
-        const response = await axios.post('http://localhost:5001/api/send-verification-email', {
+        const response = await api.post('/api/send-verification-email', {
           email: userPayload.email,
           nome: userPayload.nome_completo
         });
@@ -375,8 +376,8 @@ codigo_ibge: selectedCidade.id,
 
                     console.log('Sending registration data:', completeUserData);
                     
-                    const response = await axios.post(
-                      'http://localhost:5001/api/registro',
+                    const response = await api.post(
+                      '/api/registro',
                       completeUserData,
                       {
                         validateStatus: (status) => status < 500 // Don't throw for 4xx errors
@@ -403,7 +404,7 @@ codigo_ibge: selectedCidade.id,
                   }
                 }}
                 onResendCode={async () => {
-                  const response = await axios.post('http://localhost:5001/api/send-verification-email', {
+                  const response = await api.post('/api/send-verification-email', {
                     email: userData.email,
                     nome: userData.nome_completo
                   });

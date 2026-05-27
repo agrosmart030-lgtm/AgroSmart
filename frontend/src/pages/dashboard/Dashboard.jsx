@@ -8,6 +8,7 @@ import { useCotacoes } from '../../hooks/useCotacoes';
 import FilterBar from '../../componentes/dashboard/FilterBar';
 import MarketHighlightsCard from '../../componentes/dashboard/MarketHighlightsCard';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 
 // Importando os logos diretamente
 import coamoLogo from '../../assets/coamo.png';
@@ -213,7 +214,6 @@ const DashboardPage = () => {
     }
   }, [location.search]);
 
-  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
   // Busca histórico quando aba Histórico estiver ativa ou filtros mudarem
   useEffect(() => {
@@ -227,7 +227,7 @@ const DashboardPage = () => {
         params.set('coop', historyCoop);
         params.set('period', timeRange);
         if (historyGrao) params.set('grao', historyGrao);
-        const resp = await axios.get(`${apiBaseUrl}/cotacoes/historico?${params.toString()}`, { signal: controller.signal });
+        const resp = await axios.get(`${API_URL}/cotacoes/historico?${params.toString()}`, { signal: controller.signal });
         const series = Array.isArray(resp.data?.series) ? resp.data.series : [];
         const mapped = series.map(pt => ({
           date: typeof pt.date === 'string' ? pt.date.substring(0, 10) : pt.date,
@@ -245,7 +245,7 @@ const DashboardPage = () => {
     }
     loadHistory();
     return () => controller.abort();
-  }, [activeTab, historyCoop, historyGrao, timeRange, apiBaseUrl]);
+  }, [activeTab, historyCoop, historyGrao, timeRange]);
   
   const [selectedCoopName, setSelectedCoopName] = useState(null);
 

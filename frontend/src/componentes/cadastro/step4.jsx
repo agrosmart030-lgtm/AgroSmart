@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../services/api";
 
 export default function Step4({ email, onVerificationSuccess, onResendCode }) {
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
@@ -75,7 +75,7 @@ export default function Step4({ email, onVerificationSuccess, onResendCode }) {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:5001/api/verify-2fa', {
+      const response = await api.post('/api/verify-2fa', {
         email,
         code
       });

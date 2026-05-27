@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: agrosmart-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.14.1
+      - key: PUPPETEER_CACHE_DIR
+        value: .cache/puppeteer
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: EMBRAPA_CONSUMER_KEY
+        sync: false
+      - key: EMBRAPA_CONSUMER_SECRET
+        sync: false
+      - key: COTACOES_REFRESH_MINUTES
+        value: "30"
