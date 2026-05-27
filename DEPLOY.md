@@ -1,47 +1,77 @@
 # Deploy AgroSmart
 
-Este guia prepara o AgroSmart para rodar com:
+Este guia coloca o AgroSmart online com:
 
-- Frontend: Vercel
-- Backend: Render
 - Banco de dados: Supabase PostgreSQL
+- Backend: Render
+- Frontend: Vercel
 
-Nao coloque senhas, tokens ou chaves reais no codigo. Use apenas variaveis de ambiente nas plataformas.
+Nunca coloque senhas, tokens ou chaves reais no codigo. Use apenas variaveis de ambiente nas plataformas.
 
-## Visao Geral
+## Arquivos de deploy
 
-- Backend principal: `backend/server.js`
-- Backend start script: `npm start` executa `node server.js`
-- Frontend: Vite em `frontend`
-- API do frontend: `VITE_API_URL`
-- Banco: PostgreSQL via `PGUSER`, `PGHOST`, `PGDATABASE`, `PGPASSWORD`, `PGPORT`
-- SSL do PostgreSQL e ativado automaticamente quando `PGHOST` aponta para Supabase.
+- `backend/supabase-schema.sql`: schema pronto para executar no SQL Editor do Supabase.
+- `render.yaml`: Blueprint do backend no Render.
+- `frontend/vercel.json`: rewrite para o React Router funcionar em rotas como `/login` e `/dashboard`.
+- `frontend/.npmrc`: garante instalacao com dependencias que ainda usam peer deps antigas.
+- `backend/.env.example`: exemplo de variaveis do backend.
+- `frontend/.env.example`: exemplo de variaveis do frontend.
 
-## A) Supabase
+## 1. Supabase
 
 1. Crie um projeto no Supabase.
-2. Abra o painel do projeto e va em `SQL Editor`.
-3. Execute o script de criacao de tabelas em `backend/templateBD.sql`.
-4. Importante: o arquivo `backend/templateBD.sql` possui um bloco `CREATE DATABASE agrosmart` no final. No Supabase esse bloco nao deve ser executado, porque o banco ja existe. Execute apenas os `CREATE TABLE` e remova/ignore o bloco `CREATE DATABASE`.
-5. Se quiser popular dados iniciais, execute `backend/insertValues.sql`.
-6. Cuidado com `backend/insertValues.sql`: ele contem dados de exemplo. Para producao, revise os usuarios/admins de exemplo e use senhas reais apenas via fluxo seguro da aplicacao.
-7. Copie os dados de conexao do Supabase para usar no Render:
-   - `PGUSER`
-   - `PGHOST`
-   - `PGDATABASE`
-   - `PGPASSWORD`
-   - `PGPORT`
+2. Abra `SQL Editor`.
+3. Execute o arquivo `backend/supabase-schema.sql`.
+4. Opcional: execute `backend/insertValues.sql` somente para dados de teste.
 
-## B) Render
+Importante: `insertValues.sql` possui dados demonstrativos e senhas de exemplo. Para producao, prefira criar usuarios pelo fluxo da aplicacao e criar admins com credenciais reais seguras.
 
-1. Crie um `Web Service` no Render.
-2. Conecte sua conta do GitHub.
-3. Selecione o repositorio `AgroSmart`.
-4. Configure:
+Depois copie a connection string do Postgres em `Connect`.
+
+Use uma destas opcoes:
+
+- `Session Pooler`, recomendada se a conexao direta falhar por IPv6.
+- `Direct Connection`, se o ambiente aceitar IPv6.
+
+No Render, a forma mais simples e colar essa string em `DATABASE_URL`.
+
+## 2. Render
+
+Opção A: Blueprint
+
+1. No Render, crie um novo Blueprint.
+2. Selecione o repositorio `AgroSmart`.
+3. O Render deve detectar `render.yaml`.
+4. Preencha as variaveis marcadas como secretas.
+
+Opção B: Web Service manual
+
+1. Crie um `Web Service`.
+2. Conecte o repositorio `AgroSmart`.
+3. Configure:
    - Root Directory: `backend`
+   - Runtime: `Node`
    - Build Command: `npm install`
    - Start Command: `npm start`
-5. Configure as variaveis de ambiente do backend:
+   - Health Check Path: `/health`
+
+Variaveis de ambiente do backend:
+
+```text
+NODE_ENV=production
+NODE_VERSION=24.14.1
+PUPPETEER_CACHE_DIR=.cache/puppeteer
+DATABASE_URL=
+FRONTEND_URL=
+JWT_SECRET=
+EMAIL_USER=
+EMAIL_PASSWORD=
+EMBRAPA_CONSUMER_KEY=
+EMBRAPA_CONSUMER_SECRET=
+COTACOES_REFRESH_MINUTES=30
+```
+
+Se preferir nao usar `DATABASE_URL`, configure estas variaveis em vez dela:
 
 ```text
 PGUSER=
@@ -49,74 +79,66 @@ PGHOST=
 PGDATABASE=
 PGPASSWORD=
 PGPORT=5432
-JWT_SECRET=
-EMAIL_USER=
-EMAIL_PASSWORD=
-EMBRAPA_CONSUMER_KEY=
-EMBRAPA_CONSUMER_SECRET=
-COTACOES_REFRESH_MINUTES=30
-FRONTEND_URL=http://localhost:5173
+PGSSL=require
 ```
 
-6. Faca o deploy.
-7. Teste a conexao com o banco:
+Teste o backend depois do deploy:
 
 ```text
+https://SUA-URL-DO-RENDER/health
 https://SUA-URL-DO-RENDER/test/db-status
 ```
 
-8. Copie a URL final do Render. Exemplo:
+Guarde a URL final do Render, por exemplo:
 
 ```text
 https://agrosmart-backend.onrender.com
 ```
 
-## C) Vercel
+## 3. Vercel
 
 1. Crie um projeto na Vercel.
-2. Conecte sua conta do GitHub.
-3. Selecione o repositorio `AgroSmart`.
-4. Configure:
+2. Conecte o repositorio `AgroSmart`.
+3. Configure:
    - Root Directory: `frontend`
    - Framework Preset: `Vite`
    - Build Command: `npm run build`
    - Output Directory: `dist`
-5. Configure as variaveis de ambiente do frontend:
+4. Configure as variaveis de ambiente:
 
 ```text
 VITE_API_URL=https://SUA-URL-DO-RENDER
 VITE_RECAPTCHA_SITE_KEY=
 ```
 
-6. Faca o deploy.
-7. Copie a URL final da Vercel. Exemplo:
+Depois do deploy, guarde a URL final da Vercel, por exemplo:
 
 ```text
 https://agrosmart.vercel.app
 ```
 
-## D) Pos-deploy
+## 4. Pos-deploy
 
-1. Pegue a URL final da Vercel.
-2. No Render, altere `FRONTEND_URL` para a URL da Vercel:
+1. Volte ao Render.
+2. Altere `FRONTEND_URL` para a URL final da Vercel.
+3. Se tiver previews da Vercel, adicione URLs separadas por virgula:
 
 ```text
-FRONTEND_URL=https://SUA-URL-DA-VERCEL
+FRONTEND_URL=https://agrosmart.vercel.app,https://agrosmart-git-main-time.vercel.app
 ```
 
-3. Faca redeploy do backend no Render.
-4. Teste as paginas principais:
-   - Home
-   - Login
-   - Cadastro
-   - Dashboard
-   - Clima
-   - Cotacoes
-   - FAQ
-   - Responde Agro
-   - Areas administrativas, se aplicavel
+4. Faca redeploy do backend.
+5. Teste:
+   - `/`
+   - `/login`
+   - `/cadastro`
+   - `/dashboard`
+   - `/clima`
+   - `/faq`
+   - `/duvidas`
+   - rotas administrativas, se aplicavel
 
-## Desenvolvimento Local
+## Desenvolvimento local
 
 Backend:
 
@@ -143,10 +165,3 @@ Frontend: http://localhost:5173
 Backend:  http://localhost:5001
 Banco:    Supabase ou PostgreSQL local configurado no backend/.env
 ```
-
-## Notas de seguranca
-
-- `.env` esta no `.gitignore`.
-- Nunca versione `backend/.env`, `frontend/.env` ou arquivos com credenciais reais.
-- `VITE_API_URL` deve apontar para a URL base do backend no Render, sem necessidade de adicionar `/api`.
-- O backend aceita CORS local (`http://localhost:5173`, `http://localhost:3000`) e a URL de producao em `FRONTEND_URL`.

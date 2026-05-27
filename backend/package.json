@@ -19,5 +19,9 @@
     "swagger-ui": "^5.29.0",
     "swagger-ui-express": "^5.0.1"
   },
+  "engines": {
+    "node": ">=20.0.0 <25.0.0",
+    "npm": ">=10.0.0"
+  },
   "type": "module"
 }

@@ -10,17 +10,17 @@ router.get("/db-status", async (req, res) => {
     if (result && result.rows.length > 0) {
       res.json({
         connected: true,
-        message: "Conectado ao banco PostgreSQL local!",
+        message: "Conectado ao banco PostgreSQL!",
       });
     } else {
       res
         .status(500)
-        .json({ connected: false, message: "Sem resposta do banco local." });
+        .json({ connected: false, message: "Sem resposta do banco." });
     }
   } catch (err) {
     res.status(500).json({
       connected: false,
-      message: "Erro ao conectar ao banco local.",
+      message: "Erro ao conectar ao banco.",
       error: err.message,
     });
   }
