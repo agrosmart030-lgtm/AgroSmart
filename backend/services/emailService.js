@@ -38,9 +38,10 @@ export const sendEmail = async ({ to, subject, html, text, attachments }) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
       throw new Error("Configuracao de e-mail ausente.");
     }
+    const from = process.env.EMAIL_FROM || `"AgroSmart" <${process.env.EMAIL_USER}>`;
 
     const info = await createTransporter().sendMail({
-      from: `"AgroSmart" <${process.env.EMAIL_USER}>`,
+      from,
       to,
       subject,
       html,
