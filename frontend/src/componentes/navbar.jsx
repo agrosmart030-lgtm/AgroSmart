@@ -5,6 +5,7 @@ import { exibirAlertaConfirmacao } from "../hooks/useAlert";
 import { useState } from "react";
 import AccessibilityMenu from "./acessibilidade";
 import { useAccessibility } from "../contexts/AccessibilityContext";
+import agrosmartLogo from "../../Vector.svg";
 import folhaLogo from "../assets/folha.svg";
 
 export default function Navbar() {
@@ -35,7 +36,7 @@ export default function Navbar() {
       <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
         {/* Logo - Dynamically swaps between Vector and Folha based on Dark Mode */}
         <Link to="/" className="flex items-center gap-2">
-          <img src={darkMode ? folhaLogo : "/Vector.svg"} alt="AgroSmart" className="w-8 h-8 relative z-10" />
+          <img src={darkMode ? folhaLogo : agrosmartLogo} alt="AgroSmart" className="w-8 h-8 relative z-10" />
           <span className="text-xl font-extrabold tracking-tighter text-emerald-950 dark-theme-text-inverter">AgroSmart</span>
         </Link>
 

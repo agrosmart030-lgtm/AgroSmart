@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import agrosmartLogo from "../../../Vector.svg";
 import loginImg from "../../assets/cadastro.jpg";
 import eyeOff from "../../assets/eye-off.svg";
 import eye from "../../assets/eye.svg";
@@ -83,7 +84,7 @@ export default function Login() {
           <div className="flex-1">
             <div className="text-center mb-8">
               <div className="w-12 h-12 bg-[#1B4332] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <img src="/Vector.svg" alt="AgroSmart" className="w-6 h-6 brightness-0 invert" />
+                <img src={agrosmartLogo} alt="AgroSmart" className="w-6 h-6 brightness-0 invert" />
               </div>
               <h2 className="text-2xl font-extrabold text-[#012d1d] mb-1">
                 Bem-vindo de volta!
