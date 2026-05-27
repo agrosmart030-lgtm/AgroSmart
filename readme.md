@@ -111,6 +111,7 @@ CAPTCHA_ENABLED=false
 RECAPTCHA_SECRET_KEY=
 EMAIL_USER=
 EMAIL_PASSWORD=
+EMAIL_FROM=
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
@@ -179,6 +180,7 @@ O envio de código por e-mail é obrigatório no cadastro. Configure SMTP real n
 ```text
 EMAIL_USER=seu_email@gmail.com
 EMAIL_PASSWORD=sua_senha_de_app
+EMAIL_FROM="AgroSmart" <seu_email@gmail.com>
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
@@ -186,7 +188,20 @@ SMTP_REQUIRE_TLS=true
 EMAIL_TIMEOUT_MS=30000
 ```
 
-Para Gmail, use uma senha de app da conta e não a senha normal. O backend remove espaços da senha de app automaticamente, porque o Google costuma exibir o código em grupos. Se o Render ainda apresentar `Connection timeout`, use um provedor transacional com SMTP/HTTP API, como SendGrid, Mailgun, Resend ou Brevo.
+Para Gmail, use uma senha de app da conta e não a senha normal. O backend remove espaços da senha de app automaticamente, porque o Google costuma exibir o código em grupos.
+
+No plano free do Render, conexões SMTP em `465` e `587` podem retornar timeout. Nesse caso, mantenha a verificação obrigatória e use um provedor com SMTP alternativo, por exemplo SendGrid na porta `2525`:
+
+```text
+EMAIL_USER=apikey
+EMAIL_PASSWORD=sua_sendgrid_api_key
+EMAIL_FROM="AgroSmart" <remetente_verificado@seudominio.com>
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_REQUIRE_TLS=true
+EMAIL_TIMEOUT_MS=30000
+```
 
 ## Execução
 
