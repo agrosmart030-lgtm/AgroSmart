@@ -109,9 +109,13 @@ PGSSL=
 JWT_SECRET=
 CAPTCHA_ENABLED=false
 RECAPTCHA_SECRET_KEY=
-
 EMAIL_USER=
 EMAIL_PASSWORD=
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_REQUIRE_TLS=true
+EMAIL_TIMEOUT_MS=30000
 
 EMBRAPA_CONSUMER_KEY=
 EMBRAPA_CONSUMER_SECRET=
@@ -167,6 +171,22 @@ VITE_RECAPTCHA_SITE_KEY=sua_site_key_do_google
 ```
 
 A site key fica somente no frontend. A secret key fica somente no backend. Login e cadastro enviam `recaptchaToken`; o backend valida esse token na API do Google antes de aceitar a operação quando o CAPTCHA está habilitado.
+
+## Verificação de E-mail
+
+O envio de código por e-mail é obrigatório no cadastro. Configure SMTP real no backend:
+
+```text
+EMAIL_USER=seu_email@gmail.com
+EMAIL_PASSWORD=sua_senha_de_app
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_REQUIRE_TLS=true
+EMAIL_TIMEOUT_MS=30000
+```
+
+Para Gmail, use uma senha de app da conta e não a senha normal. O backend remove espaços da senha de app automaticamente, porque o Google costuma exibir o código em grupos. Se o Render ainda apresentar `Connection timeout`, use um provedor transacional com SMTP/HTTP API, como SendGrid, Mailgun, Resend ou Brevo.
 
 ## Execução
 
