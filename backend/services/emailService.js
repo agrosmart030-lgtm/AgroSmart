@@ -1,46 +1,61 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-// Create a transporter for sending emails with more robust config
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+const toBoolean = (value, fallback = false) => {
+  if (value === undefined || value === null || value === "") return fallback;
+  return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
+};
 
-/**
- * Sends an email using the centralized transporter
- * @param {Object} options - Email options (to, subject, html)
- * @returns {Promise<Object>} - The result of sendMail
- */
-export const sendEmail = async ({ to, subject, html }) => {
+function createTransporter() {
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = toBoolean(process.env.SMTP_SECURE, port === 465);
+  const requireTls = toBoolean(process.env.SMTP_REQUIRE_TLS, !secure);
+  const timeout = Number(process.env.EMAIL_TIMEOUT_MS || 30000);
+  const emailPassword = process.env.EMAIL_PASSWORD?.replace(/\s+/g, "");
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port,
+    secure,
+    requireTLS: requireTls,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: emailPassword,
+    },
+    connectionTimeout: timeout,
+    greetingTimeout: timeout,
+    socketTimeout: timeout,
+    tls: {
+      minVersion: "TLSv1.2",
+    },
+  });
+}
+
+export const sendEmail = async ({ to, subject, html, text, attachments }) => {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      throw new Error('Configuração de e-mail ausente (.env)');
+      throw new Error("Configuracao de e-mail ausente.");
     }
 
-    const mailOptions = {
+    const info = await createTransporter().sendMail({
       from: `"AgroSmart" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
-    };
+      text,
+      attachments,
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email enviado com sucesso:', info.messageId);
+    console.log("Email enviado com sucesso:", info.messageId);
     return { success: true, info };
   } catch (error) {
-    console.error('ERRO DETALHADO NO ENVIO DE EMAIL:', error);
-    return { 
-      success: false, 
+    console.error("ERRO DETALHADO NO ENVIO DE EMAIL:", error);
+    return {
+      success: false,
       error: error.message,
-      code: error.code // helps identify SMTP errors like EAUTH
+      code: error.code,
     };
   }
 };
