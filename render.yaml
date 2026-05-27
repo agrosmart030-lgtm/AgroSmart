@@ -39,6 +39,8 @@ services:
         value: "false"
       - key: SMTP_REQUIRE_TLS
         value: "true"
+      - key: SMTP_FAMILY
+        value: "4"
       - key: EMAIL_TIMEOUT_MS
         value: "30000"
       - key: EMBRAPA_CONSUMER_KEY
