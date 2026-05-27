@@ -10,6 +10,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Faq from "./pages/faq/Faq";
 import Home from "./pages/home/Home";
 import Login from "./pages/login/Login";
+import NotFound from "./pages/notfound/NotFound";
 import EsqueciSenha from "./pages/login/EsqueciSenha";
 import RedefinirSenha from "./pages/login/RedefinirSenha";
 // import LoginAdmin from "./pages/login/LoginAdmin";
@@ -93,6 +94,7 @@ function App() {
               <LogsAdmin />
             </ProtectedRoute>
           } />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
       </AccessibilityProvider>
