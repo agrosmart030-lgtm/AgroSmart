@@ -49,7 +49,7 @@ const UsersTable = ({
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="min-w-[720px] w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -136,7 +136,7 @@ const UsersTable = ({
               )} de ${totalUsers} usuários`}
         </span>
         {/* Paginação */}
-        <div className="flex items-center space-x-1">
+        <div className="flex flex-wrap justify-center gap-1">
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}

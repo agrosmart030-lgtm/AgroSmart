@@ -79,14 +79,14 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border">
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
               {tabela.nomeExibicao}
             </h3>
             <p className="text-sm text-gray-600">{tabela.descricao}</p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={aoAtualizar}
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -102,8 +102,8 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="mb-4 flex justify-between items-center">
+      <div className="p-4 sm:p-6">
+        <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <p className="text-sm text-gray-600">
             {totalRegistros === 0
               ? "Nenhum registro encontrado"
@@ -115,18 +115,18 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
                   totalRegistros
                 )} de ${totalRegistros} registros`}
           </p>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
             <Search className="h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="Buscar na tabela..."
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-[720px] w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 {tabela.colunas.map((coluna, index) => (
@@ -180,7 +180,7 @@ const VisualizadorTabela = ({ tabela, dados, carregando, aoAtualizar }) => {
         </div>
 
         {totalPages > 1 && (
-          <div className="mt-4 flex justify-center items-center space-x-1">
+          <div className="mt-4 flex flex-wrap justify-center items-center gap-1">
             <button
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}

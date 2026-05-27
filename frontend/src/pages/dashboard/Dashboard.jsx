@@ -311,10 +311,10 @@ const DashboardPage = () => {
             </div>
             
             {/* Elegant Pill Tabs */}
-            <div className="flex bg-white/60 dark:bg-[#14241d]/60 p-1 rounded-full shadow-sm border border-gray-200 dark:border-white/10">
+            <div className="flex w-full sm:w-auto overflow-x-auto bg-white/60 dark:bg-[#14241d]/60 p-1 rounded-full shadow-sm border border-gray-200 dark:border-white/10">
               <button
                 onClick={() => setActiveTab('cotacao')}
-                className={`px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 ${activeTab === 'cotacao' 
+                className={`flex-1 sm:flex-none px-5 sm:px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 whitespace-nowrap ${activeTab === 'cotacao'
                   ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20' 
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
@@ -322,7 +322,7 @@ const DashboardPage = () => {
               </button>
               <button
                 onClick={() => setActiveTab('historico')}
-                className={`px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 ${activeTab === 'historico' 
+                className={`flex-1 sm:flex-none px-5 sm:px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 whitespace-nowrap ${activeTab === 'historico'
                   ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20' 
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
@@ -386,9 +386,9 @@ const DashboardPage = () => {
                 
                 <div className="lg:col-span-3">
                   <div className="flex flex-col gap-6">
-                    <div className="flex justify-between items-end">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4">
                       <div>
-                        <h1 className="text-4xl font-extrabold text-primary tracking-tighter leading-none font-manrope">Cotações de Hoje</h1>
+                        <h1 className="text-3xl sm:text-4xl font-extrabold text-primary tracking-tighter leading-none font-manrope">Cotações de Hoje</h1>
                         <p className="text-on-surface-variant mt-2 font-medium">Dados atualizados de {cooperativaParaExibir?.nome || 'Mercado'}.</p>
                       </div>
                       <div className="hidden sm:flex bg-surface-container rounded-full p-1 gap-1">
@@ -494,14 +494,15 @@ const DashboardPage = () => {
 
               {/* Historical Minimalist Table Section */}
               <section className="mt-8">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                   <h2 className="text-2xl font-extrabold text-primary dark:text-[#c0edd4] tracking-tight font-manrope">Histórico de Fechamento</h2>
                   <button className="text-primary dark:text-[#a5d0b9] font-bold text-sm flex items-center gap-1 hover:underline">
                       Ver relatório completo <span className="material-symbols-outlined text-sm">arrow_outward</span>
                   </button>
                 </div>
                 <div className="bg-white dark:bg-[#14241d] rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-200 dark:border-white/10">
-                  <table className="w-full text-left border-collapse">
+                  <div className="overflow-x-auto">
+                  <table className="min-w-[760px] w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-[#0a120e] border-b border-gray-200 dark:border-white/10">
                         <th className="px-6 md:px-8 py-4 font-bold text-xs text-gray-600 dark:text-gray-400 tracking-widest uppercase">DATA</th>
@@ -553,6 +554,7 @@ const DashboardPage = () => {
                       )}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </section>
             </div>

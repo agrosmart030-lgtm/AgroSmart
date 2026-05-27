@@ -64,6 +64,9 @@ app.get("/health", (_req, res) => {
     status: "ok",
     uptime: process.uptime(),
     databaseConfigured: Boolean(databaseUrl || pgHost),
+    captchaEnabled: ["1", "true", "yes", "on"].includes(
+      String(process.env.CAPTCHA_ENABLED || "").toLowerCase(),
+    ),
   });
 });
 
@@ -569,6 +572,21 @@ const swaggerDocument = {
 };
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use((err, _req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  console.error("Erro nao tratado na API:", err.message || err);
+  return res.status(err.status || 500).json({
+    success: false,
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Erro interno no servidor."
+        : err.message || "Erro interno no servidor.",
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

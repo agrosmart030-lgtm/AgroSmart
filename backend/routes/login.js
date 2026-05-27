@@ -1,22 +1,48 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { verifyCaptchaIfEnabled } from "../utils/captcha.js";
+
+async function compareStoredPassword(inputPassword, storedPassword) {
+  if (!storedPassword) return false;
+  if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+    return bcrypt.compare(inputPassword, storedPassword);
+  }
+  return inputPassword === storedPassword;
+}
 
 export default function createLoginRoutes(pool) {
   const router = Router();
 
   // Login
-    router.post("/", async (req, res) => {
+    router.post("/", verifyCaptchaIfEnabled, async (req, res) => {
       const { email, senha } = req.body;
+      const normalizedEmail = String(email || "").trim().toLowerCase();
+
+      if (!normalizedEmail || !senha) {
+        return res.status(400).json({
+          success: false,
+          message: "E-mail e senha sao obrigatorios.",
+        });
+      }
+
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({
+          success: false,
+          message: "Configuracao de autenticacao indisponivel.",
+        });
+      }
+
       try {
         const result = await pool.query(
           "SELECT * FROM tb_usuario WHERE email = $1",
-          [email]
+          [normalizedEmail]
         );
         if (result.rows.length === 0) {
           const adminResult = await pool.query(
             "SELECT * FROM tb_admin WHERE email = $1",
-            [email]
+            [normalizedEmail]
           );
           if (adminResult.rows.length === 0) {
             return res
@@ -24,8 +50,7 @@ export default function createLoginRoutes(pool) {
               .json({ success: false, message: "Credenciais inválidas" });
           }
           const admin = adminResult.rows[0];
-          // const senhaCorreta = await bcrypt.compare(senha, admin.senha);
-          const senhaCorreta = senha === admin.senha;
+          const senhaCorreta = await compareStoredPassword(senha, admin.senha);
           if (!senhaCorreta) {
             return res
               .status(401)
@@ -37,7 +62,7 @@ export default function createLoginRoutes(pool) {
 
           const token = jwt.sign(
             { id: admin.id, email: admin.email, tipo_usuario: "admin" },
-            process.env.JWT_SECRET,
+            jwtSecret,
             { expiresIn: "24h" }
           );
 
@@ -57,14 +82,19 @@ export default function createLoginRoutes(pool) {
 
         const token = jwt.sign(
           { id: usuario.id, email: usuario.email, tipo_usuario: usuario.tipo_usuario },
-          process.env.JWT_SECRET,
+          jwtSecret,
           { expiresIn: "24h" }
         );
 
         delete usuario.senha;
+        usuario.nome = usuario.nome || usuario.nome_completo;
         res.json({ success: true, usuario, tipo_usuario: usuario.tipo_usuario, token });
       } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({
+          success: false,
+          message: "Erro interno ao realizar login.",
+          ...(process.env.NODE_ENV !== "production" ? { error: error.message } : {}),
+        });
       }
     });
 

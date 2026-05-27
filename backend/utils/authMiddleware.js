@@ -1,6 +1,13 @@
 import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      message: "Configuracao de autenticacao indisponivel.",
+    });
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

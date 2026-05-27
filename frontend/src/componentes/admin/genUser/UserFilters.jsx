@@ -8,8 +8,8 @@ const UserFilters = ({ filters, onFiltersChange }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex-1 min-w-64">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-stretch sm:items-center">
+        <div className="flex-1 min-w-0 sm:min-w-64">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <input
@@ -22,9 +22,9 @@ const UserFilters = ({ filters, onFiltersChange }) => {
           </div>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             value={filters.tipoUsuario}
             onChange={(e) => handleFilterChange("tipoUsuario", e.target.value)}
           >
@@ -35,9 +35,9 @@ const UserFilters = ({ filters, onFiltersChange }) => {
           </select>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             value={filters.status}
             onChange={(e) => handleFilterChange("status", e.target.value)}
           >
@@ -47,7 +47,7 @@ const UserFilters = ({ filters, onFiltersChange }) => {
           </select>
         </div>
 
-        <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        <button className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
           <Filter className="h-4 w-4" />
           <span>Filtrar</span>
         </button>

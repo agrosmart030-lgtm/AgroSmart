@@ -1,4 +1,10 @@
-import { FaUniversalAccess, FaUser, FaChevronDown } from "react-icons/fa";
+import {
+  FaUniversalAccess,
+  FaUser,
+  FaChevronDown,
+  FaBars,
+  FaTimes,
+} from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/context/AuthContext";
 import { exibirAlertaConfirmacao } from "../hooks/useAlert";
@@ -15,6 +21,31 @@ export default function Navbar() {
   const isAdmin = user?.tipo_usuario === "admin";
 
   const [showAccessibilityMenu, setShowAccessibilityMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const adminLinks = [
+    { to: "/admin", label: "Dashboard" },
+    { to: "/admin/GenUser", label: "Usuários" },
+    { to: "/admin/TabelasBanco", label: "Tabelas" },
+    { to: "/admin/FaqAdmin", label: "FAQ Admin" },
+    { to: "/admin/EstatisticasAdmin", label: "Estatísticas" },
+    { to: "/admin/NovoAdmin", label: "Novo Admin" },
+    { to: "/admin/LogsAdmin", label: "Logs" },
+  ];
+
+  const userLinks = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/clima", label: "Clima" },
+    { to: "/faq", label: "Suporte do Sistema" },
+    { to: "/duvidas", label: "Consultoria Técnica" },
+  ];
+
+  const publicLinks = [
+    { to: "/faq", label: "Suporte do Sistema" },
+    { to: "/duvidas", label: "Consultoria Técnica" },
+  ];
+
+  const mobileLinks = isAdmin ? adminLinks : isLoggedIn ? userLinks : publicLinks;
 
   const toggleAccessibilityMenu = () => {
     setShowAccessibilityMenu(!showAccessibilityMenu);
@@ -33,7 +64,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 w-full z-50 bg-white shadow-sm border-b border-gray-100">
-      <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center px-4 sm:px-8 py-4 max-w-7xl mx-auto">
         {/* Logo - Dynamically swaps between Vector and Folha based on Dark Mode */}
         <Link to="/" className="flex items-center gap-2">
           <img src={darkMode ? folhaLogo : agrosmartLogo} alt="AgroSmart" className="w-8 h-8 relative z-10" />
@@ -87,7 +118,7 @@ export default function Navbar() {
         </div>
 
         {/* Right side: Accessibility + Auth */}
-        <div className="flex items-center space-x-6 font-manrope text-sm font-semibold tracking-tight">
+        <div className="flex items-center gap-2 sm:gap-6 font-manrope text-xs sm:text-sm font-semibold">
           <div className="relative">
             <button
               onClick={toggleAccessibilityMenu}
@@ -127,8 +158,35 @@ export default function Navbar() {
               </ul>
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => setShowMobileMenu((value) => !value)}
+            className="md:hidden text-emerald-800/80 hover:text-amber-600 transition-colors duration-300 p-2"
+            aria-label={showMobileMenu ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={showMobileMenu}
+          >
+            {showMobileMenu ? <FaTimes size={18} /> : <FaBars size={18} />}
+          </button>
         </div>
       </div>
+
+      {showMobileMenu && (
+        <div className="md:hidden border-t border-gray-100 bg-white">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
+            {mobileLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setShowMobileMenu(false)}
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-50 hover:text-amber-700 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

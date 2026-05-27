@@ -1,0 +1,581 @@
+\documentclass[
+  12pt,
+  oneside,
+  a4paper,
+  brazil
+]{abntex2}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{babel}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+\usepackage{geometry}
+
+\geometry{left=3cm,right=2cm,top=3cm,bottom=2cm}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.2cm}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  pdftitle={AgroSmart+ - Documentação Técnica e Acadêmica},
+  pdfauthor={Equipe AgroSmart+}
+}
+
+\titulo{AgroSmart+: Plataforma Web para Apoio ao Agronegócio}
+\autor{Equipe AgroSmart+}
+\local{Brasil}
+\data{2026}
+\instituicao{%
+  Instituição de Ensino\\
+  Curso de Desenvolvimento de Sistemas ou área correlata
+}
+\tipotrabalho{Documentação técnica e acadêmica}
+\preambulo{Documentação técnica e acadêmica apresentada como material de avaliação do projeto AgroSmart+, contemplando análise de requisitos, arquitetura, implementação, segurança, responsividade, banco de dados, integração com APIs externas e planejamento de evolução.}
+
+\begin{document}
+\selectlanguage{brazil}
+\frenchspacing
+
+\imprimircapa
+\imprimirfolhaderosto
+
+\begin{resumo}
+O AgroSmart+ é uma plataforma web acadêmica voltada ao agronegócio, desenvolvida com frontend em React e Vite, backend em Node.js com Express e banco de dados PostgreSQL. A solução reúne funcionalidades de cadastro e autenticação de usuários, consulta de cotações agrícolas, previsão do tempo, FAQ, consulta técnica baseada na API RespondeAgro da Embrapa, recursos de acessibilidade e painel administrativo. Esta documentação apresenta a análise técnica do projeto, sua arquitetura, requisitos funcionais e não funcionais, modelagem de dados, fluxos de autenticação, funcionamento do reCAPTCHA, integrações externas, segurança, responsividade, limitações atuais e possibilidades de evolução. O objetivo é fornecer uma visão completa do sistema em nível adequado para banca avaliadora, mantendo fidelidade ao estado real do código-fonte.
+
+\textbf{Palavras-chave}: Agronegócio. Desenvolvimento Web. React. Node.js. PostgreSQL. Sistemas acadêmicos.
+\end{resumo}
+
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+\textual
+
+\chapter{Introdução}
+
+O agronegócio brasileiro depende cada vez mais de informações digitais para tomada de decisão. Dados sobre clima, preço de commodities, localização, histórico de cotações, suporte técnico e gestão de perfis costumam estar distribuídos em serviços distintos, o que dificulta o acesso rápido e organizado por produtores, empresas e cooperativas.
+
+O AgroSmart+ surge nesse contexto como uma plataforma web acadêmica que centraliza funcionalidades úteis ao setor agrícola. O sistema combina uma interface moderna e responsiva com uma API própria, persistência em PostgreSQL e integração com serviços externos. A proposta do projeto é demonstrar domínio de desenvolvimento full stack, organização de arquitetura, segurança básica, documentação técnica e adequação visual ao domínio do agronegócio.
+
+\section{Identificação do Projeto}
+
+\begin{table}[h]
+\centering
+\caption{Identificação do projeto}
+\begin{tabularx}{\textwidth}{@{}lY@{}}
+\toprule
+\textbf{Item} & \textbf{Descrição} \\
+\midrule
+Nome & AgroSmart+ \\
+Área & Desenvolvimento Web aplicado ao agronegócio \\
+Tipo & Projeto acadêmico full stack \\
+Frontend & React, Vite e Tailwind CSS \\
+Backend & Node.js, Express e PostgreSQL \\
+Banco de dados & PostgreSQL local ou Supabase PostgreSQL \\
+Deploy previsto & Vercel, Render e Supabase \\
+Público & Agricultores, empresários agrícolas, cooperativas e administradores \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Justificativa}
+
+A justificativa do projeto está relacionada à necessidade de reunir, em uma única solução, informações agrícolas relevantes que normalmente exigem navegação por diferentes plataformas. O AgroSmart+ contribui para o aprendizado acadêmico ao integrar conceitos de frontend, backend, banco de dados, autenticação, consumo de APIs externas, segurança, responsividade e documentação formal.
+
+\section{Objetivo Geral}
+
+Desenvolver uma plataforma web para apoio ao agronegócio, permitindo cadastro de usuários, autenticação segura, consulta de cotações, clima, perguntas frequentes, informações técnicas e administração de dados do sistema.
+
+\section{Objetivos Específicos}
+
+\begin{itemize}
+  \item Implementar cadastro de usuários por tipo de perfil.
+  \item Autenticar usuários e administradores com JWT.
+  \item Proteger senhas de usuários com bcrypt.
+  \item Consultar e exibir cotações agrícolas em dashboard responsivo.
+  \item Integrar consulta climática via OpenWeatherMap.
+  \item Integrar consulta técnica via API RespondeAgro da Embrapa.
+  \item Disponibilizar painel administrativo para usuários, FAQ e tabelas.
+  \item Garantir compatibilidade com deploy em Vercel, Render e Supabase.
+  \item Documentar variáveis de ambiente, arquitetura, requisitos e segurança.
+\end{itemize}
+
+\section{Problema Identificado}
+
+Usuários do agronegócio precisam acessar dados de mercado, clima e suporte técnico de forma rápida, mas frequentemente encontram informações dispersas. Essa fragmentação aumenta o tempo de consulta e dificulta decisões operacionais. O projeto aborda esse problema por meio de uma interface única, com autenticação e módulos especializados.
+
+\section{Público-alvo}
+
+O público-alvo do AgroSmart+ inclui produtores rurais, empresários do setor agrícola, cooperativas e administradores da plataforma. No contexto acadêmico, o projeto também se destina a avaliadores, professores e estudantes interessados em arquitetura full stack.
+
+\section{Escopo do Sistema}
+
+O escopo atual contempla frontend web, API backend, banco PostgreSQL, autenticação JWT, cadastro com verificação de e-mail, painel de cotações, clima, FAQ, RespondeAgro, painel administrativo e página 404 personalizada. Não fazem parte do escopo atual: aplicativo mobile nativo, pagamento, BI avançado, auditoria completa, multi-tenant corporativo e automação agrícola em tempo real.
+
+\chapter{Tecnologias Utilizadas}
+
+\begin{longtable}{@{}p{0.22\textwidth}p{0.70\textwidth}@{}}
+\caption{Tecnologias do projeto}\\
+\toprule
+\textbf{Categoria} & \textbf{Tecnologias e uso} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Categoria} & \textbf{Tecnologias e uso} \\
+\midrule
+\endhead
+Frontend & React 19, Vite, React Router, Tailwind CSS, DaisyUI, Axios, React Hook Form, Lucide React, React Icons, Recharts e SweetAlert2. \\
+Backend & Node.js, Express 5, CORS, dotenv, PostgreSQL com \texttt{pg}, bcrypt, jsonwebtoken, Nodemailer, Axios, Swagger UI e Puppeteer. \\
+Banco & PostgreSQL, com compatibilidade prevista para Supabase PostgreSQL. \\
+Autenticação & JWT para sessões e bcrypt para hash de senhas de usuários. \\
+CAPTCHA & Google reCAPTCHA, com site key no frontend e secret key no backend. \\
+APIs externas & IBGE Localidades, OpenWeatherMap, Embrapa RespondeAgro, Gmail/Nodemailer e páginas de cooperativas para cotações. \\
+Deploy & Vercel para frontend, Render para backend e Supabase para banco. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Arquitetura do Sistema}
+
+A arquitetura do AgroSmart+ é separada em três camadas principais: frontend, backend e banco de dados. O frontend é responsável pela experiência do usuário, navegação, formulários e visualização dos dados. O backend concentra regras de negócio, autenticação, acesso ao banco, validações, envio de e-mails, integração com APIs externas e scrapers. O banco PostgreSQL persiste usuários, perfis, cotações, FAQ, administradores e informações auxiliares.
+
+\section{Visão Geral da Arquitetura}
+
+\begin{verbatim}
+Usuário
+  |
+  v
+Frontend React/Vite
+  |
+  v
+Backend Node.js/Express
+  |
+  v
+PostgreSQL/Supabase
+  |
+  +--> IBGE Localidades
+  +--> OpenWeatherMap
+  +--> Embrapa RespondeAgro
+  +--> Gmail/Nodemailer
+  +--> Scrapers de cotações
+\end{verbatim}
+
+% Inserir aqui um diagrama real de arquitetura, se disponível.
+% Exemplo:
+% \begin{figure}[h]
+% \centering
+% \includegraphics[width=0.9\textwidth]{figuras/arquitetura.png}
+% \caption{Arquitetura geral do AgroSmart+}
+% \end{figure}
+
+\section{Estrutura de Pastas}
+
+\begin{verbatim}
+AgroSmart/
+  backend/
+    routes/
+    services/
+    utils/
+    server.js
+    supabase-schema.sql
+  frontend/
+    src/
+      assets/
+      componentes/
+      contexts/
+      hooks/
+      pages/
+      services/
+  docs/
+    agrosmart-documentacao.tex
+  render.yaml
+  DEPLOY.md
+  package.json
+  readme.md
+\end{verbatim}
+
+\chapter{Requisitos}
+
+\section{Requisitos Funcionais}
+
+\begin{longtable}{@{}p{0.12\textwidth}p{0.72\textwidth}p{0.12\textwidth}@{}}
+\caption{Requisitos funcionais}\\
+\toprule
+\textbf{Código} & \textbf{Descrição} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Descrição} & \textbf{Status} \\
+\midrule
+\endhead
+RF01 & Permitir cadastro de usuários com perfis de agricultor, empresário e cooperativa. & Implementado \\
+RF02 & Validar CPF e CNPJ no cadastro. & Implementado \\
+RF03 & Enviar código de verificação por e-mail durante o cadastro. & Implementado \\
+RF04 & Autenticar usuários com e-mail e senha. & Implementado \\
+RF05 & Gerar token JWT após login válido. & Implementado \\
+RF06 & Proteger rotas internas no frontend. & Implementado \\
+RF07 & Proteger rotas sensíveis no backend com JWT. & Implementado \\
+RF08 & Consultar cotações agrícolas e histórico. & Implementado \\
+RF09 & Consultar previsão do tempo. & Implementado \\
+RF10 & Permitir envio de mensagens pelo FAQ. & Implementado \\
+RF11 & Consultar informações técnicas pela Embrapa. & Implementado \\
+RF12 & Listar e alterar status de usuários no painel administrativo. & Implementado \\
+RF13 & Consultar tabelas do banco pelo painel administrativo. & Implementado \\
+RF14 & Criar novos administradores pelo painel. & Previsto \\
+RF15 & Exibir estatísticas administrativas avançadas. & Em evolução \\
+\bottomrule
+\end{longtable}
+
+\section{Requisitos Não Funcionais}
+
+\begin{longtable}{@{}p{0.12\textwidth}p{0.72\textwidth}p{0.12\textwidth}@{}}
+\caption{Requisitos não funcionais}\\
+\toprule
+\textbf{Código} & \textbf{Descrição} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Descrição} & \textbf{Status} \\
+\midrule
+\endhead
+RNF01 & Interface responsiva para desktop, tablet e mobile. & Implementado \\
+RNF02 & Separação entre frontend, backend e banco. & Implementado \\
+RNF03 & Uso de variáveis de ambiente para credenciais. & Implementado \\
+RNF04 & Senhas de usuários protegidas com bcrypt. & Implementado \\
+RNF05 & Autenticação baseada em JWT. & Implementado \\
+RNF06 & Compatibilidade com Supabase, Render e Vercel. & Implementado \\
+RNF07 & Tratamento de erros sem expor stack trace em produção. & Implementado \\
+RNF08 & Documentação técnica e acadêmica. & Implementado \\
+RNF09 & Testes automatizados abrangentes. & Previsto \\
+\bottomrule
+\end{longtable}
+
+\section{Regras de Negócio}
+
+\begin{itemize}
+  \item Cada usuário deve possuir um tipo: agricultor, empresário ou cooperativa.
+  \item O e-mail do usuário deve ser único.
+  \item Agricultores e empresários podem informar CPF.
+  \item Empresários e cooperativas podem informar CNPJ.
+  \item Senhas de usuários comuns devem ser armazenadas com hash.
+  \item Usuários autenticados recebem JWT com validade limitada.
+  \item Rotas administrativas exigem autenticação.
+  \item O reCAPTCHA somente é obrigatório quando \texttt{CAPTCHA\_ENABLED=true}.
+\end{itemize}
+
+\chapter{Casos de Uso e Histórias de Usuário}
+
+\section{Casos de Uso}
+
+\begin{longtable}{@{}p{0.16\textwidth}p{0.24\textwidth}p{0.52\textwidth}@{}}
+\caption{Casos de uso principais}\\
+\toprule
+\textbf{Código} & \textbf{Ator} & \textbf{Caso de uso} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Ator} & \textbf{Caso de uso} \\
+\midrule
+\endhead
+UC01 & Visitante & Criar conta informando dados pessoais, localização e perfil. \\
+UC02 & Usuário & Fazer login e acessar dashboard protegido. \\
+UC03 & Usuário & Consultar cotações de grãos e histórico. \\
+UC04 & Usuário & Consultar clima por cidade ou localização. \\
+UC05 & Usuário & Enviar dúvida pelo FAQ. \\
+UC06 & Usuário & Consultar base técnica da Embrapa. \\
+UC07 & Administrador & Listar usuários e alterar status. \\
+UC08 & Administrador & Consultar tabelas do banco. \\
+\bottomrule
+\end{longtable}
+
+\section{Histórias de Usuário}
+
+\begin{itemize}
+  \item Como agricultor, quero consultar cotações para acompanhar oportunidades de venda.
+  \item Como empresário agrícola, quero visualizar preços e clima para apoiar decisões comerciais.
+  \item Como cooperativa, quero acessar dados do sistema para acompanhar usuários e demandas.
+  \item Como administrador, quero gerenciar status de usuários para manter a integridade da plataforma.
+  \item Como visitante, quero criar uma conta de forma guiada e segura.
+\end{itemize}
+
+\chapter{Modelagem do Banco de Dados}
+
+O banco de dados utiliza PostgreSQL. O arquivo \texttt{backend/supabase-schema.sql} contém o schema principal, com tabelas para usuários, perfis, grãos, relações usuário-grão, cotações, FAQ e administradores.
+
+\section{Modelo Entidade-Relacionamento}
+
+As principais entidades são: usuário, agricultor, empresário, cooperativa, grão, usuário-grão, histórico de cotação, FAQ, administrador, cache de cotações e histórico de cotações coletadas por scrapers.
+
+% Inserir aqui uma imagem real do MER/DER, se disponível.
+% Exemplo:
+% \begin{figure}[h]
+% \centering
+% \includegraphics[width=0.95\textwidth]{figuras/mer-agrosmart.png}
+% \caption{Modelo Entidade-Relacionamento do AgroSmart+}
+% \end{figure}
+
+\section{Dicionário de Dados}
+
+\begin{longtable}{@{}p{0.22\textwidth}p{0.22\textwidth}p{0.42\textwidth}@{}}
+\caption{Dicionário de dados resumido}\\
+\toprule
+\textbf{Tabela} & \textbf{Campo} & \textbf{Descrição} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Tabela} & \textbf{Campo} & \textbf{Descrição} \\
+\midrule
+\endhead
+tb\_usuario & id & Identificador primário do usuário. \\
+tb\_usuario & nome\_completo & Nome completo informado no cadastro. \\
+tb\_usuario & email & E-mail único usado para login. \\
+tb\_usuario & senha & Hash da senha do usuário. \\
+tb\_usuario & tipo\_usuario & Perfil: agricultor, empresario ou cooperativa. \\
+tb\_usuario & status & Estado ativo ou inativo. \\
+tb\_agricultor & usuario\_id & Referência ao usuário. \\
+tb\_agricultor & cpf & CPF do agricultor. \\
+tb\_agricultor & nome\_propriedade & Nome da propriedade rural. \\
+tb\_empresario & cnpj & CNPJ da empresa, quando informado. \\
+tb\_cooperativa & nome\_cooperativa & Nome da cooperativa. \\
+tb\_grao & nome & Nome do grão. \\
+tb\_usuario\_grao & tipo\_relacao & Relação cultiva ou interesse. \\
+tb\_faq & mensagem & Mensagem enviada pelo formulário de suporte. \\
+tb\_admin & email & E-mail do administrador. \\
+tb\_cotacoes\_cache & dados & JSON com cotações cacheadas por provedor. \\
+tb\_cotacoes\_historico & preco & Preço coletado para histórico de mercado. \\
+\bottomrule
+\end{longtable}
+
+\chapter{Descrição das Principais Telas}
+
+\section{Home}
+
+A página inicial apresenta a identidade visual do AgroSmart+, com paleta verde, elementos agrícolas, chamadas para login/cadastro, apresentação de soluções e parceiros. Ela serve como referência visual para páginas públicas, incluindo a página 404.
+
+\section{Cadastro}
+
+A tela de cadastro é organizada em etapas. O usuário informa dados pessoais, estado, cidade, tipo de perfil e campos específicos. O sistema pode exigir reCAPTCHA quando habilitado e envia código de verificação por e-mail antes de finalizar o registro.
+
+\section{Login}
+
+A tela de login autentica usuários e administradores. O frontend envia e-mail, senha e token do reCAPTCHA quando configurado. O backend valida credenciais, gera JWT e retorna os dados do usuário sem senha.
+
+\section{Dashboard de Cotações}
+
+O dashboard exibe cooperativas, grãos, preços atuais, filtros e histórico. A tela foi estruturada para funcionar em desktop e telas menores, com tabelas em contêineres roláveis quando necessário.
+
+\section{Clima}
+
+A página de clima consulta a API OpenWeatherMap. A chave é configurada por \texttt{VITE\_OPENWEATHER\_API\_KEY}. Caso a chave não esteja presente, a interface informa erro amigável sem quebrar a aplicação.
+
+\section{FAQ e RespondeAgro}
+
+O FAQ permite envio de mensagens ao banco. A tela RespondeAgro consulta a API da Embrapa por meio do backend, evitando que credenciais sensíveis fiquem expostas no frontend.
+
+\section{Painel Administrativo}
+
+O painel administrativo possui dashboard, gerenciamento de usuários, consulta de tabelas, mensagens do FAQ e páginas previstas para estatísticas, logs e criação de administradores. Algumas funcionalidades administrativas ainda estão em evolução.
+
+\section{Página 404}
+
+A página 404 segue a identidade visual da Home, reutilizando navbar, footer, fundo agrícola e uma ilustração de colheitadeira com falha. Ela é carregada por rota fallback do React Router.
+
+% Inserir aqui prints reais das telas.
+% Exemplo:
+% \includegraphics[width=\textwidth]{figuras/home.png}
+
+\chapter{Fluxos do Sistema}
+
+\section{Fluxo de Cadastro e Login}
+
+No cadastro, o usuário preenche os dados em etapas, seleciona estado/cidade, escolhe perfil e informa campos específicos. Se o CAPTCHA estiver habilitado, o frontend obtém um token do Google reCAPTCHA. O backend valida esse token antes de aceitar o registro. Após a verificação de e-mail, o usuário é persistido em transação no PostgreSQL.
+
+No login, o usuário envia e-mail, senha e, quando aplicável, token de reCAPTCHA. O backend consulta usuário ou administrador, valida senha, gera JWT e retorna o token para o frontend.
+
+\section{Fluxo de Autenticação JWT}
+
+\begin{enumerate}
+  \item O usuário realiza login.
+  \item O backend valida as credenciais.
+  \item O backend gera JWT com identificador, e-mail e tipo de usuário.
+  \item O frontend armazena token e dados do usuário no \texttt{localStorage}.
+  \item O cliente Axios envia \texttt{Authorization: Bearer <token>}.
+  \item O middleware do backend valida o token nas rotas protegidas.
+\end{enumerate}
+
+\section{Funcionamento do reCAPTCHA}
+
+O reCAPTCHA é controlado por variáveis de ambiente. A site key é pública e usada no frontend. A secret key é privada e usada apenas pelo backend. Quando \texttt{CAPTCHA\_ENABLED=false}, o backend não exige token, permitindo desenvolvimento local sem travamento.
+
+\chapter{Integrações Externas}
+
+\begin{longtable}{@{}p{0.25\textwidth}p{0.62\textwidth}p{0.10\textwidth}@{}}
+\caption{Integrações externas}\\
+\toprule
+\textbf{Integração} & \textbf{Uso} & \textbf{Status} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Integração} & \textbf{Uso} & \textbf{Status} \\
+\midrule
+\endhead
+IBGE Localidades & Estados e municípios no cadastro. & Ativa \\
+OpenWeatherMap & Clima atual e previsão. & Ativa \\
+Embrapa RespondeAgro & Consulta técnica pelo backend. & Ativa \\
+Gmail/Nodemailer & Envio de códigos de verificação e senha. & Ativa \\
+Google reCAPTCHA & Proteção de login e cadastro quando habilitada. & Ativa \\
+Scrapers de cotações & Coleta de preços por provedores como COAMO, LAR e Granos. & Em evolução \\
+\bottomrule
+\end{longtable}
+
+\chapter{Segurança do Sistema}
+
+O AgroSmart+ aplica medidas básicas de segurança compatíveis com o estágio acadêmico do projeto:
+
+\begin{itemize}
+  \item Senhas de usuários comuns são armazenadas com bcrypt.
+  \item JWT usa segredo vindo de \texttt{JWT\_SECRET}.
+  \item Rotas protegidas usam middleware de autenticação.
+  \item Arquivos \texttt{.env} são ignorados pelo Git.
+  \item reCAPTCHA é validado no backend quando habilitado.
+  \item Chaves sensíveis de Embrapa, e-mail e banco ficam no backend.
+  \item Erros internos não expõem stack trace em produção.
+  \item CORS restringe origens por \texttt{FRONTEND\_URL}.
+\end{itemize}
+
+Como limitação, administradores legados podem existir com senha demonstrativa em scripts de exemplo. Para produção real, recomenda-se migrar administradores para bcrypt, aplicar autorização granular de papel administrativo, rate limiting, auditoria, logs estruturados e rotação de credenciais.
+
+\chapter{Responsividade e Acessibilidade}
+
+O frontend utiliza Tailwind CSS e componentes responsivos. Foram observados e corrigidos pontos de risco visual em autenticação, navbar, tabelas e painéis administrativos. A navbar possui menu mobile, formulários evitam altura fixa em dispositivos pequenos e tabelas usam rolagem horizontal controlada quando não há espaço suficiente.
+
+O projeto também possui recursos de acessibilidade, como menu de acessibilidade, modo escuro, alto contraste, ajuste de fonte e suporte a comandos de voz. Esses recursos devem ser testados continuamente para garantir contraste, foco visível e navegação por teclado.
+
+\chapter{Testes e Validação}
+
+O projeto possui scripts de execução, build e lint em \texttt{package.json}. A validação recomendada inclui:
+
+\begin{itemize}
+  \item \texttt{npm run install:all}
+  \item \texttt{npm run dev}
+  \item \texttt{npm run build}
+  \item \texttt{npm run lint}
+  \item \texttt{GET /health}
+  \item \texttt{GET /test/db-status}
+  \item Teste manual de cadastro com \texttt{CAPTCHA\_ENABLED=false}
+  \item Teste manual de cadastro com \texttt{CAPTCHA\_ENABLED=true}
+  \item Teste manual de login, dashboard, clima, FAQ, painel admin e página 404
+\end{itemize}
+
+Até o momento não foi identificada suíte automatizada completa de testes. A criação desses testes é recomendada como evolução.
+
+\chapter{Deploy}
+
+O deploy previsto usa Supabase para banco, Render para backend e Vercel para frontend.
+
+\section{Supabase}
+
+Executar \texttt{backend/supabase-schema.sql} no SQL Editor. Configurar a connection string no Render como \texttt{DATABASE\_URL}. Em cenários com SSL, usar connection string com SSL ou \texttt{PGSSL=require}.
+
+\section{Render}
+
+O arquivo \texttt{render.yaml} define serviço web Node com diretório raiz \texttt{backend}, build \texttt{npm install}, start \texttt{npm start} e health check em \texttt{/health}. Variáveis sensíveis devem ser configuradas no painel do Render.
+
+\section{Vercel}
+
+O frontend deve ser configurado com diretório raiz \texttt{frontend}, build \texttt{npm run build} e output \texttt{dist}. O arquivo \texttt{frontend/vercel.json} garante rewrite para rotas do React Router.
+
+\chapter{Cronograma}
+
+\begin{table}[h]
+\centering
+\caption{Cronograma acadêmico sugerido}
+\begin{tabularx}{\textwidth}{@{}lYl@{}}
+\toprule
+\textbf{Etapa} & \textbf{Atividade} & \textbf{Status} \\
+\midrule
+1 & Levantamento de requisitos e definição do escopo. & Concluído \\
+2 & Desenvolvimento do frontend e identidade visual. & Concluído \\
+3 & Desenvolvimento do backend e banco de dados. & Concluído \\
+4 & Integrações externas e cotações. & Em evolução \\
+5 & Responsividade e ajustes de segurança. & Concluído \\
+6 & Documentação técnica e acadêmica. & Concluído \\
+7 & Testes automatizados e hardening para produção. & Previsto \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{Resultados Obtidos}
+
+O AgroSmart+ apresenta uma aplicação web full stack com identidade visual coerente ao agronegócio, autenticação, cadastro por perfil, dashboard de cotações, clima, FAQ, consulta técnica e administração. A estrutura permite implantação em serviços modernos de nuvem e está documentada para continuidade acadêmica.
+
+\chapter{Limitações Atuais}
+
+\begin{itemize}
+  \item Nem todas as rotas estão documentadas no Swagger.
+  \item Algumas páginas administrativas são demonstrativas ou estão em evolução.
+  \item A edição completa de perfil ainda requer persistência ampliada.
+  \item Não há suíte automatizada de testes abrangente.
+  \item Autorização administrativa pode ser refinada para checagem de papel em todas as ações sensíveis.
+  \item Scrapers dependem da estrutura de páginas externas, podendo exigir manutenção.
+\end{itemize}
+
+\chapter{Trabalhos Futuros}
+
+\begin{itemize}
+  \item Implementar CRUD completo de FAQ administrativo.
+  \item Criar cadastro seguro de administradores com bcrypt.
+  \item Adicionar testes automatizados de frontend, backend e banco.
+  \item Expandir Swagger/OpenAPI.
+  \item Implementar logs estruturados e auditoria.
+  \item Adicionar rate limiting e proteção contra abuso.
+  \item Criar diagramas reais de arquitetura e MER.
+  \item Aprimorar analytics e estatísticas administrativas.
+\end{itemize}
+
+\chapter{Conclusão}
+
+O AgroSmart+ atende à proposta acadêmica de uma plataforma full stack aplicada ao agronegócio, demonstrando integração entre frontend moderno, backend Express, banco PostgreSQL, autenticação JWT, validações, integrações externas e preocupação com responsividade e documentação. Apesar de existirem limitações compatíveis com o estágio do projeto, a base atual é consistente e permite evolução para cenários mais robustos de uso, avaliação e demonstração.
+
+\postextual
+
+\chapter*{Referências}
+\addcontentsline{toc}{chapter}{Referências}
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. \textbf{NBR 14724: Informação e documentação: trabalhos acadêmicos: apresentação}. Rio de Janeiro: ABNT, 2011.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. \textbf{NBR 6023: Informação e documentação: referências: elaboração}. Rio de Janeiro: ABNT, 2018.
+
+NODE.JS. \textbf{Node.js documentation}. Disponível em: \url{https://nodejs.org/}. Acesso em: 27 maio 2026.
+
+REACT. \textbf{React documentation}. Disponível em: \url{https://react.dev/}. Acesso em: 27 maio 2026.
+
+EXPRESS. \textbf{Express documentation}. Disponível em: \url{https://expressjs.com/}. Acesso em: 27 maio 2026.
+
+POSTGRESQL. \textbf{PostgreSQL documentation}. Disponível em: \url{https://www.postgresql.org/docs/}. Acesso em: 27 maio 2026.
+
+SUPABASE. \textbf{Supabase documentation}. Disponível em: \url{https://supabase.com/docs}. Acesso em: 27 maio 2026.
+
+VERCEL. \textbf{Vercel documentation}. Disponível em: \url{https://vercel.com/docs}. Acesso em: 27 maio 2026.
+
+RENDER. \textbf{Render documentation}. Disponível em: \url{https://render.com/docs}. Acesso em: 27 maio 2026.
+
+GOOGLE. \textbf{reCAPTCHA documentation}. Disponível em: \url{https://developers.google.com/recaptcha}. Acesso em: 27 maio 2026.
+
+EMBRAPA. \textbf{APIs e serviços digitais da Embrapa}. Disponível em: \url{https://www.embrapa.br/}. Acesso em: 27 maio 2026.
+
+\end{document}
