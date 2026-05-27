@@ -9,17 +9,20 @@ const toBoolean = (value, fallback = false) => {
 };
 
 function createTransporter() {
+  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = Number(process.env.SMTP_PORT || 587);
   const secure = toBoolean(process.env.SMTP_SECURE, port === 465);
   const requireTls = toBoolean(process.env.SMTP_REQUIRE_TLS, !secure);
   const timeout = Number(process.env.EMAIL_TIMEOUT_MS || 30000);
+  const family = Number(process.env.SMTP_FAMILY || 4);
   const emailPassword = process.env.EMAIL_PASSWORD?.replace(/\s+/g, "");
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    host: smtpHost,
     port,
     secure,
     requireTLS: requireTls,
+    family: [4, 6].includes(family) ? family : 4,
     auth: {
       user: process.env.EMAIL_USER,
       pass: emailPassword,
@@ -29,6 +32,7 @@ function createTransporter() {
     socketTimeout: timeout,
     tls: {
       minVersion: "TLSv1.2",
+      servername: smtpHost,
     },
   });
 }
