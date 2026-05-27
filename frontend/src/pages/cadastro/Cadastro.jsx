@@ -12,14 +12,15 @@ import ReCAPTCHA from "react-google-recaptcha";
 import api from "../../services/api";
 
 export default function cadastro() {
+  const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const captchaEnabled = Boolean(captchaSiteKey);
   const [canProceed, setCanProceed] = useState(false);
   const [estados, setEstados] = useState([]);
-  const [cidades, setCidades] = useState([]);
   const [step, setStep] = useState(1);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [captchaValido, setCaptchaValido] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
 
@@ -35,26 +36,12 @@ export default function cadastro() {
     shouldUnregister: false,
   });
 
-  const tipo = watch("tipo");
-
   useEffect(() => {
     axios
       .get("https://servicodados.ibge.gov.br/api/v1/localidades/estados")
       .then((res) => setEstados(res.data))
       .catch((err) => console.error("Erro ao carregar estados:", err));
   }, []);
-
-  const handleEstadoChange = (e) => {
-    const uf = e.target.value;
-    if (uf) {
-      axios
-        .get(
-          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
-        )
-        .then((res) => setCidades(res.data))
-        .catch((err) => console.error("Erro ao carregar cidades:", err));
-    }
-  };
 
   const nextStep = async () => {
     const isFormValid = await trigger();
@@ -69,7 +56,7 @@ export default function cadastro() {
     const valid = await trigger();
     if (!valid) return;
     
-    if (step === 3 && !captchaValido) {
+    if (step === 3 && captchaEnabled && !captchaValido) {
       exibirAlertaErro("Valide o reCAPTCHA antes de prosseguir");
       return;
     }
@@ -103,10 +90,11 @@ export default function cadastro() {
         nome_completo: data.nome,
         email: data.email,
         senha: data.senha,
-cidade: selectedCidade.nome,
+        cidade: selectedCidade.nome,
         estado: selectedEstado.nome,
         tipo_usuario: tipo,
-codigo_ibge: selectedCidade.id,
+        codigo_ibge: selectedCidade.id,
+        recaptchaToken,
       };
 
       // Add type-specific fields
@@ -148,53 +136,10 @@ codigo_ibge: selectedCidade.id,
     }
   };
 
-  function calcularProgresso(data) {
-    // Campos obrigatórios comuns
-    const campos = [
-      "nome",
-      "email",
-      "senha",
-      "confirmarSenha",
-      "estado",
-      "cidade",
-      "tipo",
-    ];
-
-    // Campos obrigatórios por tipo
-    if (data.tipo === "Agricultor") {
-      campos.push("cpf", "nomePropriedade", "areaCultivada", "graos");
-    }
-    if (data.tipo === "Empresário") {
-      campos.push("cpf", "nomeComercio", "cnpj", "graos");
-    }
-    if (data.tipo === "Cooperativa") {
-      campos.push("cnpj", "nomeCooperativa", "areaAtuacao");
-    }
-
-    // Conta preenchidos
-    const preenchidos = campos.filter((campo) => {
-      const valor = data[campo];
-      return valor !== undefined && valor !== null && valor !== "";
-    }).length;
-
-    return Math.round((preenchidos / campos.length) * 100);
-  }
-
-  const data = watch();
-  const progresso = calcularProgresso(data);
   const progressPercentage = step === 1 ? 0 : step === 2 ? 33 : step === 3 ? 66 : 100;
 
-  // Add this effect to log form values for debugging
-  useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      console.log('Form values:', value);
-      console.log('Updated field:', name);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch]);
-
   return (
-    <div className="flex h-screen bg-[#f3f4f5]">
+    <div className="flex min-h-screen bg-[#f3f4f5]">
       {showToast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
           <div className="bg-[#e8f5e9] text-[#1B4332] font-semibold text-sm px-6 py-3 rounded-xl border border-[#c8e6c9] shadow-lg">
@@ -222,8 +167,8 @@ codigo_ibge: selectedCidade.id,
       </div>
 
       {/* Área do formulário */}
-      <div className="w-full lg:w-2/5 flex justify-center items-center p-6 overflow-y-auto bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
-        <div className="bg-white shadow-sm rounded-2xl p-8 w-full max-w-[490px] border border-[#e1e3e4] flex flex-col justify-between">
+      <div className="w-full lg:w-2/5 flex justify-center items-center p-4 sm:p-6 overflow-y-auto bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
+        <div className="bg-white shadow-sm rounded-2xl p-5 sm:p-8 w-full max-w-[490px] border border-[#e1e3e4] flex flex-col justify-between">
           <h2 className="text-xl font-bold mb-5 text-center text-[#012d1d]">
             Realize seu cadastro abaixo!
           </h2>
@@ -280,8 +225,6 @@ codigo_ibge: selectedCidade.id,
                 register={register}
                 errors={errors}
                 estados={estados}
-                cidades={cidades}
-                handleEstadoChange={handleEstadoChange}
                 watch={watch}
                 setCanProceed={setCanProceed}
                 setValue={setValue}
@@ -303,13 +246,26 @@ codigo_ibge: selectedCidade.id,
                   register={register}
                   errors={errors}
                 />
-                <div className="flex justify-center">
-                  <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                    onChange={() => setCaptchaValido(true)}
-                    onExpired={() => setCaptchaValido(false)}
-                  />
-                </div>
+                {captchaEnabled ? (
+                  <div className="flex justify-center min-h-[78px] overflow-hidden">
+                    <ReCAPTCHA
+                      sitekey={captchaSiteKey}
+                      onChange={(token) => {
+                        setRecaptchaToken(token);
+                        setCaptchaValido(Boolean(token));
+                      }}
+                      onExpired={() => {
+                        setRecaptchaToken(null);
+                        setCaptchaValido(false);
+                      }}
+                      onErrored={() => {
+                        setRecaptchaToken(null);
+                        setCaptchaValido(false);
+                      }}
+                      className="origin-center scale-[0.88] sm:scale-100"
+                    />
+                  </div>
+                ) : null}
               </>
             )}
             {step === 4 && userData && (
@@ -399,6 +355,10 @@ codigo_ibge: selectedCidade.id,
                     }
                   } catch (error) {
                     console.error("Registration error:", error);
+                    if (error.response?.data?.message?.toLowerCase().includes("recaptcha")) {
+                      setRecaptchaToken(null);
+                      setCaptchaValido(false);
+                    }
                     exibirAlertaErro("Erro", error.message || "Falha ao finalizar o cadastro. Tente novamente.");
                     setStep(3);
                   }

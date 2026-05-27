@@ -98,19 +98,21 @@ router.post('/verify-code', (req, res) => {
 
     // If we get here, the code is valid
     verificationCodes.delete(email);
-    
-    // Generate a JWT token for the verification
-    const token = jwt.sign(
-      { email, verified: true },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '1h' }
-    );
 
-    res.status(200).json({ 
+    const payload = {
       success: true, 
       message: 'Email verificado com sucesso',
-      token
-    });
+    };
+
+    if (process.env.JWT_SECRET) {
+      payload.token = jwt.sign(
+        { email, verified: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+    }
+
+    res.status(200).json(payload);
   } catch (error) {
     console.error('Erro ao verificar código:', error);
     res.status(500).json({ 

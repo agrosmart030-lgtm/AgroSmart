@@ -21,6 +21,10 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: CAPTCHA_ENABLED
+        value: "false"
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASSWORD

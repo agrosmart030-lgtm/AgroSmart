@@ -7,8 +7,6 @@ export default function Step1({
   register,
   errors,
   estados,
-  cidades,
-  handleEstadoChange,
   watch,
   setCanProceed,
   setValue,

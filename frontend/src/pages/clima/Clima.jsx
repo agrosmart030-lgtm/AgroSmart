@@ -25,11 +25,15 @@ const WeatherApp = () => {
   const [searchCity, setSearchCity] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
-  const apiKey = "54a5e454d3908f64653aa11798007b06";
+  const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
   // Busca sugestões de cidades
   const fetchCitySuggestions = async (query) => {
     if (!query) {
+      setSuggestions([]);
+      return;
+    }
+    if (!apiKey) {
       setSuggestions([]);
       return;
     }
@@ -59,6 +63,11 @@ const WeatherApp = () => {
   const fetchWeatherData = async (cityName = city) => {
     setLoading(true);
     setError(null);
+    if (!apiKey) {
+      setError("Chave da API OpenWeatherMap nao configurada.");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(
@@ -125,6 +134,11 @@ const WeatherApp = () => {
   const fetchWeatherDataByCoords = async (lat, lon) => {
     setLoading(true);
     setError(null);
+    if (!apiKey) {
+      setError("Chave da API OpenWeatherMap nao configurada.");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`

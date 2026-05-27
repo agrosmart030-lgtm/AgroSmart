@@ -81,12 +81,12 @@ const PaginaFaqAdmin = () => {
           filtroData={filtroData}
           setFiltroData={setFiltroData}
         />
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Mostrando {faqsFiltrados.length} de {faqs.length} mensagens
             </h2>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm">
                 Exportar
               </button>

@@ -11,6 +11,8 @@ import { exibirAlertaErro } from "../../hooks/useAlert";
 import api from "../../services/api";
 
 export default function Login() {
+  const captchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const captchaEnabled = Boolean(captchaSiteKey);
   const {
     register,
     handleSubmit,
@@ -59,7 +61,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f3f4f5]">
+    <div className="flex min-h-screen bg-[#f3f4f5]">
       {/* Imagem lateral */}
       <div className="hidden lg:block w-3/5 relative overflow-hidden">
         <img
@@ -79,8 +81,8 @@ export default function Login() {
       </div>
 
       {/* Área do formulário */}
-      <div className="w-full lg:w-2/5 flex justify-center items-center p-8 bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
-        <div className="bg-white shadow-sm rounded-2xl p-10 w-full max-w-[460px] border border-[#e1e3e4] flex flex-col">
+      <div className="w-full lg:w-2/5 flex justify-center items-center p-4 sm:p-8 overflow-y-auto bg-gradient-to-br from-[#1B4332] to-[#012d1d]">
+        <div className="bg-white shadow-sm rounded-2xl p-6 sm:p-10 w-full max-w-[460px] border border-[#e1e3e4] flex flex-col">
           <div className="flex-1">
             <div className="text-center mb-8">
               <div className="w-12 h-12 bg-[#1B4332] rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -121,11 +123,14 @@ export default function Login() {
                 </a>
               </div>
               {/* ReCAPTCHA - renderiza somente se a site key estiver configurada */}
-              {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
-                <div className="flex justify-center mt-2">
+              {captchaEnabled ? (
+                <div className="flex justify-center mt-2 min-h-[78px] overflow-hidden">
                   <ReCAPTCHA
-                    sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                    sitekey={captchaSiteKey}
                     onChange={(token) => setRecaptchaToken(token)}
+                    onExpired={() => setRecaptchaToken(null)}
+                    onErrored={() => setRecaptchaToken(null)}
+                    className="origin-center scale-[0.88] sm:scale-100"
                   />
                 </div>
               ) : null}
@@ -133,8 +138,7 @@ export default function Login() {
                 type="submit"
                 className="w-full py-3 mt-2 bg-[#FFBA27] text-[#352300] rounded-xl font-bold text-sm hover:bg-[#e5a820] transition-colors shadow-sm"
                 disabled={
-                  Boolean(import.meta.env.VITE_RECAPTCHA_SITE_KEY) &&
-                  !recaptchaToken
+                  captchaEnabled && !recaptchaToken
                 }
               >
                 Entrar
