@@ -649,12 +649,188 @@ import scrapeCvale from "./services/scrapers/cvaleScraper.js";
 async function refreshCotacoesCacheOnStartup() {
   try {
     console.log("Executando scrapers de cotações e populando cache...");
-    const [coamoData, larAgroData, granosData, cvaleData] = await Promise.all([
-      scrapeCoamo(),
-      scrapeLarAgro(),
-      scrapeGranos(),
-      scrapeCvale(),
-    ]);
+
+    // Execução sequencial para não estourar os 512MB de RAM do Render Free
+    const coamoData = await scrapeCoamo().catch((e) => {
+      console.error("Erro Coamo:", e);
+      return [];
+    });
+
+    const larAgroData = await scrapeLarAgro().catch((e) => {
+      console.error("Erro Lar:", e);
+      return [];
+    });
+
+    const granosData = await scrapeGranos().catch((e) => {
+      console.error("Erro Granos:", e);
+      return [];
+    });
+
+    const cvaleData = await scrapeCvale().catch((e) => {
+      console.error("Erro Cvale:", e);
+      return [];
+    });
+
+    const data = {
+      coamo: coamoData || [],
+      larAgro: larAgroData || [],
+      granos: granosData || [],
+      cvale: cvaleData || [],
+    };
+
+    const now = new Date();
+
+    await pool.query("DELETE FROM tb_cotacoes_cache");
+
+    const inserts = [];
+
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache 
+          (provedor, dados, data_atualizacao) 
+         VALUES ($1, $2::jsonb, $3)`,
+        ["coamo", JSON.stringify(data.coamo), now],
+      ),
+    );
+
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache 
+          (provedor, dados, data_atualizacao) 
+         VALUES ($1, $2::jsonb, $3)`,
+        ["larAgro", JSON.stringify(data.larAgro), now],
+      ),
+    );
+
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache 
+          (provedor, dados, data_atualizacao) 
+         VALUES ($1, $2::jsonb, $3)`,
+        ["granos", JSON.stringify(data.granos), now],
+      ),
+    );
+
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache 
+          (provedor, dados, data_atualizacao) 
+         VALUES ($1, $2::jsonb, $3)`,
+        ["cvale", JSON.stringify(data.cvale), now],
+      ),
+    );
+
+    await Promise.all(inserts);
+
+    console.log("Cache de cotações populado com sucesso.");
+
+    // Persiste no histórico
+    const parsePreco = (s) => {
+      if (!s || typeof s !== "string") return null;
+
+      const cleaned = s
+        .replace(/[^0-9,.-]/g, "")
+        .replace(/\./g, "")
+        .replace(",", ".");
+
+      const num = parseFloat(cleaned);
+
+      return Number.isNaN(num) ? null : num;
+    };
+
+    const toTimestamp = (s) => {
+      const d = s ? new Date(s) : null;
+      return Number.isNaN(d?.getTime?.()) ? null : d;
+    };
+
+    const histInserts = [];
+
+    for (const item of data.coamo) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico 
+            (provedor, grao, preco, unidade, local, data_hora, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "COAMO",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+
+    for (const item of data.larAgro) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico 
+            (provedor, grao, preco, unidade, local, data_hora, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "LAR",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+
+    for (const item of data.granos) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico 
+            (provedor, grao, preco, unidade, local, data_hora, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "GRANOS",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+
+    for (const item of data.cvale) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico 
+            (provedor, grao, preco, unidade, local, data_hora, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "CVALE",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+
+    await Promise.all(histInserts);
+
+    console.log("Histórico de cotações atualizado.");
+  } catch (err) {
+    console.error(
+      "Erro ao popular cache de cotações na inicialização:",
+      err.message || err,
+    );
+  }
+}
     
     // Execução sequencial para não estourar os 512MB de RAM do Render Free
     const coamoData = await scrapeCoamo().catch(e => (console.error("Erro Coamo:", e), []));
