@@ -8,11 +8,13 @@ import climaImg from "../../assets/clima.jpg";
 import coamoLogo from "../../assets/coamo.png";
 import larLogo from "../../assets/lar.png";
 import granosLogo from "../../assets/granos_logo.png";
+import cvaleLogo from "../../assets/cvaleLogo.jpg";
 
 const partners = [
   { nome: "Coamo", logo: coamoLogo, site: "https://www.coamo.com.br/" },
   { nome: "Lar", logo: larLogo, site: "https://www.lar.ind.br/" },
   { nome: "Granos", logo: granosLogo, site: "https://granoscorretora.com.br" },
+  { nome: "C.Vale", logo: cvaleLogo, site: "https://www.cvale.com.br/" },
 ];
 
 export default function Home() {
