@@ -271,8 +271,12 @@ export default function cadastro() {
             {step === 4 && userData && (
               <VerificationStep 
                 email={userData.email}
-                onVerificationSuccess={async () => {
+                onVerificationSuccess={async (verificationResult) => {
                   try {
+                    if (!verificationResult?.token) {
+                      throw new Error('Token de verificacao de e-mail ausente. Solicite um novo codigo.');
+                    }
+
                     // Get the latest form data
                     const formData = watch();
                     
@@ -281,6 +285,7 @@ export default function cadastro() {
                       ...userData,
                       cidade: formData.cidade || userData.cidade,
                       estado: formData.estado || userData.estado,
+                      emailVerificationToken: verificationResult.token,
                       // Include other fields that might be needed
                       ...(userData.tipo_usuario === 'agricultor' && {
                         nomePropriedade: formData.nomePropriedade || userData.nomePropriedade,
@@ -288,9 +293,6 @@ export default function cadastro() {
                         graos: formData.graos || userData.graos
                       })
                     };
-
-                    // Debug log
-                    console.log('Complete user data:', completeUserData);
 
                     // Validate required fields
                     const requiredFields = {
@@ -330,8 +332,6 @@ export default function cadastro() {
                       }
                     }
 
-                    console.log('Sending registration data:', completeUserData);
-                    
                     const response = await api.post(
                       '/api/registro',
                       completeUserData,

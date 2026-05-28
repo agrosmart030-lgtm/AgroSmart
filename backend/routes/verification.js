@@ -7,32 +7,47 @@ dotenv.config();
 
 const verificationCodes = new Map();
 const router = express.Router();
+const EMAIL_SEND_ERROR_MESSAGE =
+  "Ocorreu uma falha ao enviar o e-mail. Por favor, tente novamente mais tarde.";
+const EMAIL_SEND_SUCCESS_MESSAGE = "E-mail de verificação enviado com sucesso.";
 
 function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 router.post("/send-verification-email", async (req, res) => {
   try {
     const { email, nome } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const displayName = escapeHtml(String(nome || "").trim() || "produtor(a)");
 
-    if (!email || !nome) {
+    if (!normalizedEmail) {
       return res.status(400).json({
         success: false,
-        message: "Email e nome sao obrigatorios",
+        message: "E-mail e obrigatorio.",
       });
     }
 
+    verificationCodes.delete(normalizedEmail);
+
     const verificationCode = generateVerificationCode();
     const expiresAt = Date.now() + 10 * 60 * 1000;
-    verificationCodes.set(email, { code: verificationCode, expiresAt });
 
     const result = await sendEmail({
-      to: email,
+      to: normalizedEmail,
       subject: "Codigo de Verificacao - AgroSmart",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-          <h2 style="color: #2e7d32;">Ola, ${nome}!</h2>
+          <h2 style="color: #2e7d32;">Ola, ${displayName}!</h2>
           <p>Para prosseguir com seu cadastro no <strong>AgroSmart</strong>, utilize o codigo de verificacao abaixo:</p>
           <div style="background-color: #f1f8e9; color: #2e7d32; padding: 20px; text-align: center; margin: 25px 0; font-size: 32px; letter-spacing: 8px; font-weight: bold; border-radius: 4px;">
             ${verificationCode}
@@ -45,24 +60,28 @@ router.post("/send-verification-email", async (req, res) => {
     });
 
     if (result.success) {
+      verificationCodes.set(normalizedEmail, { code: verificationCode, expiresAt });
+
       return res.status(200).json({
         success: true,
-        message: "Codigo de verificacao enviado com sucesso",
+        message: EMAIL_SEND_SUCCESS_MESSAGE,
       });
     }
 
-    verificationCodes.delete(email);
     return res.status(500).json({
       success: false,
-      message:
-        "Ocorreu uma falha ao enviar o e-mail. Por favor, tente novamente mais tarde.",
-      error: result.error,
+      message: EMAIL_SEND_ERROR_MESSAGE,
+      error: result.error || result.code || "EMAIL_SEND_FAILED",
     });
   } catch (error) {
-    console.error("Erro na rota de verificacao:", error);
+    console.error("Erro na rota de verificacao:", error.message || error);
     return res.status(500).json({
       success: false,
-      message: "Erro interno no servidor de verificacao",
+      message: EMAIL_SEND_ERROR_MESSAGE,
+      error:
+        process.env.NODE_ENV === "production"
+          ? "INTERNAL_VERIFICATION_EMAIL_ERROR"
+          : error.message || "INTERNAL_VERIFICATION_EMAIL_ERROR",
     });
   }
 });
@@ -70,15 +89,16 @@ router.post("/send-verification-email", async (req, res) => {
 router.post("/verify-code", (req, res) => {
   try {
     const { email, code } = req.body;
+    const normalizedEmail = String(email || "").trim().toLowerCase();
 
-    if (!email || !code) {
+    if (!normalizedEmail || !code) {
       return res.status(400).json({
         success: false,
         message: "Email e codigo sao obrigatorios",
       });
     }
 
-    const storedData = verificationCodes.get(email);
+    const storedData = verificationCodes.get(normalizedEmail);
     const currentTime = Date.now();
 
     if (!storedData) {
@@ -89,7 +109,7 @@ router.post("/verify-code", (req, res) => {
     }
 
     if (storedData.expiresAt < currentTime) {
-      verificationCodes.delete(email);
+      verificationCodes.delete(normalizedEmail);
       return res.status(400).json({
         success: false,
         message: "Codigo expirado",
@@ -103,24 +123,32 @@ router.post("/verify-code", (req, res) => {
       });
     }
 
-    verificationCodes.delete(email);
+    verificationCodes.delete(normalizedEmail);
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: "Configuracao de autenticacao indisponivel.",
+      });
+    }
 
     const payload = {
       success: true,
       message: "Email verificado com sucesso",
-    };
-
-    if (process.env.JWT_SECRET) {
-      payload.token = jwt.sign(
-        { email, verified: true },
+      token: jwt.sign(
+        {
+          email: normalizedEmail,
+          verified: true,
+          purpose: "email_verification",
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" },
-      );
-    }
+        { expiresIn: "15m" },
+      ),
+    };
 
     return res.status(200).json(payload);
   } catch (error) {
-    console.error("Erro ao verificar codigo:", error);
+    console.error("Erro ao verificar codigo:", error.message || error);
     return res.status(500).json({
       success: false,
       message: "Erro ao verificar codigo",

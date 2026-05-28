@@ -26,15 +26,15 @@ services:
       - key: RECAPTCHA_SECRET_KEY
         sync: false
       - key: EMAIL_USER
-        sync: false
+        value: apikey
       - key: EMAIL_PASSWORD
         sync: false
       - key: EMAIL_FROM
-        sync: false
+        value: '"AgroSmart" <agrosmart030@gmail.com>'
       - key: SMTP_HOST
-        value: smtp.gmail.com
+        value: smtp.sendgrid.net
       - key: SMTP_PORT
-        value: "587"
+        value: "2525"
       - key: SMTP_SECURE
         value: "false"
       - key: SMTP_REQUIRE_TLS

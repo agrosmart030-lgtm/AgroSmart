@@ -27,13 +27,18 @@ const shouldUseSsl = Boolean(
     pgHostLower.includes("supabase"),
 );
 
+const configuredCorsOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+]
+  .flatMap((value) => (value || "").split(","))
+  .map((origin) => origin.trim())
+  .filter((origin) => origin && (process.env.NODE_ENV !== "production" || origin !== "*"));
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  ...(process.env.FRONTEND_URL || "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean),
+  ...configuredCorsOrigins,
 ].map((origin) => origin.replace(/\/$/, ""));
 
 app.use(

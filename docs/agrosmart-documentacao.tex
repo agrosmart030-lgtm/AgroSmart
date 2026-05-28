@@ -144,7 +144,7 @@ Backend & Node.js, Express 5, CORS, dotenv, PostgreSQL com \texttt{pg}, bcrypt, 
 Banco & PostgreSQL, com compatibilidade prevista para Supabase PostgreSQL. \\
 Autenticação & JWT para sessões e bcrypt para hash de senhas de usuários. \\
 CAPTCHA & Google reCAPTCHA, com site key no frontend e secret key no backend. \\
-APIs externas & IBGE Localidades, OpenWeatherMap, Embrapa RespondeAgro, Gmail/Nodemailer e páginas de cooperativas para cotações. \\
+APIs externas & IBGE Localidades, OpenWeatherMap, Embrapa RespondeAgro, SendGrid SMTP/Nodemailer e páginas de cooperativas para cotações. \\
 Deploy & Vercel para frontend, Render para backend e Supabase para banco. \\
 \bottomrule
 \end{longtable}
@@ -170,7 +170,7 @@ PostgreSQL/Supabase
   +--> IBGE Localidades
   +--> OpenWeatherMap
   +--> Embrapa RespondeAgro
-  +--> Gmail/Nodemailer
+  +--> SendGrid SMTP/Nodemailer
   +--> Scrapers de cotações
 \end{verbatim}
 
@@ -436,7 +436,7 @@ O reCAPTCHA é controlado por variáveis de ambiente. A site key é pública e u
 IBGE Localidades & Estados e municípios no cadastro. & Ativa \\
 OpenWeatherMap & Clima atual e previsão. & Ativa \\
 Embrapa RespondeAgro & Consulta técnica pelo backend. & Ativa \\
-Gmail/Nodemailer & Envio de códigos de verificação e senha. & Ativa \\
+SendGrid SMTP/Nodemailer & Envio de códigos de verificação e senha pela porta 2525 no Render Free. & Ativa \\
 Google reCAPTCHA & Proteção de login e cadastro quando habilitada. & Ativa \\
 Scrapers de cotações & Coleta de preços por provedores como COAMO, LAR e Granos. & Em evolução \\
 \bottomrule

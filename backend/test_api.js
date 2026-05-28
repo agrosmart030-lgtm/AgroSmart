@@ -17,7 +17,7 @@ async function run() {
     });
     
     const token = tokenRes.data.access_token;
-    console.log('Token adquirido:', token.substring(0, 10) + '...');
+    console.log('Token adquirido com sucesso.');
     
     const testUrls = [
       'https://api.cnptia.embrapa.br/agritec/v1/respondeagro',
