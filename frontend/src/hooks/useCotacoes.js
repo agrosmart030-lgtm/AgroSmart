@@ -5,8 +5,19 @@ import { API_URL } from '../services/api';
 
 const apiAgrosmart = axios.create({ baseURL: API_URL });
 
+apiAgrosmart.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 const LOCALSTORAGE_KEY = 'agrosmart_cotacoes_cache';
 const LOCALSTORAGE_TTL_MS = 15 * 60 * 1000; // 15 minutos
+
 
 // Função auxiliar para ler do cache local
 function readLocalCache() {
