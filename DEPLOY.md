@@ -63,6 +63,7 @@ NODE_VERSION=24.14.1
 PUPPETEER_CACHE_DIR=.cache/puppeteer
 DATABASE_URL=
 FRONTEND_URL=
+CORS_ORIGIN=
 JWT_SECRET=
 CAPTCHA_ENABLED=false
 RECAPTCHA_SECRET_KEY=
@@ -82,7 +83,7 @@ COTACOES_REFRESH_MINUTES=30
 
 ### E-mail no Render Free
 
-No plano Free do Render, nao use Gmail SMTP nas portas `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid, ou outro provedor SMTP que aceite a porta `2525`.
+No plano Free do Render, nao use Gmail SMTP nas portas `25`, `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid SMTP na porta `2525`.
 
 Para SendGrid SMTP:
 
@@ -90,6 +91,23 @@ Para SendGrid SMTP:
 - `EMAIL_PASSWORD` deve ser a API Key do SendGrid, configurada somente no ambiente do Render.
 - `EMAIL_FROM` deve ser um remetente verificado no SendGrid, por exemplo `"AgroSmart" <agrosmart030@gmail.com>`.
 - `SMTP_HOST=smtp.sendgrid.net`, `SMTP_PORT=2525`, `SMTP_SECURE=false` e `SMTP_REQUIRE_TLS=true`.
+- No SendGrid, crie/verifique um Single Sender.
+- Crie uma API Key com Custom Access e habilite somente Mail Send com Full Access.
+- Nao coloque a API Key no GitHub, neste documento ou em logs.
+
+No Render, configure:
+
+```text
+EMAIL_USER=apikey
+EMAIL_PASSWORD=API Key do SendGrid
+EMAIL_FROM="AgroSmart" <agrosmart030@gmail.com>
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_REQUIRE_TLS=true
+SMTP_FAMILY=4
+EMAIL_TIMEOUT_MS=30000
+```
 
 Se preferir nao usar `DATABASE_URL`, configure estas variaveis em vez dela:
 
@@ -158,6 +176,28 @@ FRONTEND_URL=https://agrosmart.vercel.app,https://agrosmart-git-main-time.vercel
    - `/faq`
    - `/duvidas`
    - rotas administrativas, se aplicavel
+
+Teste direto do e-mail de verificacao:
+
+```http
+POST /api/send-verification-email
+Content-Type: application/json
+
+{
+  "email": "email-de-teste@gmail.com"
+}
+```
+
+Resposta esperada se o SendGrid aceitar o envio:
+
+```json
+{
+  "success": true,
+  "message": "E-mail de verificação enviado com sucesso."
+}
+```
+
+Depois, teste o fluxo real pelo cadastro: enviar o formulario, validar o codigo recebido e finalizar o cadastro. A API `/api/registro` exige `emailVerificationToken` valido e nao confirma cadastro se o envio/validacao de e-mail falhar.
 
 ## Desenvolvimento local
 

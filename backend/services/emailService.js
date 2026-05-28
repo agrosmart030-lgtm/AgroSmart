@@ -9,7 +9,7 @@ const toBoolean = (value, fallback = false) => {
 };
 
 const toNumber = (value, fallback) => {
-  const parsed = Number.parseInt(value, 10);
+  const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
@@ -35,7 +35,7 @@ function getEmailConfig() {
   const family = [4, 6].includes(configuredFamily) ? configuredFamily : 4;
   const timeout = toNumber(process.env.EMAIL_TIMEOUT_MS || "30000", 30000);
   const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASSWORD?.trim();
+  const pass = process.env.EMAIL_PASSWORD;
 
   return {
     host,
@@ -56,6 +56,7 @@ function getEmailDiagnostics(config) {
     secure: config.secure,
     requireTLS: config.requireTLS,
     family: config.family,
+    nodeEnv: process.env.NODE_ENV || "development",
   };
 }
 
@@ -90,7 +91,7 @@ export const sendEmail = async ({ to, subject, html, text, attachments }) => {
     if (!config.user || !config.pass) {
       throw new Error("Configuracao de e-mail ausente.");
     }
-    const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    const from = process.env.EMAIL_FROM || `"AgroSmart" <${process.env.EMAIL_USER}>`;
 
     const info = await createTransporter().sendMail({
       from,

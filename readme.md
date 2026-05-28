@@ -124,6 +124,7 @@ EMBRAPA_CONSUMER_SECRET=
 
 COTACOES_REFRESH_MINUTES=30
 FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=
 ```
 
 Use `DATABASE_URL` para Supabase/Render ou as variáveis `PG*` para PostgreSQL local. Em Supabase, normalmente use `PGSSL=require` ou uma connection string com SSL.
@@ -178,18 +179,21 @@ A site key fica somente no frontend. A secret key fica somente no backend. Login
 
 O envio de codigo por e-mail e obrigatorio no cadastro. O backend so aceita finalizar o cadastro depois que `/api/verify-code` valida o codigo enviado e retorna um token de verificacao para o mesmo e-mail.
 
-No plano Free do Render, nao use Gmail SMTP nas portas `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid, ou outro provedor SMTP compativel com a porta `2525`.
+No plano Free do Render, nao use Gmail SMTP nas portas `25`, `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid SMTP na porta `2525`.
 
 Para SendGrid SMTP:
 
 - `EMAIL_USER` deve ser literalmente `apikey`.
 - `EMAIL_PASSWORD` deve ser a API Key do SendGrid, configurada somente no ambiente.
-- `EMAIL_FROM` deve ser um remetente verificado no SendGrid.
+- `EMAIL_FROM` deve ser um remetente verificado no SendGrid; em producao, use `"AgroSmart" <agrosmart030@gmail.com>`.
+- No SendGrid, crie/verifique um Single Sender.
+- Crie uma API Key com Custom Access e libere somente Mail Send com Full Access.
+- Nao coloque a API Key no GitHub, no README ou em logs.
 
 ```text
 EMAIL_USER=apikey
 EMAIL_PASSWORD=your_sendgrid_api_key_here
-EMAIL_FROM="AgroSmart" <your_verified_sender@example.com>
+EMAIL_FROM="AgroSmart" <agrosmart030@gmail.com>
 SMTP_HOST=smtp.sendgrid.net
 SMTP_PORT=2525
 SMTP_SECURE=false
@@ -197,6 +201,30 @@ SMTP_REQUIRE_TLS=true
 SMTP_FAMILY=4
 EMAIL_TIMEOUT_MS=30000
 ```
+
+O endpoint `/api/send-verification-email` salva o codigo somente quando o SMTP aceita o envio. Se o provider retornar erro, a API responde `success: false` e nenhum codigo fica valido para aquele e-mail.
+
+Teste direto do envio:
+
+```http
+POST /api/send-verification-email
+Content-Type: application/json
+
+{
+  "email": "email-de-teste@gmail.com"
+}
+```
+
+Resposta esperada:
+
+```json
+{
+  "success": true,
+  "message": "E-mail de verificação enviado com sucesso."
+}
+```
+
+Teste do fluxo real: faca um cadastro pelo frontend, aguarde o e-mail, valide o codigo em `/api/verify-code` e finalize o cadastro em `/api/registro` com o `emailVerificationToken` retornado. O backend nao aceita finalizar cadastro sem esse token valido.
 
 ## Execução
 

@@ -20,12 +20,16 @@ export default function createPasswordRoutes(pool) {
   router.post('/', async (req, res) => {
     try {
       const { email } = req.body;
-      if (!email) {
+      const normalizedEmail = String(email || '').trim().toLowerCase();
+
+      if (!normalizedEmail) {
         return res.status(400).json({ success: false, message: 'E-mail é obrigatório' });
       }
 
+      resetCodes.delete(normalizedEmail);
+
       // Verifica se email existe no banco
-      const result = await pool.query('SELECT * FROM tb_usuario WHERE email = $1', [email]);
+      const result = await pool.query('SELECT * FROM tb_usuario WHERE email = $1', [normalizedEmail]);
       if (result.rows.length === 0) {
         // Segurança: não revelar se email existe ou não
         return res.json({ success: true, message: 'Se este e-mail estiver cadastrado, você receberá o código.' });
@@ -34,11 +38,10 @@ export default function createPasswordRoutes(pool) {
 
       // Gera código de 6 dígitos e armazena com TTL de 15min
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      resetCodes.set(email, { code, expiresAt: Date.now() + 15 * 60 * 1000 });
 
       // Envia email HTML estilizado
       const emailResult = await sendEmail({
-        to: email,
+        to: normalizedEmail,
         subject: '🔑 Redefinição de Senha - AgroSmart',
         attachments: [{
           filename: 'folha.svg',
@@ -122,7 +125,6 @@ export default function createPasswordRoutes(pool) {
       });
 
       if (!emailResult.success) {
-        resetCodes.delete(email);
         return res.status(500).json({
           success: false,
           message: 'Erro ao enviar e-mail. Tente novamente.',
@@ -130,9 +132,11 @@ export default function createPasswordRoutes(pool) {
         });
       }
 
+      resetCodes.set(normalizedEmail, { code, expiresAt: Date.now() + 15 * 60 * 1000 });
       res.json({ success: true, message: 'Código enviado com sucesso!' });
     } catch (error) {
-      resetCodes.delete(req.body?.email);
+      const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
+      if (normalizedEmail) resetCodes.delete(normalizedEmail);
       console.error('Erro ao enviar e-mail de recuperação:', error.message || error);
       res.status(500).json({ success: false, message: 'Erro ao enviar e-mail. Tente novamente.' });
     }
@@ -148,17 +152,18 @@ export function createResetPasswordRoute(pool) {
   router.post('/', async (req, res) => {
     try {
       const { email, code, novaSenha } = req.body;
+      const normalizedEmail = String(email || '').trim().toLowerCase();
 
-      if (!email || !code || !novaSenha) {
+      if (!normalizedEmail || !code || !novaSenha) {
         return res.status(400).json({ success: false, message: 'E-mail, código e nova senha são obrigatórios' });
       }
 
-      const stored = resetCodes.get(email);
+      const stored = resetCodes.get(normalizedEmail);
       if (!stored) {
         return res.status(400).json({ success: false, message: 'Código inválido ou expirado. Solicite um novo.' });
       }
       if (stored.expiresAt < Date.now()) {
-        resetCodes.delete(email);
+        resetCodes.delete(normalizedEmail);
         return res.status(400).json({ success: false, message: 'Código expirado. Solicite um novo.' });
       }
       if (stored.code !== code) {
@@ -166,19 +171,19 @@ export function createResetPasswordRoute(pool) {
       }
 
       // Verifica se usuário existe
-      const result = await pool.query('SELECT id FROM tb_usuario WHERE email = $1', [email]);
+      const result = await pool.query('SELECT id FROM tb_usuario WHERE email = $1', [normalizedEmail]);
       if (result.rows.length === 0) {
         return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
       }
 
       // Aplica bcrypt e atualiza senha
       const senhaHash = await bcrypt.hash(novaSenha, 10);
-      await pool.query('UPDATE tb_usuario SET senha = $1 WHERE email = $2', [senhaHash, email]);
+      await pool.query('UPDATE tb_usuario SET senha = $1 WHERE email = $2', [senhaHash, normalizedEmail]);
 
-      resetCodes.delete(email);
+      resetCodes.delete(normalizedEmail);
       res.json({ success: true, message: 'Senha redefinida com sucesso!' });
     } catch (error) {
-      console.error('Erro ao redefinir senha:', error);
+      console.error('Erro ao redefinir credencial:', error.message || error);
       res.status(500).json({ success: false, message: 'Erro interno ao redefinir senha.' });
     }
   });
