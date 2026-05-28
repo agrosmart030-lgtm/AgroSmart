@@ -655,6 +655,13 @@ async function refreshCotacoesCacheOnStartup() {
       scrapeGranos(),
       scrapeCvale(),
     ]);
+    
+    // Execução sequencial para não estourar os 512MB de RAM do Render Free
+    const coamoData = await scrapeCoamo().catch(e => (console.error("Erro Coamo:", e), []));
+    const larAgroData = await scrapeLarAgro().catch(e => (console.error("Erro Lar:", e), []));
+    const granosData = await scrapeGranos().catch(e => (console.error("Erro Granos:", e), []));
+    const cvaleData = await scrapeCvale().catch(e => (console.error("Erro Cvale:", e), []));
+
     const data = {
       coamo: coamoData || [],
       larAgro: larAgroData || [],
