@@ -14,11 +14,13 @@ import { API_URL } from '../../services/api';
 import coamoLogo from '../../assets/coamo.png';
 import larLogo from '../../assets/lar.png';
 import granosLogo from '../../assets/granos_logo.png';
+import cvaleLogo from '../../assets/cvaleLogo.jpg';
 
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
   const coamoArr = Array.isArray(cotacoes.coamo) ? cotacoes.coamo : [];
   const larArr = Array.isArray(cotacoes.larAgro) ? cotacoes.larAgro : [];
+  const cvaleArr = Array.isArray(cotacoes.cvale) ? cotacoes.cvale : [];
   return [
     {
       nome: 'COAMO',
@@ -45,6 +47,16 @@ function transformarCotacoesParaCooperativas(cotacoes) {
       logo: granosLogo,
       telefone: '556730278700',
       produtos: (cotacoes.granos || []).map(item => ({
+        nome: item.grao,
+        preco: item.preco,
+        variacao: item.variacao || '',
+      })) || [],
+    },
+    {
+      nome: 'CVALE',
+      logo: cvaleLogo,
+      telefone: '554436498181',
+      produtos: cvaleArr.map(item => ({
         nome: item.grao,
         preco: item.preco,
         variacao: item.variacao || '',
@@ -88,6 +100,16 @@ const cooperativasData = [
       { nome: 'CAFÉ', preco: 'R$ 29,50', variacao: '+0.9%' },
     ],
   },
+  {
+    nome: 'CVALE',
+    logo: cvaleLogo,
+    telefone: '554436498181',
+    produtos: [
+      { nome: 'SOJA', preco: 'R$ 131,50', variacao: '+1.0%' },
+      { nome: 'MILHO', preco: 'R$ 57,20', variacao: '-0.3%' },
+      { nome: 'TRIGO', preco: 'R$ 70,00', variacao: '+1.5%' },
+    ],
+  },
 ];
 
 
@@ -101,6 +123,7 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 178.5, change: +5.2 },
       lar: { currentPrice: 175.2, change: +4.8 },
+      cvale: { currentPrice: 176.0, change: +4.5 },
     },
     data6m: [
       { date: "2024-11", price: 165.3, volume: 2840 },
@@ -135,6 +158,7 @@ const historyData = {
     cooperativas: {
       coamo: { currentPrice: 89.4, change: -2.1 },
       lar: { currentPrice: 87.9, change: -1.8 },
+      cvale: { currentPrice: 88.5, change: -1.5 },
     },
     data6m: [
       { date: "2024-11", price: 92.8, volume: 4120 },
@@ -450,6 +474,7 @@ const DashboardPage = () => {
                       <option value="LAR">LAR</option>
                       <option value="COAMO">COAMO</option>
                       <option value="GRANOS">GRANOS</option>
+                      <option value="CVALE">C.VALE</option>
                     </select>
                   </div>
                   <div>

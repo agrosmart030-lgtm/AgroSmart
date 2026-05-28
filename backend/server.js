@@ -639,19 +639,22 @@ async function ensureCotacoesHistoricoTable() {
 import scrapeCoamo from "./services/scrapers/coamoScraper.js";
 import scrapeLarAgro from "./services/scrapers/larScraper.js";
 import scrapeGranos from "./services/scrapers/granosScraper.js";
+import scrapeCvale from "./services/scrapers/cvaleScraper.js";
 
 async function refreshCotacoesCacheOnStartup() {
   try {
     console.log("Executando scrapers de cotações e populando cache...");
-    const [coamoData, larAgroData, granosData] = await Promise.all([
+    const [coamoData, larAgroData, granosData, cvaleData] = await Promise.all([
       scrapeCoamo(),
       scrapeLarAgro(),
       scrapeGranos(),
+      scrapeCvale(),
     ]);
     const data = {
       coamo: coamoData || [],
       larAgro: larAgroData || [],
       granos: granosData || [],
+      cvale: cvaleData || [],
     };
 
     const now = new Date();
@@ -673,6 +676,12 @@ async function refreshCotacoesCacheOnStartup() {
       pool.query(
         `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
         ["granos", JSON.stringify(data.granos), now],
+      ),
+    );
+    inserts.push(
+      pool.query(
+        `INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)`,
+        ["cvale", JSON.stringify(data.cvale), now],
       ),
     );
     await Promise.all(inserts);
@@ -735,6 +744,23 @@ async function refreshCotacoesCacheOnStartup() {
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [
             "GRANOS",
+            item.grao || null,
+            parsePreco(item.preco),
+            item.unidade || null,
+            item.local || null,
+            toTimestamp(item.data_hora) || now,
+            now,
+          ],
+        ),
+      );
+    }
+    for (const item of data.cvale) {
+      histInserts.push(
+        pool.query(
+          `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            "CVALE",
             item.grao || null,
             parsePreco(item.preco),
             item.unidade || null,
