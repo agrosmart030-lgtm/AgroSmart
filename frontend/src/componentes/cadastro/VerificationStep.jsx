@@ -33,7 +33,7 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
     }
 
     if (newCode.every(digit => digit !== "")) {
-      handleVerify();
+      handleVerify(newCode.join(''));
     }
   };
 
@@ -67,8 +67,8 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
     }
   };
 
-  const handleVerify = async () => {
-    const code = verificationCode.join('');
+  const handleVerify = async (codeOverride) => {
+    const code = codeOverride || verificationCode.join('');
     if (code.length !== 6) {
       setError("Por favor, preencha todos os dígitos");
       return;
@@ -84,7 +84,7 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
       });
 
       if (response.data.success) {
-        onVerificationSuccess();
+        await onVerificationSuccess(response.data);
       } else {
         setError(response.data.message || "Código inválido. Tente novamente.");
         // Clear all inputs and focus first one
@@ -110,7 +110,10 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
     setError("");
     
     try {
-      await onResendCode();
+      const result = await onResendCode();
+      if (!result?.success) {
+        throw new Error(result?.message || "Nao foi possivel reenviar o codigo.");
+      }
       setCountdown(60);
       setCanResend(false);
       setVerificationCode(["", "", "", "", "", ""]);
@@ -160,7 +163,7 @@ export default function VerificationStep({ email, onVerificationSuccess, onResen
       <div className="flex flex-col items-center space-y-4">
         <button
           type="button"
-          onClick={handleVerify}
+          onClick={() => handleVerify()}
           disabled={isLoading || verificationCode.some(digit => !digit)}
           className="w-full max-w-xs bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >

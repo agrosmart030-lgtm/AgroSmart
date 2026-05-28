@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { isValidCPF, isValidCNPJ } from "../utils/validators.js";
 import { verifyCaptchaIfEnabled } from "../utils/captcha.js";
 
@@ -23,6 +24,7 @@ export default function createRegistroRoutes(pool) {
       cnpj,
       nomeCooperativa,
       areaAtuacao,
+      emailVerificationToken,
     } = req.body;
 
     const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -32,6 +34,18 @@ export default function createRegistroRoutes(pool) {
       return res.status(400).json({
         success: false,
         message: "Nome, e-mail, senha, estado e tipo de usuario sao obrigatorios.",
+      });
+    }
+
+    const emailVerification = validateEmailVerificationToken(
+      emailVerificationToken,
+      normalizedEmail,
+    );
+
+    if (!emailVerification.success) {
+      return res.status(emailVerification.status).json({
+        success: false,
+        message: emailVerification.message,
       });
     }
 
@@ -129,6 +143,49 @@ export default function createRegistroRoutes(pool) {
   });
 
   return router;
+}
+
+function validateEmailVerificationToken(token, expectedEmail) {
+  if (!process.env.JWT_SECRET) {
+    return {
+      success: false,
+      status: 500,
+      message: "Configuracao de autenticacao indisponivel.",
+    };
+  }
+
+  if (!token) {
+    return {
+      success: false,
+      status: 403,
+      message: "Verificacao de e-mail obrigatoria.",
+    };
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const tokenEmail = String(decoded.email || "").trim().toLowerCase();
+
+    if (
+      decoded.verified !== true ||
+      decoded.purpose !== "email_verification" ||
+      tokenEmail !== expectedEmail
+    ) {
+      return {
+        success: false,
+        status: 403,
+        message: "Token de verificacao de e-mail invalido.",
+      };
+    }
+
+    return { success: true };
+  } catch {
+    return {
+      success: false,
+      status: 403,
+      message: "Token de verificacao de e-mail invalido ou expirado.",
+    };
+  }
 }
 
 async function insertGraosDoUsuario(client, usuarioId, graos, tipoRelacao) {

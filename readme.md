@@ -109,13 +109,14 @@ PGSSL=
 JWT_SECRET=
 CAPTCHA_ENABLED=false
 RECAPTCHA_SECRET_KEY=
-EMAIL_USER=
-EMAIL_PASSWORD=
-EMAIL_FROM=
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+EMAIL_USER=apikey
+EMAIL_PASSWORD=your_sendgrid_api_key_here
+EMAIL_FROM="AgroSmart" <your_verified_sender@example.com>
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=2525
 SMTP_SECURE=false
 SMTP_REQUIRE_TLS=true
+SMTP_FAMILY=4
 EMAIL_TIMEOUT_MS=30000
 
 EMBRAPA_CONSUMER_KEY=
@@ -175,31 +176,25 @@ A site key fica somente no frontend. A secret key fica somente no backend. Login
 
 ## Verificação de E-mail
 
-O envio de código por e-mail é obrigatório no cadastro. Configure SMTP real no backend:
+O envio de codigo por e-mail e obrigatorio no cadastro. O backend so aceita finalizar o cadastro depois que `/api/verify-code` valida o codigo enviado e retorna um token de verificacao para o mesmo e-mail.
 
-```text
-EMAIL_USER=seu_email@gmail.com
-EMAIL_PASSWORD=sua_senha_de_app
-EMAIL_FROM="AgroSmart" <seu_email@gmail.com>
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_REQUIRE_TLS=true
-EMAIL_TIMEOUT_MS=30000
-```
+No plano Free do Render, nao use Gmail SMTP nas portas `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid, ou outro provedor SMTP compativel com a porta `2525`.
 
-Para Gmail, use uma senha de app da conta e não a senha normal. O backend remove espaços da senha de app automaticamente, porque o Google costuma exibir o código em grupos.
+Para SendGrid SMTP:
 
-No plano free do Render, conexões SMTP em `465` e `587` podem retornar timeout. Nesse caso, mantenha a verificação obrigatória e use um provedor com SMTP alternativo, por exemplo SendGrid na porta `2525`:
+- `EMAIL_USER` deve ser literalmente `apikey`.
+- `EMAIL_PASSWORD` deve ser a API Key do SendGrid, configurada somente no ambiente.
+- `EMAIL_FROM` deve ser um remetente verificado no SendGrid.
 
 ```text
 EMAIL_USER=apikey
-EMAIL_PASSWORD=sua_sendgrid_api_key
-EMAIL_FROM="AgroSmart" <remetente_verificado@seudominio.com>
+EMAIL_PASSWORD=your_sendgrid_api_key_here
+EMAIL_FROM="AgroSmart" <your_verified_sender@example.com>
 SMTP_HOST=smtp.sendgrid.net
 SMTP_PORT=2525
 SMTP_SECURE=false
 SMTP_REQUIRE_TLS=true
+SMTP_FAMILY=4
 EMAIL_TIMEOUT_MS=30000
 ```
 

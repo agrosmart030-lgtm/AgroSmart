@@ -66,18 +66,30 @@ FRONTEND_URL=
 JWT_SECRET=
 CAPTCHA_ENABLED=false
 RECAPTCHA_SECRET_KEY=
-EMAIL_USER=
-EMAIL_PASSWORD=
-EMAIL_FROM=
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+EMAIL_USER=apikey
+EMAIL_PASSWORD=your_sendgrid_api_key_here
+EMAIL_FROM="AgroSmart" <agrosmart030@gmail.com>
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=2525
 SMTP_SECURE=false
 SMTP_REQUIRE_TLS=true
+SMTP_FAMILY=4
 EMAIL_TIMEOUT_MS=30000
 EMBRAPA_CONSUMER_KEY=
 EMBRAPA_CONSUMER_SECRET=
 COTACOES_REFRESH_MINUTES=30
 ```
+
+### E-mail no Render Free
+
+No plano Free do Render, nao use Gmail SMTP nas portas `465` ou `587`, pois essas conexoes podem falhar com timeout. Use SendGrid, ou outro provedor SMTP que aceite a porta `2525`.
+
+Para SendGrid SMTP:
+
+- `EMAIL_USER` deve ser literalmente `apikey`.
+- `EMAIL_PASSWORD` deve ser a API Key do SendGrid, configurada somente no ambiente do Render.
+- `EMAIL_FROM` deve ser um remetente verificado no SendGrid, por exemplo `"AgroSmart" <agrosmart030@gmail.com>`.
+- `SMTP_HOST=smtp.sendgrid.net`, `SMTP_PORT=2525`, `SMTP_SECURE=false` e `SMTP_REQUIRE_TLS=true`.
 
 Se preferir nao usar `DATABASE_URL`, configure estas variaveis em vez dela:
 

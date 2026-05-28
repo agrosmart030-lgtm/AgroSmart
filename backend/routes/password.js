@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { sendEmail } from '../services/emailService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,15 +12,6 @@ dotenv.config();
 
 // Armazenamento em memória dos códigos de recuperação
 const resetCodes = new Map();
-
-// Transporter de email (reutiliza as credenciais do .env)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
 
 export default function createPasswordRoutes(pool) {
   const router = Router();
@@ -46,8 +37,7 @@ export default function createPasswordRoutes(pool) {
       resetCodes.set(email, { code, expiresAt: Date.now() + 15 * 60 * 1000 });
 
       // Envia email HTML estilizado
-      await transporter.sendMail({
-        from: `"AgroSmart" <${process.env.EMAIL_USER}>`,
+      const emailResult = await sendEmail({
         to: email,
         subject: '🔑 Redefinição de Senha - AgroSmart',
         attachments: [{
@@ -131,9 +121,19 @@ export default function createPasswordRoutes(pool) {
         `,
       });
 
+      if (!emailResult.success) {
+        resetCodes.delete(email);
+        return res.status(500).json({
+          success: false,
+          message: 'Erro ao enviar e-mail. Tente novamente.',
+          error: emailResult.error || emailResult.code || 'EMAIL_SEND_FAILED',
+        });
+      }
+
       res.json({ success: true, message: 'Código enviado com sucesso!' });
     } catch (error) {
-      console.error('Erro ao enviar e-mail de recuperação:', error);
+      resetCodes.delete(req.body?.email);
+      console.error('Erro ao enviar e-mail de recuperação:', error.message || error);
       res.status(500).json({ success: false, message: 'Erro ao enviar e-mail. Tente novamente.' });
     }
   });
