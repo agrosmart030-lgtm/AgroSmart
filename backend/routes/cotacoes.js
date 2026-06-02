@@ -18,6 +18,7 @@ const scrapingApi = axios.create({
 const COTACOES_REFRESH_MINUTES = Number(process.env.COTACOES_REFRESH_MINUTES || 30);
 const COTACOES_REFRESH_MS = Math.max(COTACOES_REFRESH_MINUTES, 1) * 60 * 1000;
 const COTACOES_PROVEDORES = ['coamo', 'larAgro', 'granos', 'cvale'];
+const COTACOES_TIME_ZONE = 'America/Sao_Paulo';
 
 export default function createCotacoesRoutes(pool) {
   const router = Router();
@@ -93,7 +94,11 @@ export default function createCotacoesRoutes(pool) {
       res.json({
         refreshMinutes: COTACOES_REFRESH_MINUTES,
         expired: cacheEstaExpirado(cached.rows),
-        providers: cached.rows,
+        today: dataHojeKey(),
+        providers: cached.rows.map((row) => ({
+          ...row,
+          hasTodayQuote: temCotacaoDeHoje(row.dados),
+        })),
       });
     } catch (err) {
       console.error('Erro na rota /api/cotacoes/cache-status:', err.message || err);
@@ -188,11 +193,63 @@ function cacheEstaExpirado(rows) {
 function mesclarComCache(cachedData, freshData) {
   const merged = {};
   for (const provedor of COTACOES_PROVEDORES) {
-    const freshItems = Array.isArray(freshData?.[provedor]) ? freshData[provedor] : null;
+    const freshItems = Array.isArray(freshData?.[provedor]) ? freshData[provedor] : [];
     const cachedItems = Array.isArray(cachedData?.[provedor]) ? cachedData[provedor] : [];
-    merged[provedor] = freshItems && freshItems.length > 0 ? freshItems : cachedItems;
+    const hasFreshToday = temCotacaoDeHoje(freshItems);
+
+    if (hasFreshToday) {
+      merged[provedor] = freshItems;
+    } else {
+      merged[provedor] = cachedItems.length > 0 ? cachedItems : freshItems;
+    }
   }
   return merged;
+}
+
+function temCotacaoDeHoje(items) {
+  if (!Array.isArray(items) || items.length === 0) return false;
+  const today = dataHojeKey();
+  return items.some((item) => dataCotacaoKey(item?.data_hora) === today);
+}
+
+function dataHojeKey() {
+  return dateKeyFromDate(new Date());
+}
+
+function dataCotacaoKey(value) {
+  if (!value) return null;
+
+  const raw = String(value).trim();
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const brMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (brMatch) {
+    const [, day, month, year] = brMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return dateKeyFromDate(parsed);
+}
+
+function dateKeyFromDate(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: COTACOES_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+
+  return `${year}-${month}-${day}`;
 }
 
 async function salvarCacheEHistorico(pool, data) {
