@@ -194,66 +194,6 @@ const cooperativasData = [
   },
 ];
 
-
-// Dados para o histórico de preços
-const historyData = {
-  soja: {
-    name: "Soja",
-    unit: "R$/sc 60kg",
-    color: "#10B981",
-    gradient: "from-emerald-400 to-emerald-600",
-    cooperativas: {
-      coamo: { currentPrice: 178.5, change: +5.2 },
-      lar: { currentPrice: 175.2, change: +4.8 },
-      cvale: { currentPrice: 176.0, change: +4.5 },
-    },
-    data6m: [
-      { date: "2024-11", price: 165.3, volume: 2840 },
-      { date: "2024-12", price: 172.8, volume: 3120 },
-      { date: "2025-01", price: 169.4, volume: 2950 },
-      { date: "2025-02", price: 174.2, volume: 3280 },
-      { date: "2025-03", price: 176.9, volume: 3450 },
-      { date: "2025-04", price: 175.6, volume: 3180 },
-      { date: "2025-05", price: 178.5, volume: 3380 },
-    ],
-    data1y: [
-      { date: "2024-05", price: 152.3, volume: 2640 },
-      { date: "2024-06", price: 158.7, volume: 2780 },
-      { date: "2024-07", price: 161.2, volume: 2890 },
-      { date: "2024-08", price: 163.8, volume: 3020 },
-      { date: "2024-09", price: 160.4, volume: 2750 },
-      { date: "2024-10", price: 167.9, volume: 3150 },
-      { date: "2024-11", price: 165.3, volume: 2840 },
-      { date: "2024-12", price: 172.8, volume: 3120 },
-      { date: "2025-01", price: 169.4, volume: 2950 },
-      { date: "2025-02", price: 174.2, volume: 3280 },
-      { date: "2025-03", price: 176.9, volume: 3450 },
-      { date: "2025-04", price: 175.6, volume: 3180 },
-      { date: "2025-05", price: 178.5, volume: 3380 },
-    ],
-  },
-  milho: {
-    name: "Milho",
-    unit: "R$/sc 60kg",
-    color: "#F59E0B",
-    gradient: "from-amber-400 to-amber-600",
-    cooperativas: {
-      coamo: { currentPrice: 89.4, change: -2.1 },
-      lar: { currentPrice: 87.9, change: -1.8 },
-      cvale: { currentPrice: 88.5, change: -1.5 },
-    },
-    data6m: [
-      { date: "2024-11", price: 92.8, volume: 4120 },
-      { date: "2024-12", price: 88.5, volume: 3890 },
-      { date: "2025-01", price: 91.2, volume: 4050 },
-      { date: "2025-02", price: 87.6, volume: 3780 },
-      { date: "2025-03", price: 90.1, volume: 4180 },
-      { date: "2025-04", price: 91.3, volume: 4220 },
-      { date: "2025-05", price: 89.4, volume: 4080 },
-    ],
-  },
-};
-
 // Componente StatCard para exibir estatísticas
 const StatCard = ({ title, value, subtitle, icon: Icon, gradient, isPositive, change }) => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 h-full">
@@ -285,16 +225,17 @@ const StatCard = ({ title, value, subtitle, icon: Icon, gradient, isPositive, ch
 const DashboardPage = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('cotacao');
-  const [currentGrain] = useState('soja');
   const [timeRange, setTimeRange] = useState('6m');
   const [historyCoop, setHistoryCoop] = useState('LAR');
-  const [historyGrao, setHistoryGrao] = useState('');
+  const [historyGrao, setHistoryGrao] = useState('SOJA');
   const [historySeries, setHistorySeries] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
   const [analiseCotacoes, setAnaliseCotacoes] = useState(null);
   const [analiseLoading, setAnaliseLoading] = useState(false);
   const [analiseError, setAnaliseError] = useState(null);
+  const [analisePeriod, setAnalisePeriod] = useState('30d');
+  const [analiseGrao, setAnaliseGrao] = useState('');
   
   const {
     searchTerm,
@@ -322,7 +263,7 @@ const DashboardPage = () => {
         setAnaliseLoading(true);
         setAnaliseError(null);
         const params = new URLSearchParams();
-        params.set('period', timeRange);
+        params.set('period', analisePeriod);
         const resp = await axios.get(`${API_URL}/cotacoes/analise?${params.toString()}`, {
           signal: controller.signal,
         });
@@ -339,13 +280,13 @@ const DashboardPage = () => {
 
     loadAnalise();
     return () => controller.abort();
-  }, [timeRange]);
+  }, [analisePeriod]);
 
   // Lê ?tab=historico para abrir a aba correta via deep link
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    if (tab === 'historico' || tab === 'cotacao') {
+    if (tab === 'historico' || tab === 'cotacao' || tab === 'analise') {
       setActiveTab(tab);
     }
   }, [location.search]);
@@ -443,46 +384,41 @@ const DashboardPage = () => {
       .filter((item) => item.preco > 0);
   }, [displayedData]);
 
-  const resumoCotacoes = useMemo(() => {
-    const stats = analiseCotacoes?.estatisticas;
-    if (stats?.totalCotacoes > 0) {
-      return {
-        maior: stats.maiorCotacao,
-        menor: stats.menorCotacao,
-        media: stats.mediaPrecoFormatada,
-        ultimaAtualizacao: stats.ultimaAtualizacao,
-        total: stats.totalCotacoes,
-      };
+  const analisesPorGrao = useMemo(
+    () => (Array.isArray(analiseCotacoes?.graos) ? analiseCotacoes.graos : []),
+    [analiseCotacoes]
+  );
+
+  useEffect(() => {
+    if (!analiseGrao && analisesPorGrao.length > 0) {
+      setAnaliseGrao(analisesPorGrao[0].grao);
+    }
+  }, [analiseGrao, analisesPorGrao]);
+
+  const analiseSelecionada = useMemo(() => {
+    if (analisesPorGrao.length === 0) return null;
+    return analisesPorGrao.find((item) => item.grao === analiseGrao) || analisesPorGrao[0];
+  }, [analiseGrao, analisesPorGrao]);
+
+  const comparativoGraoSelecionado = useMemo(() => {
+    if (Array.isArray(analiseSelecionada?.comparativoCooperativas)) {
+      return analiseSelecionada.comparativoCooperativas
+        .map((item) => ({
+          label: item.cooperativa,
+          grao: item.grao,
+          cooperativa: item.cooperativa,
+          preco: Number(item.preco) || 0,
+        }))
+        .filter((item) => item.preco > 0);
     }
 
-    const all = cotacoesAtuaisGrafico;
-    if (all.length === 0) {
-      return { maior: null, menor: null, media: null, ultimaAtualizacao: null, total: 0 };
-    }
+    if (!analiseSelecionada?.grao) return [];
+    return cotacoesAtuaisGrafico.filter((item) => item.grao === analiseSelecionada.grao);
+  }, [analiseSelecionada, cotacoesAtuaisGrafico]);
 
-    const sorted = [...all].sort((a, b) => b.preco - a.preco);
-    const mediaAtual = all.reduce((sum, item) => sum + item.preco, 0) / all.length;
+  const estatisticasGrao = analiseSelecionada?.estatisticas || {};
 
-    return {
-      maior: {
-        grao: sorted[0].grao,
-        cooperativa: sorted[0].cooperativa,
-        precoFormatado: formatarMoeda(sorted[0].preco),
-      },
-      menor: {
-        grao: sorted[sorted.length - 1].grao,
-        cooperativa: sorted[sorted.length - 1].cooperativa,
-        precoFormatado: formatarMoeda(sorted[sorted.length - 1].preco),
-      },
-      media: formatarMoeda(mediaAtual),
-      ultimaAtualizacao: null,
-      total: all.length,
-    };
-  }, [analiseCotacoes, cotacoesAtuaisGrafico]);
-
-  const chartData = historySeries.length > 0
-    ? historySeries
-    : (timeRange === '6m' ? historyData[currentGrain].data6m : historyData[currentGrain].data1y);
+  const chartData = historySeries;
   const averagePrice = chartData.length > 0 ? (chartData.reduce((sum, item) => sum + Number(item.price), 0) / chartData.length).toFixed(2) : '0.00';
   return (
     <div className="min-h-screen bg-[#f1f4f2] dark:bg-[#0b1410] flex flex-col relative transition-colors duration-300">
@@ -493,7 +429,7 @@ const DashboardPage = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
             <div>
               <h1 className="text-3xl font-extrabold text-[#012d1d] dark:text-white tracking-tight font-manrope">
-                {activeTab === 'cotacao' ? 'Painel de Operações' : 'Inteligência de Mercado'}
+                {activeTab === 'cotacao' ? 'Painel de Operações' : activeTab === 'analise' ? 'Análise de Cotações' : 'Inteligência de Mercado'}
               </h1>
               <p className="text-[#414844] dark:text-gray-400 text-sm font-medium mt-1">Acompanhe dinâmicas e preços em tempo real.</p>
             </div>
@@ -511,10 +447,18 @@ const DashboardPage = () => {
               <button
                 onClick={() => setActiveTab('historico')}
                 className={`flex-1 sm:flex-none px-5 sm:px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 whitespace-nowrap ${activeTab === 'historico'
-                  ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20' 
+                  ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               >
                 Histórico
+              </button>
+              <button
+                onClick={() => setActiveTab('analise')}
+                className={`flex-1 sm:flex-none px-5 sm:px-8 py-2 font-bold text-sm rounded-full transition-all duration-300 whitespace-nowrap ${activeTab === 'analise'
+                  ? 'bg-white dark:bg-[#012d1d] text-[#012d1d] dark:text-white shadow-sm border border-gray-100 dark:border-white/20'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+              >
+                Análise
               </button>
             </div>
           </div>
@@ -536,82 +480,6 @@ const DashboardPage = () => {
                   {error}
                 </div>
               )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
-                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <p className="text-xs font-bold uppercase text-gray-500">Maior cotacao</p>
-                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.maior?.precoFormatado || 'Sem dados'}</p>
-                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.maior ? `${resumoCotacoes.maior.grao} - ${resumoCotacoes.maior.cooperativa}` : 'Aguardando cotacoes'}</p>
-                </div>
-                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <p className="text-xs font-bold uppercase text-gray-500">Menor cotacao</p>
-                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.menor?.precoFormatado || 'Sem dados'}</p>
-                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.menor ? `${resumoCotacoes.menor.grao} - ${resumoCotacoes.menor.cooperativa}` : 'Aguardando cotacoes'}</p>
-                </div>
-                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <p className="text-xs font-bold uppercase text-gray-500">Media de preco</p>
-                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.media || 'Sem dados'}</p>
-                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.total || 0} cotacoes consideradas</p>
-                </div>
-                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <p className="text-xs font-bold uppercase text-gray-500">Ultima atualizacao</p>
-                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{formatarDataCurta(resumoCotacoes.ultimaAtualizacao)}</p>
-                  <p className="text-xs font-semibold text-gray-500">Cache e historico do mercado</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 mt-4">
-                <div className="xl:col-span-2 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <BrainCircuit size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
-                    <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Analise inteligente</h2>
-                  </div>
-                  {analiseLoading ? (
-                    <p className="text-sm font-medium text-gray-500">Gerando analise das cotacoes...</p>
-                  ) : analiseError ? (
-                    <p className="text-sm font-medium text-red-600">{analiseError}</p>
-                  ) : (
-                    <>
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{analiseCotacoes?.resumo || 'Ainda nao ha dados suficientes para analise.'}</p>
-                      <div className="mt-4 space-y-2">
-                        {(analiseCotacoes?.graos || []).slice(0, 3).map((item) => (
-                          <div key={item.grao} className="rounded-lg border border-gray-100 dark:border-white/10 px-3 py-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-sm font-black text-[#012d1d] dark:text-white">{item.grao}</span>
-                              <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${trendStyles[item.tendencia] || trendStyles.indefinida}`}>
-                                {item.tendencia}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs font-medium text-gray-500">{item.sugestao}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="xl:col-span-3 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <BarChart3 size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
-                    <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Comparativo atual</h2>
-                  </div>
-                  {cotacoesAtuaisGrafico.length > 0 ? (
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={cotacoesAtuaisGrafico.slice(0, 12)} margin={{ top: 8, right: 8, left: 0, bottom: 42 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                          <XAxis dataKey="label" angle={-30} textAnchor="end" interval={0} height={62} tick={{ fontSize: 10 }} />
-                          <YAxis tickFormatter={(value) => `R$ ${value}`} width={56} />
-                          <Tooltip formatter={(value) => [formatarMoeda(Number(value)), 'Preco']} />
-                          <Bar dataKey="preco" fill="#1B4332" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <p className="text-sm font-medium text-gray-500">Nenhum dado disponivel para comparar no momento.</p>
-                  )}
-                </div>
-              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
                 <div className="lg:col-span-1">
@@ -705,6 +573,137 @@ const DashboardPage = () => {
                 </div>
               </div>
             </>
+          ) : activeTab === 'analise' ? (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-1">Grão analisado</label>
+                    <select
+                      value={analiseSelecionada?.grao || analiseGrao}
+                      onChange={(e) => setAnaliseGrao(e.target.value)}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2"
+                    >
+                      {analisesPorGrao.length === 0 && <option value="">Sem dados</option>}
+                      {analisesPorGrao.map((item) => (
+                        <option key={item.grao} value={item.grao}>{item.grao}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-1">Período da análise</label>
+                    <select
+                      value={analisePeriod}
+                      onChange={(e) => setAnalisePeriod(e.target.value)}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2"
+                    >
+                      <option value="7d">Últimos 7 dias</option>
+                      <option value="30d">Últimos 30 dias</option>
+                      <option value="6m">Últimos 6 meses</option>
+                      <option value="1y">Último ano</option>
+                    </select>
+                  </div>
+                </div>
+                {analiseLoading && <p className="text-xs text-gray-500 mt-3">Gerando análise por grão...</p>}
+                {analiseError && <p className="text-xs text-red-500 mt-3">{analiseError}</p>}
+              </div>
+
+              {!analiseLoading && !analiseError && !analiseSelecionada ? (
+                <div className="bg-white dark:bg-[#14241d] p-6 rounded-2xl text-center border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200">
+                  Nenhum dado disponível para análise no momento.
+                </div>
+              ) : analiseSelecionada && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <p className="text-xs font-bold uppercase text-gray-500">Maior cotação de {analiseSelecionada.grao}</p>
+                      <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{estatisticasGrao.maiorCotacao?.precoFormatado || 'Sem dados'}</p>
+                      <p className="text-xs font-semibold text-gray-500">{estatisticasGrao.maiorCotacao?.cooperativa || 'Aguardando cotações'}</p>
+                    </div>
+                    <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <p className="text-xs font-bold uppercase text-gray-500">Menor cotação de {analiseSelecionada.grao}</p>
+                      <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{estatisticasGrao.menorCotacao?.precoFormatado || 'Sem dados'}</p>
+                      <p className="text-xs font-semibold text-gray-500">{estatisticasGrao.menorCotacao?.cooperativa || 'Aguardando cotações'}</p>
+                    </div>
+                    <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <p className="text-xs font-bold uppercase text-gray-500">Média de {analiseSelecionada.grao}</p>
+                      <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{estatisticasGrao.mediaPrecoFormatada || 'Sem dados'}</p>
+                      <p className="text-xs font-semibold text-gray-500">{estatisticasGrao.totalCotacoes || 0} cooperativas consideradas</p>
+                    </div>
+                    <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <p className="text-xs font-bold uppercase text-gray-500">Última atualização</p>
+                      <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{formatarDataCurta(estatisticasGrao.ultimaAtualizacao)}</p>
+                      <span className={`inline-flex mt-1 rounded-full border px-2 py-0.5 text-xs font-bold ${trendStyles[analiseSelecionada.tendencia] || trendStyles.indefinida}`}>
+                        {analiseSelecionada.tendencia}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+                    <div className="xl:col-span-2 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <BrainCircuit size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
+                        <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Resumo inteligente</h2>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{analiseSelecionada.sugestao || 'Ainda não há dados suficientes para análise.'}</p>
+                      <div className="mt-4 rounded-lg border border-gray-100 dark:border-white/10 px-3 py-2">
+                        <p className="text-xs font-bold uppercase text-gray-500">Variação em relação ao histórico</p>
+                        <p className="text-lg font-black text-[#012d1d] dark:text-white">
+                          {Number.isFinite(analiseSelecionada.variacaoPercentual)
+                            ? `${analiseSelecionada.variacaoPercentual > 0 ? '+' : ''}${analiseSelecionada.variacaoPercentual}%`
+                            : 'Histórico insuficiente'}
+                        </p>
+                        <p className="text-xs font-semibold text-gray-500">
+                          Atual: {analiseSelecionada.precoAtualFormatado || 'sem dados'} · Anterior: {analiseSelecionada.precoAnteriorFormatado || 'sem dados'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="xl:col-span-3 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <BarChart3 size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
+                        <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Comparativo entre cooperativas - {analiseSelecionada.grao}</h2>
+                      </div>
+                      {comparativoGraoSelecionado.length > 0 ? (
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={comparativoGraoSelecionado} margin={{ top: 8, right: 8, left: 0, bottom: 32 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                              <XAxis dataKey="label" interval={0} tick={{ fontSize: 11 }} />
+                              <YAxis tickFormatter={(value) => `R$ ${value}`} width={56} />
+                              <Tooltip formatter={(value) => [formatarMoeda(Number(value)), 'Preço']} />
+                              <Bar dataKey="preco" fill="#1B4332" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-500">Nenhuma cooperativa possui cotação para este grão no momento.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    {analisesPorGrao.map((item) => (
+                      <button
+                        key={item.grao}
+                        type="button"
+                        onClick={() => setAnaliseGrao(item.grao)}
+                        className={`text-left bg-white dark:bg-[#14241d] rounded-xl border p-4 shadow-sm transition-all ${analiseSelecionada.grao === item.grao ? 'border-[#012d1d] ring-2 ring-[#012d1d]/10' : 'border-gray-200 dark:border-white/10 hover:border-[#012d1d]/40'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-black text-[#012d1d] dark:text-white">{item.grao}</span>
+                          <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${trendStyles[item.tendencia] || trendStyles.indefinida}`}>
+                            {item.tendencia}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-lg font-black text-[#012d1d] dark:text-white">{item.estatisticas?.mediaPrecoFormatada || 'Sem média'}</p>
+                        <p className="text-xs font-semibold text-gray-500">Melhor: {item.melhorPreco?.cooperativa || 'sem dado'}</p>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           ) : (
             <div className="space-y-6">
               {/* Filtros do Histórico */}
@@ -726,12 +725,17 @@ const DashboardPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Grão</label>
-                    <input
+                    <select
                       value={historyGrao}
                       onChange={(e) => setHistoryGrao(e.target.value)}
-                      placeholder="ex: Soja, Milho"
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2 px-2"
-                    />
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 text-sm py-2"
+                    >
+                      <option value="SOJA">SOJA</option>
+                      <option value="MILHO">MILHO</option>
+                      <option value="TRIGO">TRIGO</option>
+                      <option value="CAFE">CAFÉ</option>
+                      <option value="FEIJAO">FEIJÃO</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Período</label>
@@ -768,7 +772,7 @@ const DashboardPage = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                   <div>
                     <h2 className="text-lg font-extrabold text-primary dark:text-[#c0edd4] font-manrope">Evolucao historica</h2>
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{historyCoop} {historyGrao ? `- ${historyGrao}` : '- todos os graos'}</p>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{historyCoop} - {historyGrao}</p>
                   </div>
                   {historyLoading && <span className="text-xs font-bold text-gray-500">Carregando...</span>}
                 </div>
@@ -822,7 +826,7 @@ const DashboardPage = () => {
                          return (
                            <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                              <td className="px-6 md:px-8 py-6 font-bold text-primary dark:text-[#a5d0b9] whitespace-nowrap">{row.date}</td>
-                             <td className="px-6 md:px-8 py-6 text-gray-600 dark:text-gray-300 font-semibold">{historyGrao || historyData[currentGrain]?.name || 'Geral'} ({historyCoop})</td>
+                             <td className="px-6 md:px-8 py-6 text-gray-600 dark:text-gray-300 font-semibold">{historyGrao} ({historyCoop})</td>
                              <td className="px-6 md:px-8 py-6 text-xl font-extrabold text-[#012d1d] dark:text-white whitespace-nowrap">R$ {currentPriceVal.toFixed(2).replace('.', ',')}</td>
                              <td className="px-6 md:px-8 py-6">
                                {isNeg ? (
