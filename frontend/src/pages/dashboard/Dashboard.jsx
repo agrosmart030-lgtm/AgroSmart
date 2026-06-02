@@ -335,10 +335,8 @@ const DashboardPage = () => {
   useEffect(() => {
     const selectedCoop = displayedData.find(c => c.nome === selectedCoopName);
     const firstWithProducts = displayedData.find(c => c.produtos?.length > 0);
-    const shouldPreferCoopWithProducts =
-      firstWithProducts && (!selectedCoop || selectedCoop.produtos?.length === 0);
 
-    if (shouldPreferCoopWithProducts || (!selectedCoop && displayedData.length > 0)) {
+    if (!selectedCoop && displayedData.length > 0) {
       setSelectedCoopName(firstWithProducts?.nome || displayedData[0]?.nome || null);
     }
   }, [displayedData, selectedCoopName]);
@@ -459,7 +457,7 @@ const DashboardPage = () => {
                       </div>
                     </div>
                     
-                    {cooperativaParaExibir ? (
+                    {cooperativaParaExibir?.produtos?.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                         {cooperativaParaExibir.produtos.map((produto, index) => {
                           const variacaoStr = produto.variacao || '';
@@ -489,7 +487,7 @@ const DashboardPage = () => {
                       </div>
                     ) : (
                       <div className="bg-white dark:bg-[#14241d] p-6 rounded-2xl text-center border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200">
-                        Nenhuma cooperativa correspondente
+                        Nenhuma cotação disponível para {cooperativaParaExibir?.nome || 'esta cooperativa'} no momento.
                       </div>
                     )}
                   </div>
