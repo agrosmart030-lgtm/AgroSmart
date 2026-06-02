@@ -301,7 +301,8 @@ const DashboardPage = () => {
   useEffect(() => {
     const isSelectedInList = displayedData.some(c => c.nome === selectedCoopName);
     if (!isSelectedInList) {
-        setSelectedCoopName(displayedData.length > 0 ? displayedData[0].nome : null);
+        const firstWithProducts = displayedData.find(c => c.produtos?.length > 0);
+        setSelectedCoopName(firstWithProducts?.nome || displayedData[0]?.nome || null);
     }
   }, [displayedData, selectedCoopName]);
 
