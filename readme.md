@@ -56,7 +56,7 @@ AgroSmart/
 - Login com JWT para usuários e administradores.
 - Senhas de usuários com hash bcrypt.
 - Recuperação e redefinição de senha por e-mail.
-- Dashboard de cotações com cards de resumo, filtros por grão/cooperativa, histórico e gráficos comparativos.
+- Dashboard de cotações com filtros por grão/cooperativa, histórico e página de análise com comparativos separados por grão.
 - Cache e histórico de cotações no PostgreSQL.
 - Análise inteligente simples de cotações, baseada em regras e estatísticas do histórico.
 - Consulta climática via OpenWeatherMap.
@@ -286,7 +286,7 @@ npm run build:backend
 | POST | `/api/reset-password` | Redefinição de senha |
 | GET | `/api/cotacoes/todos` | Cotações cacheadas/agregadas |
 | GET | `/api/cotacoes/historico` | Histórico de cotações |
-| GET | `/api/cotacoes/analise` | Análise simples de tendência, variação e melhores preços |
+| GET | `/api/cotacoes/analise` | Análise simples por grão, com tendência, variação, médias e comparação entre cooperativas |
 | POST | `/api/cotacoes/refresh` | Atualiza o cache de cotações a partir da API externa |
 | GET | `/api/cotacoes/cache-status` | Diagnóstico do cache e disponibilidade de cotação do dia |
 | GET/POST | `/api/faq` | Mensagens de FAQ |
@@ -299,13 +299,15 @@ npm run build:backend
 
 ## Painel de Cotações e Análise Inteligente
 
-O painel de cotações usa dados de `/api/cotacoes/todos`, histórico de `/api/cotacoes/historico` e a rota `/api/cotacoes/analise` para exibir:
+O painel de cotações usa dados de `/api/cotacoes/todos`, histórico de `/api/cotacoes/historico` e a rota `/api/cotacoes/analise`. A aba `Cotação` mostra os preços do dia por cooperativa. A aba `Histórico` mostra séries filtradas por cooperativa, grão e período. A aba `Análise` concentra os indicadores inteligentes.
 
-- cards de maior cotação, menor cotação, média de preço e última atualização;
-- gráfico comparativo das cotações atuais;
+- cards de maior cotação, menor cotação, média de preço e última atualização sempre separados por grão;
+- gráfico comparativo entre cooperativas para um único grão selecionado;
 - gráfico de evolução histórica por cooperativa, grão e período;
 - resumo inteligente com tendência de alta, queda, estabilidade ou dados insuficientes;
 - sugestão textual simples para o produtor com base em variação percentual e melhor preço encontrado.
+
+Importante: o sistema não calcula média nem ranqueia maior/menor preço misturando grãos diferentes. Quando `/api/cotacoes/analise` é chamada sem `grao`, a resposta traz uma lista em `graos`, e cada item possui suas próprias `estatisticas` e `comparativoCooperativas`.
 
 A análise inteligente não depende de API paga de IA. Ela usa regras determinísticas, estatística básica e os registros salvos em `tb_cotacoes_cache` e `tb_cotacoes_historico`.
 
