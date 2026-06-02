@@ -1,7 +1,18 @@
 // src/pages/dashboard/Dashboard.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, TrendingUp, TrendingDown, BrainCircuit, BarChart3, AlertCircle } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import Footer from '../../componentes/footer';
 import Navbar from '../../componentes/navbar';
 import { useCotacoes } from '../../hooks/useCotacoes';
@@ -64,6 +75,43 @@ const mapearProdutoCotacao = (item) => {
 
 const mapearProdutosCotacao = (items) =>
   items.map(mapearProdutoCotacao).filter(Boolean);
+
+const parsePrecoDisplay = (preco = '') => {
+  const match = String(preco).match(/\d{1,3}(?:\.\d{3})*,\d{2}|\d+(?:[.,]\d{1,2})?/);
+  if (!match) return null;
+
+  const value = Number(match[0].replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(value) ? value : null;
+};
+
+const formatarMoeda = (value) =>
+  Number.isFinite(value)
+    ? value.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    : 'Sem dados';
+
+const formatarDataCurta = (value) => {
+  if (!value) return 'Sem atualização';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
+const trendStyles = {
+  alta: 'bg-green-50 text-green-700 border-green-100',
+  queda: 'bg-red-50 text-red-700 border-red-100',
+  estabilidade: 'bg-amber-50 text-amber-700 border-amber-100',
+  indefinida: 'bg-gray-50 text-gray-600 border-gray-100',
+};
 
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
@@ -244,6 +292,9 @@ const DashboardPage = () => {
   const [historySeries, setHistorySeries] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
+  const [analiseCotacoes, setAnaliseCotacoes] = useState(null);
+  const [analiseLoading, setAnaliseLoading] = useState(false);
+  const [analiseError, setAnaliseError] = useState(null);
   
   const {
     searchTerm,
@@ -262,6 +313,33 @@ const DashboardPage = () => {
     console.log('API cotacoes:', cotacoes);
     if (error) console.error('Erro cotacoes:', error);
   }, [cotacoes, error]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadAnalise() {
+      try {
+        setAnaliseLoading(true);
+        setAnaliseError(null);
+        const params = new URLSearchParams();
+        params.set('period', timeRange);
+        const resp = await axios.get(`${API_URL}/cotacoes/analise?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        setAnaliseCotacoes(resp.data);
+      } catch (e) {
+        if (e.name !== 'CanceledError') {
+          setAnaliseError('Nao foi possivel gerar a analise das cotacoes.');
+          setAnaliseCotacoes(null);
+        }
+      } finally {
+        setAnaliseLoading(false);
+      }
+    }
+
+    loadAnalise();
+    return () => controller.abort();
+  }, [timeRange]);
 
   // Lê ?tab=historico para abrir a aba correta via deep link
   useEffect(() => {
@@ -352,6 +430,56 @@ const DashboardPage = () => {
   }, [apiCooperativas]);
 
   // Dados atuais para o histórico (preferir série real)
+  const cotacoesAtuaisGrafico = useMemo(() => {
+    return displayedData
+      .flatMap((coop) =>
+        coop.produtos.map((produto) => ({
+          label: `${produto.nome} - ${coop.nome}`,
+          grao: produto.nome,
+          cooperativa: coop.nome,
+          preco: parsePrecoDisplay(produto.preco) || 0,
+        }))
+      )
+      .filter((item) => item.preco > 0);
+  }, [displayedData]);
+
+  const resumoCotacoes = useMemo(() => {
+    const stats = analiseCotacoes?.estatisticas;
+    if (stats?.totalCotacoes > 0) {
+      return {
+        maior: stats.maiorCotacao,
+        menor: stats.menorCotacao,
+        media: stats.mediaPrecoFormatada,
+        ultimaAtualizacao: stats.ultimaAtualizacao,
+        total: stats.totalCotacoes,
+      };
+    }
+
+    const all = cotacoesAtuaisGrafico;
+    if (all.length === 0) {
+      return { maior: null, menor: null, media: null, ultimaAtualizacao: null, total: 0 };
+    }
+
+    const sorted = [...all].sort((a, b) => b.preco - a.preco);
+    const mediaAtual = all.reduce((sum, item) => sum + item.preco, 0) / all.length;
+
+    return {
+      maior: {
+        grao: sorted[0].grao,
+        cooperativa: sorted[0].cooperativa,
+        precoFormatado: formatarMoeda(sorted[0].preco),
+      },
+      menor: {
+        grao: sorted[sorted.length - 1].grao,
+        cooperativa: sorted[sorted.length - 1].cooperativa,
+        precoFormatado: formatarMoeda(sorted[sorted.length - 1].preco),
+      },
+      media: formatarMoeda(mediaAtual),
+      ultimaAtualizacao: null,
+      total: all.length,
+    };
+  }, [analiseCotacoes, cotacoesAtuaisGrafico]);
+
   const chartData = historySeries.length > 0
     ? historySeries
     : (timeRange === '6m' ? historyData[currentGrain].data6m : historyData[currentGrain].data1y);
@@ -401,6 +529,89 @@ const DashboardPage = () => {
                 cooperativasDisponiveis={cooperativasDisponiveisLocal}
                 onClear={limparFiltros}
               />
+
+              {error && (
+                <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                  <AlertCircle size={16} />
+                  {error}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-4">
+                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <p className="text-xs font-bold uppercase text-gray-500">Maior cotacao</p>
+                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.maior?.precoFormatado || 'Sem dados'}</p>
+                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.maior ? `${resumoCotacoes.maior.grao} - ${resumoCotacoes.maior.cooperativa}` : 'Aguardando cotacoes'}</p>
+                </div>
+                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <p className="text-xs font-bold uppercase text-gray-500">Menor cotacao</p>
+                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.menor?.precoFormatado || 'Sem dados'}</p>
+                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.menor ? `${resumoCotacoes.menor.grao} - ${resumoCotacoes.menor.cooperativa}` : 'Aguardando cotacoes'}</p>
+                </div>
+                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <p className="text-xs font-bold uppercase text-gray-500">Media de preco</p>
+                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{resumoCotacoes.media || 'Sem dados'}</p>
+                  <p className="text-xs font-semibold text-gray-500">{resumoCotacoes.total || 0} cotacoes consideradas</p>
+                </div>
+                <div className="bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <p className="text-xs font-bold uppercase text-gray-500">Ultima atualizacao</p>
+                  <p className="mt-2 text-xl font-black text-[#012d1d] dark:text-white">{formatarDataCurta(resumoCotacoes.ultimaAtualizacao)}</p>
+                  <p className="text-xs font-semibold text-gray-500">Cache e historico do mercado</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 mt-4">
+                <div className="xl:col-span-2 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BrainCircuit size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
+                    <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Analise inteligente</h2>
+                  </div>
+                  {analiseLoading ? (
+                    <p className="text-sm font-medium text-gray-500">Gerando analise das cotacoes...</p>
+                  ) : analiseError ? (
+                    <p className="text-sm font-medium text-red-600">{analiseError}</p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{analiseCotacoes?.resumo || 'Ainda nao ha dados suficientes para analise.'}</p>
+                      <div className="mt-4 space-y-2">
+                        {(analiseCotacoes?.graos || []).slice(0, 3).map((item) => (
+                          <div key={item.grao} className="rounded-lg border border-gray-100 dark:border-white/10 px-3 py-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-black text-[#012d1d] dark:text-white">{item.grao}</span>
+                              <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${trendStyles[item.tendencia] || trendStyles.indefinida}`}>
+                                {item.tendencia}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs font-medium text-gray-500">{item.sugestao}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="xl:col-span-3 bg-white dark:bg-[#14241d] rounded-xl border border-gray-200 dark:border-white/10 p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BarChart3 size={18} className="text-[#012d1d] dark:text-[#a5d0b9]" />
+                    <h2 className="text-sm font-black text-[#012d1d] dark:text-white uppercase tracking-wide">Comparativo atual</h2>
+                  </div>
+                  {cotacoesAtuaisGrafico.length > 0 ? (
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={cotacoesAtuaisGrafico.slice(0, 12)} margin={{ top: 8, right: 8, left: 0, bottom: 42 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="label" angle={-30} textAnchor="end" interval={0} height={62} tick={{ fontSize: 10 }} />
+                          <YAxis tickFormatter={(value) => `R$ ${value}`} width={56} />
+                          <Tooltip formatter={(value) => [formatarMoeda(Number(value)), 'Preco']} />
+                          <Bar dataKey="preco" fill="#1B4332" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-medium text-gray-500">Nenhum dado disponivel para comparar no momento.</p>
+                  )}
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
                 <div className="lg:col-span-1">
@@ -551,6 +762,31 @@ const DashboardPage = () => {
                   icon={Calendar}
                   gradient="from-blue-500 to-blue-600"
                 />
+              </div>
+
+              <div className="bg-white dark:bg-[#14241d] rounded-[1.5rem] shadow-sm border border-gray-200 dark:border-white/10 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                  <div>
+                    <h2 className="text-lg font-extrabold text-primary dark:text-[#c0edd4] font-manrope">Evolucao historica</h2>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">{historyCoop} {historyGrao ? `- ${historyGrao}` : '- todos os graos'}</p>
+                  </div>
+                  {historyLoading && <span className="text-xs font-bold text-gray-500">Carregando...</span>}
+                </div>
+                {chartData && chartData.length > 0 ? (
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 8, right: 18, left: 0, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                        <YAxis tickFormatter={(value) => `R$ ${Number(value).toFixed(0)}`} width={58} />
+                        <Tooltip formatter={(value) => [formatarMoeda(Number(value)), 'Preco']} />
+                        <Line type="monotone" dataKey="price" stroke="#1B4332" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="py-10 text-center text-sm font-semibold text-gray-500">Nenhum dado historico encontrado para os filtros atuais.</p>
+                )}
               </div>
 
               {/* Historical Minimalist Table Section */}
