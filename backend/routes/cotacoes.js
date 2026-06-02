@@ -15,6 +15,10 @@ const scrapingApi = axios.create({
   },
 });
 
+const COTACOES_REFRESH_MINUTES = Number(process.env.COTACOES_REFRESH_MINUTES || 30);
+const COTACOES_REFRESH_MS = Math.max(COTACOES_REFRESH_MINUTES, 1) * 60 * 1000;
+const COTACOES_PROVEDORES = ['coamo', 'larAgro', 'granos', 'cvale'];
+
 export default function createCotacoesRoutes(pool) {
   const router = Router();
 
@@ -24,42 +28,86 @@ export default function createCotacoesRoutes(pool) {
   });
 
   router.get('/', (_req, res) => {
-    res.json({ ok: true, routes: ['/todos', '/historico'] });
+    res.json({ ok: true, routes: ['/todos', '/historico', '/refresh', '/cache-status'] });
   });
 
-  // GET /api/cotacoes/todos — busca da API externa, salva cache e histórico
   router.get('/todos', async (_req, res) => {
     try {
-      // Tenta cache local primeiro
       const cached = await pool.query(
         'SELECT provedor, dados, data_atualizacao FROM tb_cotacoes_cache ORDER BY provedor'
       );
-      if (cached.rows.length > 0) {
-        const data = {};
-        for (const row of cached.rows) {
-          data[row.provedor] = row.dados;
-        }
-        return res.json(data);
+
+      const cachedData = montarDadosDoCache(cached.rows);
+      if (cached.rows.length > 0 && !cacheEstaExpirado(cached.rows)) {
+        return res.json(cachedData);
       }
 
-      // Sem cache: busca da API externa
-      const { data } = await scrapingApi.get('/api/cotacoes/todos');
-      await salvarCacheEHistorico(pool, data);
-      return res.json(data);
+      try {
+        const { data } = await scrapingApi.get('/api/cotacoes/todos');
+        const mergedData = mesclarComCache(cachedData, data);
+        await salvarCacheEHistorico(pool, mergedData);
+        return res.json(mergedData);
+      } catch (scrapingErr) {
+        if (cached.rows.length > 0) {
+          console.warn(
+            'Erro ao atualizar cotacoes; retornando cache local:',
+            scrapingErr.message || scrapingErr
+          );
+          return res.json(cachedData);
+        }
+
+        throw scrapingErr;
+      }
     } catch (err) {
       console.error('Erro na rota /api/cotacoes/todos:', err.message || err);
-      res.status(500).json({ error: 'Erro ao obter cotações' });
+      res.status(500).json({ error: 'Erro ao obter cotacoes' });
     }
   });
 
-  // GET /api/cotacoes/historico?coop=&grao=&period=
+  router.post('/refresh', async (_req, res) => {
+    try {
+      const cached = await pool.query(
+        'SELECT provedor, dados, data_atualizacao FROM tb_cotacoes_cache ORDER BY provedor'
+      );
+      const cachedData = montarDadosDoCache(cached.rows);
+      const { data } = await scrapingApi.get('/api/cotacoes/todos');
+      const mergedData = mesclarComCache(cachedData, data);
+      await salvarCacheEHistorico(pool, mergedData);
+
+      res.json({
+        success: true,
+        data: mergedData,
+      });
+    } catch (err) {
+      console.error('Erro na rota /api/cotacoes/refresh:', err.message || err);
+      res.status(500).json({ error: 'Erro ao atualizar cotacoes' });
+    }
+  });
+
+  router.get('/cache-status', async (_req, res) => {
+    try {
+      const cached = await pool.query(
+        'SELECT provedor, jsonb_array_length(dados) AS total, data_atualizacao FROM tb_cotacoes_cache ORDER BY provedor'
+      );
+
+      res.json({
+        refreshMinutes: COTACOES_REFRESH_MINUTES,
+        expired: cacheEstaExpirado(cached.rows),
+        providers: cached.rows,
+      });
+    } catch (err) {
+      console.error('Erro na rota /api/cotacoes/cache-status:', err.message || err);
+      res.status(500).json({ error: 'Erro ao consultar cache de cotacoes' });
+    }
+  });
+
   router.get('/historico', async (req, res) => {
     try {
       const coopRaw = (req.query.coop || '').toString().trim();
       const coop = coopRaw.toUpperCase();
       if (!coop || !['COAMO', 'LAR', 'GRANOS', 'CVALE'].includes(coop)) {
         return res.status(400).json({
-          error: "Parâmetro 'coop' inválido. Use 'COAMO', 'LAR', 'GRANOS' ou 'CVALE'.",
+          error: "Parametro 'coop' invalido. Use 'COAMO', 'LAR', 'GRANOS' ou 'CVALE'.",
         });
       }
 
@@ -96,14 +144,12 @@ export default function createCotacoesRoutes(pool) {
       res.json({ coop, grao: grao || null, period, series });
     } catch (err) {
       console.error('Erro em /api/cotacoes/historico:', err);
-      res.status(500).json({ error: 'Erro ao obter histórico de cotações' });
+      res.status(500).json({ error: 'Erro ao obter historico de cotacoes' });
     }
   });
 
   return router;
 }
-
-// ---
 
 const parsePreco = (s) => {
   if (!s || typeof s !== 'string') return null;
@@ -117,14 +163,45 @@ const toTimestamp = (s) => {
   return Number.isNaN(d?.getTime?.()) ? null : d;
 };
 
+function montarDadosDoCache(rows) {
+  const data = {};
+  for (const provedor of COTACOES_PROVEDORES) {
+    data[provedor] = [];
+  }
+  for (const row of rows) {
+    data[row.provedor] = row.dados;
+  }
+  return data;
+}
+
+function cacheEstaExpirado(rows) {
+  if (rows.length === 0) return true;
+
+  const timestamps = rows
+    .map((row) => new Date(row.data_atualizacao).getTime())
+    .filter(Number.isFinite);
+  const oldestTimestamp = Math.min(...timestamps);
+
+  return !Number.isFinite(oldestTimestamp) || Date.now() - oldestTimestamp > COTACOES_REFRESH_MS;
+}
+
+function mesclarComCache(cachedData, freshData) {
+  const merged = {};
+  for (const provedor of COTACOES_PROVEDORES) {
+    const freshItems = Array.isArray(freshData?.[provedor]) ? freshData[provedor] : null;
+    const cachedItems = Array.isArray(cachedData?.[provedor]) ? cachedData[provedor] : [];
+    merged[provedor] = freshItems && freshItems.length > 0 ? freshItems : cachedItems;
+  }
+  return merged;
+}
+
 async function salvarCacheEHistorico(pool, data) {
   const now = new Date();
 
   await pool.query('DELETE FROM tb_cotacoes_cache');
 
-  const provedores = ['coamo', 'larAgro', 'granos', 'cvale'];
   await Promise.all(
-    provedores.map((p) =>
+    COTACOES_PROVEDORES.map((p) =>
       pool.query(
         'INSERT INTO tb_cotacoes_cache (provedor, dados, data_atualizacao) VALUES ($1, $2::jsonb, $3)',
         [p, JSON.stringify(data[p] || []), now]
