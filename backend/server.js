@@ -38,13 +38,30 @@ const configuredCorsOrigins = [
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  ...configuredCorsOrigins,
+  ...configuredCorsOrigins.filter((origin) => !origin.includes("*")),
 ].map((origin) => origin.replace(/\/$/, ""));
+
+const wildcardOrigins = configuredCorsOrigins
+  .filter((origin) => origin.includes("*"))
+  .map((origin) => {
+    const normalized = origin.replace(/\/$/, "");
+    const escaped = normalized.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`^${escaped.replace(/\*/g, ".*")}$`);
+  });
+
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  const normalized = origin.replace(/\/$/, "");
+  return (
+    allowedOrigins.includes(normalized) ||
+    wildcardOrigins.some((pattern) => pattern.test(normalized))
+  );
+}
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
 
@@ -143,10 +160,11 @@ app.use("/api/responde-agro", respondeAgroRoutes);
 import createConfiguracaoRoutes from "./routes/configuracao.js";
 app.use("/api/configuracao", verifyToken, createConfiguracaoRoutes(pool));
 
+import createCotacoesRoutes from "./routes/cotacoes.js";
+app.use("/api/cotacoes", verifyToken, createCotacoesRoutes(pool));
+
 import usuarios from "./routes/usuarios.js";
 app.use("/api", verifyToken, usuarios);
-import createCotacoesRoutes from "./routes/cotacoes.js";
-app.use("/api/cotacoes", createCotacoesRoutes(pool));
 
 const swaggerDocument = {
   openapi: "3.0.0",

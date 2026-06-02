@@ -19,6 +19,8 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: CORS_ORIGIN
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: CAPTCHA_ENABLED
