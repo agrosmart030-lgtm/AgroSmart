@@ -16,51 +16,85 @@ import larLogo from '../../assets/lar.png';
 import granosLogo from '../../assets/granos_logo.png';
 import cvaleLogo from '../../assets/cvaleLogo.jpg';
 
+const normalizarNomeGrao = (nome = '') => {
+  const normalized = String(nome)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+
+  if (normalized.includes('SOJA')) return 'SOJA';
+  if (normalized.includes('MILHO')) return 'MILHO';
+  if (normalized.includes('TRIGO')) return 'TRIGO';
+  if (normalized.includes('CAFE')) return 'CAFE';
+  if (normalized.includes('FEIJAO')) return 'FEIJAO';
+  return String(nome).trim().toUpperCase();
+};
+
+const formatarPrecoCotacao = (preco = '') => {
+  const raw = String(preco).replace(/\u00a0/g, ' ').trim();
+  const match = raw.match(/\d{1,3}(?:\.\d{3})*,\d{2}|\d+(?:[.,]\d{1,2})?/);
+
+  if (!match) return '';
+
+  const normalized = match[0].replace(/\./g, '').replace(',', '.');
+  const value = Number(normalized);
+
+  if (!Number.isFinite(value)) return '';
+
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const mapearProdutoCotacao = (item) => {
+  const nome = normalizarNomeGrao(item?.grao);
+  const preco = formatarPrecoCotacao(item?.preco);
+
+  if (!nome || !preco) return null;
+
+  return {
+    nome,
+    preco,
+    variacao: item.variacao || '',
+  };
+};
+
+const mapearProdutosCotacao = (items) =>
+  items.map(mapearProdutoCotacao).filter(Boolean);
+
 function transformarCotacoesParaCooperativas(cotacoes) {
   if (!cotacoes || typeof cotacoes !== 'object') return [];
   const coamoArr = Array.isArray(cotacoes.coamo) ? cotacoes.coamo : [];
   const larArr = Array.isArray(cotacoes.larAgro) ? cotacoes.larAgro : [];
   const cvaleArr = Array.isArray(cotacoes.cvale) ? cotacoes.cvale : [];
+  const granosArr = Array.isArray(cotacoes.granos) ? cotacoes.granos : [];
   return [
     {
       nome: 'COAMO',
       logo: coamoLogo,
       telefone: '556721088600',
-      produtos: coamoArr.map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) || [],
+      produtos: mapearProdutosCotacao(coamoArr),
     },
     {
       nome: 'LAR',
       logo: larLogo,
       telefone: '556734243449',
-      produtos: larArr.map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) || [],
+      produtos: mapearProdutosCotacao(larArr),
     },
     {
       nome: 'GRANOS',
       logo: granosLogo,
       telefone: '556730278700',
-      produtos: (cotacoes.granos || []).map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) || [],
+      produtos: mapearProdutosCotacao(granosArr),
     },
     {
       nome: 'CVALE',
       logo: cvaleLogo,
       telefone: '554436498181',
-      produtos: cvaleArr.map(item => ({
-        nome: item.grao,
-        preco: item.preco,
-        variacao: item.variacao || '',
-      })) || [],
+      produtos: mapearProdutosCotacao(cvaleArr),
     },
   ];
 }
@@ -427,12 +461,12 @@ const DashboardPage = () => {
                     
                     {cooperativaParaExibir ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                        {cooperativaParaExibir.produtos.map(produto => {
+                        {cooperativaParaExibir.produtos.map((produto, index) => {
                           const variacaoStr = produto.variacao || '';
                           const isNegative = variacaoStr.includes('-');
 
                           return (
-                            <div key={produto.nome} className="bg-white dark:bg-[#14241d] p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[120px] hover:shadow-md transition-all duration-200 group">
+                            <div key={`${produto.nome}-${index}`} className="bg-white dark:bg-[#14241d] p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 flex flex-col justify-between min-h-[120px] hover:shadow-md transition-all duration-200 group">
                               <div className="flex justify-between items-start">
                                 <div>
                                   <h3 className="text-[#012d1d] dark:text-white font-bold text-base uppercase tracking-tight">{produto.nome}</h3>
