@@ -299,10 +299,13 @@ const DashboardPage = () => {
   }, [apiCooperativas, filteredData, filtroCooperativa, searchTerm]);
 
   useEffect(() => {
-    const isSelectedInList = displayedData.some(c => c.nome === selectedCoopName);
-    if (!isSelectedInList) {
-        const firstWithProducts = displayedData.find(c => c.produtos?.length > 0);
-        setSelectedCoopName(firstWithProducts?.nome || displayedData[0]?.nome || null);
+    const selectedCoop = displayedData.find(c => c.nome === selectedCoopName);
+    const firstWithProducts = displayedData.find(c => c.produtos?.length > 0);
+    const shouldPreferCoopWithProducts =
+      firstWithProducts && (!selectedCoop || selectedCoop.produtos?.length === 0);
+
+    if (shouldPreferCoopWithProducts || (!selectedCoop && displayedData.length > 0)) {
+      setSelectedCoopName(firstWithProducts?.nome || displayedData[0]?.nome || null);
     }
   }, [displayedData, selectedCoopName]);
 
