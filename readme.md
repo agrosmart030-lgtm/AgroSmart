@@ -56,8 +56,9 @@ AgroSmart/
 - Login com JWT para usuários e administradores.
 - Senhas de usuários com hash bcrypt.
 - Recuperação e redefinição de senha por e-mail.
-- Dashboard de cotações, filtros por grão/cooperativa e histórico.
+- Dashboard de cotações com cards de resumo, filtros por grão/cooperativa, histórico e gráficos comparativos.
 - Cache e histórico de cotações no PostgreSQL.
+- Análise inteligente simples de cotações, baseada em regras e estatísticas do histórico.
 - Consulta climática via OpenWeatherMap.
 - FAQ público com gravação no banco.
 - Consulta técnica via API RespondeAgro da Embrapa.
@@ -285,6 +286,9 @@ npm run build:backend
 | POST | `/api/reset-password` | Redefinição de senha |
 | GET | `/api/cotacoes/todos` | Cotações cacheadas/agregadas |
 | GET | `/api/cotacoes/historico` | Histórico de cotações |
+| GET | `/api/cotacoes/analise` | Análise simples de tendência, variação e melhores preços |
+| POST | `/api/cotacoes/refresh` | Atualiza o cache de cotações a partir da API externa |
+| GET | `/api/cotacoes/cache-status` | Diagnóstico do cache e disponibilidade de cotação do dia |
 | GET/POST | `/api/faq` | Mensagens de FAQ |
 | GET | `/api/responde-agro` | Consulta técnica Embrapa |
 | GET | `/api/configuracao/:usuario_id` | Dados do perfil |
@@ -292,6 +296,41 @@ npm run build:backend
 | PATCH | `/api/usuarios/:id/status` | Alteração de status |
 | GET | `/api/tabelas` | Listagem de tabelas |
 | GET | `/api/tabelas/:tabela` | Dados de uma tabela |
+
+## Painel de Cotações e Análise Inteligente
+
+O painel de cotações usa dados de `/api/cotacoes/todos`, histórico de `/api/cotacoes/historico` e a rota `/api/cotacoes/analise` para exibir:
+
+- cards de maior cotação, menor cotação, média de preço e última atualização;
+- gráfico comparativo das cotações atuais;
+- gráfico de evolução histórica por cooperativa, grão e período;
+- resumo inteligente com tendência de alta, queda, estabilidade ou dados insuficientes;
+- sugestão textual simples para o produtor com base em variação percentual e melhor preço encontrado.
+
+A análise inteligente não depende de API paga de IA. Ela usa regras determinísticas, estatística básica e os registros salvos em `tb_cotacoes_cache` e `tb_cotacoes_historico`.
+
+Teste da análise no backend:
+
+```http
+GET /api/cotacoes/analise?period=30d
+Authorization: Bearer <token>
+```
+
+Filtros aceitos:
+
+```text
+period=7d | 30d | 6m | 1y
+grao=SOJA | MILHO | TRIGO | CAFE | FEIJAO
+```
+
+Exemplo:
+
+```http
+GET /api/cotacoes/analise?grao=SOJA&period=6m
+Authorization: Bearer <token>
+```
+
+Limitações: a análise depende da qualidade e frequência das fontes de cotação. Quando há poucos registros históricos, a API retorna mensagem de dados insuficientes em vez de inferir tendência artificialmente.
 
 ## Segurança e Boas Práticas
 
