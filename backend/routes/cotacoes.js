@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import axios from 'axios';
+import { gerarAnaliseCotacoes } from '../services/cotacoesAnalise.js';
 
 const SCRAPING_API_URL = (
   process.env.AGROSMART_SCRAPING_API_URL || 'https://agrosmartapi.onrender.com'
@@ -29,7 +30,7 @@ export default function createCotacoesRoutes(pool) {
   });
 
   router.get('/', (_req, res) => {
-    res.json({ ok: true, routes: ['/todos', '/historico', '/refresh', '/cache-status'] });
+    res.json({ ok: true, routes: ['/todos', '/historico', '/analise', '/refresh', '/cache-status'] });
   });
 
   router.get('/todos', async (_req, res) => {
@@ -103,6 +104,20 @@ export default function createCotacoesRoutes(pool) {
     } catch (err) {
       console.error('Erro na rota /api/cotacoes/cache-status:', err.message || err);
       res.status(500).json({ error: 'Erro ao consultar cache de cotacoes' });
+    }
+  });
+
+  router.get('/analise', async (req, res) => {
+    try {
+      const analise = await gerarAnaliseCotacoes(pool, {
+        grao: req.query.grao,
+        period: req.query.period,
+      });
+
+      res.json(analise);
+    } catch (err) {
+      console.error('Erro na rota /api/cotacoes/analise:', err.message || err);
+      res.status(500).json({ error: 'Erro ao gerar analise de cotacoes' });
     }
   });
 
