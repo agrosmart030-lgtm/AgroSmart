@@ -49,7 +49,8 @@ export async function gerarAnaliseCotacoes(pool, filtros = {}) {
     )
   );
 
-  const estatisticas = calcularEstatisticas(cotacoesAtuais);
+  const estatisticas = calcularResumoGeral(cotacoesAtuais, analisesPorGrao);
+  const estatisticasPorGrao = analisesPorGrao.map((item) => item.estatisticas);
   const melhoresPrecos = analisesPorGrao
     .map((item) => item.melhorPreco)
     .filter(Boolean)
@@ -63,6 +64,7 @@ export async function gerarAnaliseCotacoes(pool, filtros = {}) {
     },
     resumo: gerarResumo(analisesPorGrao, estatisticas),
     estatisticas,
+    estatisticasPorGrao,
     melhoresPrecos,
     graos: analisesPorGrao,
   };
@@ -119,6 +121,15 @@ function extrairCotacoesAtuais(rows) {
 
 function analisarGrao(grao, atuais, historico) {
   const atualOrdenado = [...atuais].sort((a, b) => b.preco - a.preco);
+  const comparativoCooperativas = atualOrdenado.map((item) => ({
+    grao,
+    cooperativa: item.provedor,
+    preco: item.preco,
+    precoFormatado: item.precoFormatado,
+    local: item.local,
+    unidade: item.unidade,
+    data_hora: item.data_hora,
+  }));
   const melhorPreco = atualOrdenado[0]
     ? {
         grao,
@@ -136,6 +147,7 @@ function analisarGrao(grao, atuais, historico) {
       ? ((precoAtual - precoAnterior) / precoAnterior) * 100
       : null;
   const tendencia = classificarTendencia(variacaoPercentual);
+  const estatisticas = calcularEstatisticasGrao(grao, atuais);
 
   return {
     grao,
@@ -148,6 +160,8 @@ function analisarGrao(grao, atuais, historico) {
       Number.isFinite(precoAnterior) ? Number(Number(precoAnterior).toFixed(2)) : null,
     precoAnteriorFormatado: Number.isFinite(precoAnterior) ? formatCurrency(precoAnterior) : null,
     melhorPreco,
+    estatisticas,
+    comparativoCooperativas,
     registrosAtuais: atuais.length,
     pontosHistorico: serie.length,
     serie,
@@ -175,9 +189,10 @@ function consolidarSerie(historico) {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-function calcularEstatisticas(cotacoes) {
+function calcularEstatisticasGrao(grao, cotacoes) {
   if (cotacoes.length === 0) {
     return {
+      grao,
       totalCotacoes: 0,
       maiorCotacao: null,
       menorCotacao: null,
@@ -196,12 +211,29 @@ function calcularEstatisticas(cotacoes) {
   const mediaPreco = media(cotacoes.map((item) => item.preco));
 
   return {
+    grao,
     totalCotacoes: cotacoes.length,
     maiorCotacao: formatResumoCotacao(ordenadas[0]),
     menorCotacao: formatResumoCotacao(ordenadas[ordenadas.length - 1]),
     mediaPreco: Number(mediaPreco.toFixed(2)),
     mediaPrecoFormatada: formatCurrency(mediaPreco),
     ultimaAtualizacao,
+  };
+}
+
+function calcularResumoGeral(cotacoes, analisesPorGrao) {
+  const ultimaAtualizacao = cotacoes
+    .map((item) => item.data_hora || item.dataAtualizacaoCache)
+    .filter(Boolean)
+    .sort((a, b) => toComparableTime(a) - toComparableTime(b))
+    .at(-1);
+
+  return {
+    totalCotacoes: cotacoes.length,
+    totalGraos: analisesPorGrao.length,
+    ultimaAtualizacao: ultimaAtualizacao || null,
+    observacao:
+      'Comparativos de maior, menor e media sao calculados separadamente por grao.',
   };
 }
 
