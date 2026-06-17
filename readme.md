@@ -124,6 +124,8 @@ EMBRAPA_CONSUMER_KEY=
 EMBRAPA_CONSUMER_SECRET=
 
 COTACOES_REFRESH_MINUTES=30
+COTACOES_HISTORY_RETENTION_DAYS=400
+COTACOES_HISTORY_MAX_ROWS=20000
 FRONTEND_URL=http://localhost:5173
 CORS_ORIGIN=
 ```
@@ -310,6 +312,8 @@ O painel de cotações usa dados de `/api/cotacoes/todos`, histórico de `/api/c
 Importante: o sistema não calcula média nem ranqueia maior/menor preço misturando grãos diferentes. Quando `/api/cotacoes/analise` é chamada sem `grao`, a resposta traz uma lista em `graos`, e cada item possui suas próprias `estatisticas` e `comparativoCooperativas`.
 
 A análise inteligente não depende de API paga de IA. Ela usa regras determinísticas, estatística básica e os registros salvos em `tb_cotacoes_cache` e `tb_cotacoes_historico`.
+
+Para evitar consumo excessivo no Supabase Free, o backend grava no histórico no máximo uma cotação por provedor, grão, local e dia. A limpeza automática também remove registros acima de `COTACOES_HISTORY_RETENTION_DAYS` e limita a tabela a `COTACOES_HISTORY_MAX_ROWS` linhas mais recentes.
 
 Teste da análise no backend:
 

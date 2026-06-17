@@ -51,3 +51,7 @@ services:
         sync: false
       - key: COTACOES_REFRESH_MINUTES
         value: "30"
+      - key: COTACOES_HISTORY_RETENTION_DAYS
+        value: "400"
+      - key: COTACOES_HISTORY_MAX_ROWS
+        value: "20000"

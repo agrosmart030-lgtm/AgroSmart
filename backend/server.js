@@ -649,6 +649,8 @@ async function ensureCotacoesHistoricoTable() {
       CREATE INDEX IF NOT EXISTS idx_hist_provedor ON tb_cotacoes_historico(provedor);
       CREATE INDEX IF NOT EXISTS idx_hist_grao ON tb_cotacoes_historico(grao);
       CREATE INDEX IF NOT EXISTS idx_hist_created_at ON tb_cotacoes_historico(created_at);
+      CREATE INDEX IF NOT EXISTS idx_hist_data_hora ON tb_cotacoes_historico(data_hora);
+      CREATE INDEX IF NOT EXISTS idx_hist_lookup ON tb_cotacoes_historico(provedor, grao, local);
     `);
   } catch (e) {
     console.error(

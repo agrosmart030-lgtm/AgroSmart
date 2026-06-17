@@ -378,6 +378,8 @@ A tela de login autentica usuários e administradores. O frontend envia e-mail, 
 
 O dashboard exibe cooperativas, grãos, preços atuais, filtros e histórico. A tela foi estruturada para funcionar em desktop e telas menores, com tabelas em contêineres roláveis quando necessário.
 
+Para evitar consumo excessivo do plano gratuito do Supabase, o backend limita o histórico de cotações a uma entrada diária por provedor, grão e local. A rotina também aplica retenção configurável por \texttt{COTACOES\_HISTORY\_RETENTION\_DAYS} e teto de linhas por \texttt{COTACOES\_HISTORY\_MAX\_ROWS}.
+
 \section{Clima}
 
 A página de clima consulta a API OpenWeatherMap. A chave é configurada por \texttt{VITE\_OPENWEATHER\_API\_KEY}. Caso a chave não esteja presente, a interface informa erro amigável sem quebrar a aplicação.
