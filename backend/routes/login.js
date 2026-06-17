@@ -70,7 +70,7 @@ export default function createLoginRoutes(pool) {
           return res.json({ success: true, usuario: admin, tipo_usuario: "admin", token });
         }
         const usuario = result.rows[0];
-        const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+        const senhaCorreta = await compareStoredPassword(senha, usuario.senha);
         if (!senhaCorreta) {
           return res
             .status(401)
