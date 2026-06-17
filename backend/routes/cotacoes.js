@@ -58,6 +58,16 @@ export default function createCotacoesRoutes(pool) {
         await salvarCacheEHistorico(pool, mergedData);
         return res.json(mergedData);
       } catch (scrapingErr) {
+        const partialData = await buscarCotacoesPorProvedor(cachedData);
+        const hasPartialData = Object.values(partialData).some(
+          (items) => Array.isArray(items) && items.length > 0
+        );
+
+        if (hasPartialData) {
+          await salvarCacheEHistorico(pool, partialData);
+          return res.json(partialData);
+        }
+
         if (cached.rows.length > 0) {
           console.warn(
             'Erro ao atualizar cotacoes; retornando cache local:',
@@ -80,8 +90,17 @@ export default function createCotacoesRoutes(pool) {
         'SELECT provedor, dados, data_atualizacao FROM tb_cotacoes_cache ORDER BY provedor'
       );
       const cachedData = montarDadosDoCache(cached.rows);
-      const { data } = await scrapingApi.get('/api/cotacoes/todos');
-      const mergedData = mesclarComCache(cachedData, data);
+      let mergedData;
+      try {
+        const { data } = await scrapingApi.get('/api/cotacoes/todos');
+        mergedData = mesclarComCache(cachedData, data);
+      } catch (scrapingErr) {
+        console.warn(
+          'Erro ao atualizar cotacoes consolidadas; tentando fontes individuais:',
+          scrapingErr.message || scrapingErr
+        );
+        mergedData = await buscarCotacoesPorProvedor(cachedData);
+      }
       await salvarCacheEHistorico(pool, mergedData);
 
       res.json({
@@ -229,6 +248,37 @@ function mesclarComCache(cachedData, freshData) {
     }
   }
   return merged;
+}
+
+async function buscarCotacoesPorProvedor(cachedData = {}) {
+  const endpoints = {
+    coamo: '/api/cotacoes/coamo',
+    larAgro: '/api/cotacoes/lar',
+    cvale: '/api/cotacoes/cvale',
+  };
+  const data = {};
+
+  for (const provedor of COTACOES_PROVEDORES) {
+    data[provedor] = Array.isArray(cachedData[provedor]) ? cachedData[provedor] : [];
+  }
+
+  await Promise.all(
+    Object.entries(endpoints).map(async ([provedor, endpoint]) => {
+      try {
+        const response = await scrapingApi.get(endpoint, { timeout: 15000 });
+        if (Array.isArray(response.data)) {
+          data[provedor] = response.data;
+        }
+      } catch (err) {
+        console.warn(
+          `Erro ao buscar cotacoes de ${provedor}; usando cache se existir:`,
+          err.message || err
+        );
+      }
+    })
+  );
+
+  return data;
 }
 
 function temCotacaoDeHoje(items) {
