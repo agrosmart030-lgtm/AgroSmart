@@ -55,6 +55,12 @@ Thumbs.db
 # Logs de teste
 coverage/
 
+# Dependencias temporarias criadas em testes locais de conexao PostgreSQL
+pydeps_tmp/
+pg2_tmp/
+pg8000_tmp/
+tools/nuget/
+
 # Arquivos de configuração do npm
 package-lock.json
 yarn.lock

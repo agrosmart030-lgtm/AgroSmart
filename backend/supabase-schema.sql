@@ -88,6 +88,12 @@ CREATE INDEX IF NOT EXISTS idx_hist_grao
 CREATE INDEX IF NOT EXISTS idx_hist_created_at
     ON tb_cotacoes_historico(created_at);
 
+CREATE INDEX IF NOT EXISTS idx_hist_data_hora
+    ON tb_cotacoes_historico(data_hora);
+
+CREATE INDEX IF NOT EXISTS idx_hist_lookup
+    ON tb_cotacoes_historico(provedor, grao, local);
+
 CREATE TABLE IF NOT EXISTS tb_faq (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,

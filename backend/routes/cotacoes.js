@@ -18,6 +18,14 @@ const scrapingApi = axios.create({
 
 const COTACOES_REFRESH_MINUTES = Number(process.env.COTACOES_REFRESH_MINUTES || 30);
 const COTACOES_REFRESH_MS = Math.max(COTACOES_REFRESH_MINUTES, 1) * 60 * 1000;
+const COTACOES_HISTORY_RETENTION_DAYS = Math.max(
+  Number(process.env.COTACOES_HISTORY_RETENTION_DAYS || 400),
+  30
+);
+const COTACOES_HISTORY_MAX_ROWS = Math.max(
+  Number(process.env.COTACOES_HISTORY_MAX_ROWS || 20000),
+  1000
+);
 const COTACOES_PROVEDORES = ['coamo', 'larAgro', 'granos', 'cvale'];
 const COTACOES_TIME_ZONE = 'America/Sao_Paulo';
 
@@ -94,6 +102,8 @@ export default function createCotacoesRoutes(pool) {
 
       res.json({
         refreshMinutes: COTACOES_REFRESH_MINUTES,
+        historyRetentionDays: COTACOES_HISTORY_RETENTION_DAYS,
+        historyMaxRows: COTACOES_HISTORY_MAX_ROWS,
         expired: cacheEstaExpirado(cached.rows),
         today: dataHojeKey(),
         providers: cached.rows.map((row) => ({
@@ -285,17 +295,26 @@ async function salvarCacheEHistorico(pool, data) {
   const histInserts = [];
   for (const [chave, label] of Object.entries(mapaProvedor)) {
     for (const item of data[chave] || []) {
+      const dataCotacao = toTimestamp(item.data_hora) || now;
       histInserts.push(
         pool.query(
           `INSERT INTO tb_cotacoes_historico (provedor, grao, preco, unidade, local, data_hora, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+           SELECT $1, $2, $3, $4, $5, $6, $7
+           WHERE NOT EXISTS (
+             SELECT 1
+             FROM tb_cotacoes_historico
+             WHERE provedor = $1
+               AND LOWER(TRIM(COALESCE(grao, ''))) = LOWER(TRIM(COALESCE($2::text, '')))
+               AND LOWER(TRIM(COALESCE(local, ''))) = LOWER(TRIM(COALESCE($5::text, '')))
+               AND DATE(COALESCE(data_hora, created_at)) = DATE($6::timestamp)
+           )`,
           [
             label,
             item.grao || null,
             parsePreco(item.preco),
             item.unidade || null,
             item.local || null,
-            toTimestamp(item.data_hora) || now,
+            dataCotacao,
             now,
           ]
         )
@@ -303,4 +322,25 @@ async function salvarCacheEHistorico(pool, data) {
     }
   }
   await Promise.all(histInserts);
+
+  await limparHistoricoCotacoes(pool);
+}
+
+async function limparHistoricoCotacoes(pool) {
+  await pool.query(
+    `DELETE FROM tb_cotacoes_historico
+     WHERE COALESCE(data_hora, created_at) < NOW() - ($1::int * INTERVAL '1 day')`,
+    [COTACOES_HISTORY_RETENTION_DAYS]
+  );
+
+  await pool.query(
+    `DELETE FROM tb_cotacoes_historico
+     WHERE id IN (
+       SELECT id
+       FROM tb_cotacoes_historico
+       ORDER BY COALESCE(data_hora, created_at) DESC, id DESC
+       OFFSET $1
+     )`,
+    [COTACOES_HISTORY_MAX_ROWS]
+  );
 }
